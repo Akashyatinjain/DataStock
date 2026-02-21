@@ -1,4 +1,4 @@
-import app from "./src/app"
+import app from "./src/app.js"
 import { Prisma } from "@prisma/client"
 
 const port = process.env.DATABASE_URL || 3000;

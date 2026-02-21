@@ -1,21 +1,22 @@
 import app from "./src/app.js"
-import { Prisma } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 
-const port = process.env.DATABASE_URL || 3000;
+const prisma = new PrismaClient()
+
+const PORT = process.env.PORT || 5000
 
 async function StartServer() {
-    try{
-       await Prisma.$connect();
-       console.log("Database connected successfully");
+   try {
+      await prisma.$connect()
+      console.log("Database Connected")
 
-       app.listen(port, () => {
-       console.log(`Server running on port ${port}`);
-    });
+      app.listen(PORT, () => {
+         console.log(`Server running on port ${PORT}`)
+      })
 
-    }
-    catch(err){
-        console.log("Internal Connection Isuue");
-        process.exit(1);
-    }
+   } catch (err) {
+      console.log("Internal Connection Issue", err)
+   }
 }
-StartServer();
+
+StartServer()

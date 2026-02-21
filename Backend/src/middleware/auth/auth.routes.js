@@ -4,6 +4,6 @@ import { signUpvalidation,loginValidation } from "./auth.validation.js";
 const router = express.Router();
 
 router.post("/login",loginValidation,signInUser);
-router.post("signup",signUpvalidation,signUpUser);
+router.post("/signup",signUpvalidation,signUpUser);
 
 export default router;

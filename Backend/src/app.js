@@ -17,7 +17,7 @@ app.use(morgan("dev"));
 app.use(limiter);
 app.use(express.json());
 
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 
 app.use(errorHandler);

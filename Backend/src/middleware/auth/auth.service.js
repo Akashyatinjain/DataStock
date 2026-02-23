@@ -35,52 +35,6 @@ export const signUpUserLocal = async ({username,email,password},res) =>{
 }
 
 
-// export const signInUserLocal = async({email,password},res)=>{
-//      if (!email || !password) {
-//     return res.status(400).json({
-//       message: "Email and password are required",
-//     });
-//   }
-
-//   const normalizedEmail = email.toLowerCase().trim();
-//   const user = await findUserByEmail(normalizedEmail);
-
-//   if (!user) {
-//     return res.status(400).json({
-//       message: "Invalid credentials",
-//     });
-//   }
-
-//   if (user.authProvider !== "local") {
-//     return res.status(400).json({
-//       message: "Please login using your original authentication method",
-//     });
-//   }
-
-//   if (!user.password) {
-//     return res.status(400).json({
-//       message: "Invalid credentials",
-//     });
-//   }
-
-//   const isMatch = await comparePassword(password);
-//   if(!isMatch){
-//     return res.status(400).json({
-//       message: "Invalid credentials",
-//     });
-//   }
-
-//   const token = createToken(user);
-//   setAuthCookie(res, token);
-
-//   const { password: _, ...safeUser } = user;
-
-//   return {
-//     message: "Signed in successfully",
-//     user: safeUser
-//   };
-
-// }
 
 export const signInUserLocal = async ({ email, password }, res) => {
 
@@ -109,4 +63,33 @@ export const signInUserLocal = async ({ email, password }, res) => {
     message: "Signed in successfully",
     user: safeUser
   };
+};
+
+
+
+export const googleLogin = async (googleUser) => {
+
+  const { email, name, googleId } = googleUser;
+
+  // 1️⃣ Check if user already exists by email
+  let user = await authRepo.findUserByEmail(email);
+
+  if (user) {
+
+    // If user exists but signed up via password
+    if (user.authProvider !== "google") {
+      throw new Error("Account already exists with different login method");
+    }
+
+    return user;
+  }
+
+  // 2️⃣ Create new Google user
+  user = await authRepo.createGoogleUser({
+    email,
+    username: name,
+    googleId
+  });
+
+  return user;
 };

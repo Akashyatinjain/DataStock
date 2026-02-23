@@ -4,7 +4,8 @@ import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import  {errorHandler}  from "./middleware/errorHandler.js";
 import authRoutes from "./middleware/auth/auth.routes.js"
-
+import  session  from "express-session";
+import passport from "./middleware/auth/providers/googleAuth.js";
 const app = express();
 const limiter = rateLimit({
     windowMs:60*1000,
@@ -12,6 +13,16 @@ const limiter = rateLimit({
 })
 
 app.disable("x-powered-by");
+app.use(
+  session({
+    secret: "secretkey",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(Helmet());
 app.use(morgan("dev"));
 app.use(limiter);

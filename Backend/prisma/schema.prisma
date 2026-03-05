@@ -29,3 +29,12 @@ model User {
   storageUsed Int    @default(0)
   createdAt DateTime @default(now())
 }
+
+
+model EmailOTP {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

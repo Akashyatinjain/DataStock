@@ -16,6 +16,23 @@ export const signInUser = asyncHandler(async (req, res) => {
 });
 
 
+export const sendOTPController=asyncHandler(async (req,res)=>{
+  const { email } = req.body;
+console.log("Email received:", email);
+  const result = await authService.requestOTPService(email);
+
+  res.json(result);
+});
+
+
+export const verifyOTPController = async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await authService.verifyOTPService(email, otp);
+
+  res.json(result);
+};
+
 
 export const googleCallback = async (req, res) => {
   try {

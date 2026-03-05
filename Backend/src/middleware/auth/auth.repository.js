@@ -47,9 +47,9 @@ export const deleteExistingOTP = async(email)=>{
   });
 };
 
-export const createOTP = async ({email,otp,expiresAt})=>{
+export const createOTP = async (email, otp, expiresAt) => {
   return prisma.emailOTP.create({
-    data:{
+    data: {
       email,
       otp,
       expiresAt

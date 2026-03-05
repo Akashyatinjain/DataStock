@@ -2,6 +2,11 @@ import express from "express"
 import { signInUser, signUpUser } from "./auth.controller.js"
 import { signUpvalidation,loginValidation } from "./auth.validation.js";
 import passport from "./providers/googleAuth.js";
+import { sendOTP } from "./providers/otpAuth.js";
+import {
+  sendOTPController,
+  verifyOTPController
+} from "./auth.controller.js";
 
 const router = express.Router();
 
@@ -32,5 +37,9 @@ router.get(
     res.redirect("http://localhost:3000/dashboard");
   }
 );
+
+router.post("/send-otp", sendOTPController);
+router.post("/verify-otp", verifyOTPController);
+
 
 export default router;

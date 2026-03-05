@@ -2,6 +2,7 @@ import { createUser,findUserByEmail }   from "./auth.repository.js";
 import { hashPassword,comparePassword } from "./providers/passwordAuth.js";
 import { createToken } from "../../utils/token.utils.js";
 import { setAuthCookie } from "../../utils/cookie.utils.js";
+import { sendOTP,verifyOTP } from "./providers/otpAuth.js";
 
 export const signUpUserLocal = async ({username,email,password},res) =>{
     if (!username || !email) {
@@ -94,4 +95,10 @@ export const googleLogin = async (googleUser) => {
   return user;
 };
 
-export const OtpLogin = async
+export const requestOTPService  = async(email)=>{
+  return await sendOTP(email);
+}
+
+export const verifyOTPService = async (email, otp) => {
+  return await verifyOTP(email, otp);
+};

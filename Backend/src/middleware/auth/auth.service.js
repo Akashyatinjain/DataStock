@@ -93,3 +93,5 @@ export const googleLogin = async (googleUser) => {
 
   return user;
 };
+
+export const OtpLogin = async

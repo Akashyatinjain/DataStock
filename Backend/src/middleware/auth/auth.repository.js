@@ -40,3 +40,10 @@ export const createGoogleUser = ({ email, username, googleId }) => {
     }
   });
 };
+
+export const deleteExistingOTP = async(email)=>{
+  return prisma.emailOTP.deleteMany({
+    where:{email}
+  });
+};
+

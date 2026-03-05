@@ -1,5 +1,4 @@
 import nodemailer  from "nodemailer";
-import { OtpGenerator } from "../middleware/auth/providers/otpAuth";
 export const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
@@ -13,6 +12,6 @@ export const sendOTPEmail = async (email,otp)=>{
         from:process.env.EMAIL_USER,
         to:email,
         subject:"Your OTP Verification Code",
-        text:`Your otp for login is ${OtpGenerator}`
+        text:`Your otp for login is ${otp}`
     })
 }

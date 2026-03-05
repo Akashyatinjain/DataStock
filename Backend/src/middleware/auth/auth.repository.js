@@ -47,3 +47,30 @@ export const deleteExistingOTP = async(email)=>{
   });
 };
 
+export const createOTP = async ({email,otp,expiresAt})=>{
+  return prisma.emailOTP.create({
+    data:{
+      email,
+      otp,
+      expiresAt
+    }
+  });
+};
+
+export const findValidOTP  = async (email,otp) =>{
+  return prisma.emailOTP.findFirst({
+    where:{
+      email,
+      otp,
+      expiresAt:{
+        gt:new Date()
+      }
+    }
+  });
+};
+
+export const deleteOTP = async (email) => {
+  return prisma.emailOTP.deleteMany({
+    where: { email }
+  });
+};

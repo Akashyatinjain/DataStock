@@ -9,7 +9,7 @@ import passport from "./middleware/auth/providers/googleAuth.js";
 const app = express();
 const limiter = rateLimit({
     windowMs:60*1000,
-    max:10
+    max:100
 })
 
 app.disable("x-powered-by");

@@ -2,7 +2,7 @@ import { deleteExistingOTP, findValidOTP } from "../auth.repository.js";
 import { sendOTPEmail } from "../../../utils/email.util.js";
 import { createOTP,deleteOTP } from "../auth.repository.js";
 
-export const OtpGenerator=(req,res)=>{
+export const OtpGenerator=()=>{
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 

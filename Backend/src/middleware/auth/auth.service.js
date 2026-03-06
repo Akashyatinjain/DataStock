@@ -3,7 +3,7 @@ import { hashPassword,comparePassword } from "./providers/passwordAuth.js";
 import { createToken } from "../../utils/token.utils.js";
 import { setAuthCookie } from "../../utils/cookie.utils.js";
 import { sendOTP,verifyOTP } from "./providers/otpAuth.js";
-
+import * as authRepo from "./auth.repository.js";
 export const signUpUserLocal = async ({username,email,password},res) =>{
     if (!username || !email) {
     return res.status(400).json({

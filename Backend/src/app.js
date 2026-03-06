@@ -6,6 +6,8 @@ import  {errorHandler}  from "./middleware/errorHandler.js";
 import authRoutes from "./middleware/auth/auth.routes.js"
 import  session  from "express-session";
 import passport from "./middleware/auth/providers/googleAuth.js";
+import cookieParser from "cookie-parser";
+
 const app = express();
 const limiter = rateLimit({
     windowMs:60*1000,
@@ -27,6 +29,8 @@ app.use(Helmet());
 app.use(morgan("dev"));
 app.use(limiter);
 app.use(express.json());
+app.use(cookieParser());
+
 
 app.use("/api/auth", authRoutes);
 

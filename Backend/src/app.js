@@ -3,9 +3,9 @@ import Helmet from "helmet"
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import  {errorHandler}  from "./middleware/errorHandler.js";
-import authRoutes from "./middleware/auth/auth.routes.js"
+import authRoutes from "./modules/auth/auth.routes.js"
 import  session  from "express-session";
-import passport from "./middleware/auth/providers/googleAuth.js";
+import passport from "./modules/auth/providers/googleAuth.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.routes.js";
 

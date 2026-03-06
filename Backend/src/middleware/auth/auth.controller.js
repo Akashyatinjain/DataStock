@@ -16,6 +16,15 @@ export const signInUser = asyncHandler(async (req, res) => {
 });
 
 
+export const logoutUser = (req, res) => {
+  res.clearCookie("token");
+
+  res.status(200).json({
+    message: "Logout successful"
+  });
+};
+
+
 export const sendOTPController=asyncHandler(async (req,res)=>{
   const { email } = req.body;
 console.log("Email received:", email);

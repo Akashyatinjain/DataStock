@@ -66,10 +66,6 @@ export const signInUserLocal = async ({ email, password }, res) => {
   };
 };
 
-export const logOut = async(email) =>{
-  
-}
-
 
 
 export const googleLogin = async (googleUser) => {

@@ -7,6 +7,7 @@ import authRoutes from "./middleware/auth/auth.routes.js"
 import  session  from "express-session";
 import passport from "./middleware/auth/providers/googleAuth.js";
 import cookieParser from "cookie-parser";
+import userRoutes from "./modules/user/user.routes.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -33,7 +34,7 @@ app.use(cookieParser());
 
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/user", userRoutes);
 
 app.use(errorHandler);
 

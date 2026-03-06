@@ -1,5 +1,5 @@
 import express from "express"
-import { signInUser, signUpUser } from "./auth.controller.js"
+import { signInUser, signUpUser,logoutUser } from "./auth.controller.js"
 import { signUpvalidation,loginValidation } from "./auth.validation.js";
 import passport from "./providers/googleAuth.js";
 import {
@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post("/login",loginValidation,signInUser);
 router.post("/signup",signUpvalidation,signUpUser);
-
+router.post("/logout", logoutUser);
 
 router.get(
   "/google",

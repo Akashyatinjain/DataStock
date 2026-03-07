@@ -18,7 +18,7 @@ const limiter = rateLimit({
 app.disable("x-powered-by");
 app.use(
   session({
-    secret: "secretkey",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })

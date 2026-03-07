@@ -8,6 +8,7 @@ import  session  from "express-session";
 import passport from "./modules/auth/providers/googleAuth.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.routes.js";
+import listEndpoints from "express-list-endpoints";
 
 const app = express();
 const limiter = rateLimit({
@@ -38,4 +39,5 @@ app.use("/api/user", userRoutes);
 
 app.use(errorHandler);
 
+console.log(listEndpoints(app));
 export default app;

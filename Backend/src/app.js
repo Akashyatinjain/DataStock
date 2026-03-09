@@ -9,7 +9,7 @@ import passport from "./modules/auth/providers/googleAuth.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.routes.js";
 import listEndpoints from "express-list-endpoints";
-
+import cors from "cors";
 const app = express();
 const limiter = rateLimit({
     windowMs:60*1000,
@@ -25,12 +25,16 @@ app.use(
   })
 );
 
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(Helmet());
 app.use(morgan("dev"));
 app.use(limiter);
-app.use(express.json());
 app.use(cookieParser());
 
 

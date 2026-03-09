@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
+import HomePage from './pages/HomePage';
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           } />
           
           {/* Default route - home page */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<HomePage />} />
           
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />

@@ -34,12 +34,22 @@ export const sendOTP = async (email) => {
       message: `OTP sent successfully to ${email}`
    };
 };
-export const verifyOTP = async(email,otp)=>{
-    const record = await findValidOTP(email,otp);
-    if(!record){
-        throw new Error("Invalid or expired OTP");
-    }else{
-        await deleteOTP(email);
-        return { message: "OTP verified successfully" };
-    }
-}
+
+export const verifyOTP = async (email, otp) => {
+
+  const record = await findValidOTP(email);
+
+  if (!record) {
+    throw new Error("OTP expired or not found");
+  }
+
+  const isMatch = await bcrypt.compare(otp, record.otp);
+
+  if (!isMatch) {
+    throw new Error("Invalid OTP");
+  }
+
+  await deleteOTP(email);
+
+  return { message: "OTP verified successfully" };
+};

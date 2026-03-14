@@ -57,13 +57,12 @@ export const createOTP = async (email, otp, expiresAt) => {
   });
 };
 
-export const findValidOTP  = async (email,otp) =>{
+export const findValidOTP = async (email) => {
   return prisma.emailOTP.findFirst({
-    where:{
+    where: {
       email,
-      otp,
-      expiresAt:{
-        gt:new Date()
+      expiresAt: {
+        gt: new Date()
       }
     }
   });

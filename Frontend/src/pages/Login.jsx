@@ -16,6 +16,15 @@ import {
 import { login,sendOtp,verifyOtp } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 
+import { setupAutoLogout } from "../utils/auth";
+
+const logout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "/login";
+};
+
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
@@ -65,27 +74,24 @@ const handlePasswordLogin = async (e) => {
   try {
     setIsLoading(true);
 
-    const res = await login({
-      email,
-      password
-    });
+    const res = await login({ email, password });
 
-    console.log(res.data);
-
+    localStorage.setItem("token", res.data.token);
     localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    // ✅ AUTO LOGOUT HERE
+    setupAutoLogout(res.data.token, logout);
 
     setStep("success");
 
     setTimeout(() => {
-  navigate("/dashboard");
-}, 1500);
+      navigate("/dashboard");
+    }, 1500);
 
   } catch (err) {
-
     setErrors({
       password: err.response?.data?.message || "Login failed"
     });
-
   } finally {
     setIsLoading(false);
   }
@@ -114,7 +120,12 @@ const handleOtpVerification = async (e) => {
     const res = await verifyOtp(email, otpValue);
 
     console.log(res.data);
+if (res.data.token) {
+  localStorage.setItem("token", res.data.token);
 
+  // ✅ correct place
+  setupAutoLogout(res.data.token, logout);
+}
     // save user if backend sends it
     if (res.data.user) {
       localStorage.setItem("user", JSON.stringify(res.data.user));

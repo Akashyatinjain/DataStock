@@ -18,61 +18,82 @@ import {
   Check,
   Star
 } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+ const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleSignup = () => {
+    navigate('/signup');
+  };
 
   return (
     <div className="min-h-screen bg-white font-['Inter']">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <Cloud className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-black">DataStock</span>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-600 hover:text-black transition">Features</a>
-              <a href="#" className="text-gray-600 hover:text-black transition">Pricing</a>
-              <a href="#" className="text-gray-600 hover:text-black transition">Security</a>
-              <a href="#" className="text-gray-600 hover:text-black transition">About</a>
-              <button className="bg-black text-white px-5 py-2 rounded-lg hover:bg-green-700 transition flex items-center space-x-2">
-                <span>Get Started</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <Cloud className="w-5 h-5 text-white" />
             </div>
+            <span className="font-bold text-xl text-black">DataStock</span>
+          </div>
 
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2"
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button
+              onClick={handleLogin}
+              className="px-5 py-2 text-gray-700 font-medium hover:text-green-600 transition"
             >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              Login
+            </button>
+
+            <button
+              onClick={handleSignup}
+              className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition shadow-md"
+            >
+              Sign Up Free
+            </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2"
+          >
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden px-4 pb-4 bg-white border-t border-gray-100">
+          <div className="flex flex-col space-y-3 pt-4">
+            <button
+              onClick={handleLogin}
+              className="w-full text-left px-4 py-2 text-gray-700 hover:text-green-600"
+            >
+              Login
+            </button>
+
+            <button
+              onClick={handleSignup}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Sign Up Free
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#" className="block py-2 text-gray-600">Features</a>
-              <a href="#" className="block py-2 text-gray-600">Pricing</a>
-              <a href="#" className="block py-2 text-gray-600">Security</a>
-              <a href="#" className="block py-2 text-gray-600">About</a>
-              <button className="w-full bg-black text-white px-5 py-3 rounded-lg">
-                Get Started
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+      )}
+    </nav>
 
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">

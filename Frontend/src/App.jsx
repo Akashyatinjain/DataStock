@@ -1,36 +1,45 @@
-// App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
 import SignUp from './pages/signUp';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
-
+import { useState,useEffect } from 'react';
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+ useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
-          
-          {/* Protected Routes - Sirf logged in users ke liye */}
-          <Route path="/dashboard" element={
+    <BrowserRouter>
+      <Routes>
+
+        {/* Home */}
+        <Route path="/" element={<HomePage />} />
+
+        {/* Auth Routes */}
+       <Route path="/login" element={<Login />} />
+<Route path="/signup" element={<SignUp />} />
+
+        {/* Protected Route */}
+        <Route 
+          path="/dashboard" 
+          element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          } />
-          
-          {/* Default route - home page */}
-          <Route path="/" element={<HomePage />} />
-          
-          {/* 404 Page */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-    </Router>
+          } 
+        />
+
+        {/* Catch All (404) */}
+        <Route path="*" element={<NotFound />} />
+
+      </Routes>
+    </BrowserRouter>
   );
 }
 

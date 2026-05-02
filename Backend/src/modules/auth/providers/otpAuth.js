@@ -18,11 +18,11 @@ export const sendOTP = async (email) => {
 
    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-   console.log("Generated OTP:", otp);
+   // console.log("Generated OTP:", otp);
    console.log("Expiry:", expiresAt);
 
    // hash OTP
-   const hashedOTP = await bcrypt.hash(otp, 10);
+   const hashedOTP = await bcrypt.hash(otp, 12);
 
    // store hashed OTP
    await createOTP(email, hashedOTP, expiresAt);

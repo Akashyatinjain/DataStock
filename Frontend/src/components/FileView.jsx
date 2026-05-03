@@ -1,5 +1,5 @@
 // components/FileView.jsx
-import React from 'react';
+import React,{ useState } from 'react';
 import {
   Folder,
   File,
@@ -18,7 +18,8 @@ import {
   Share2,
   Trash2,
   Move,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 
 const FileView = ({ 
@@ -28,6 +29,50 @@ const FileView = ({
   selectedFiles, 
   setSelectedFiles 
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    // Force UI to render first
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/user/upload-profile", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log(data);
+      
+      // Show success popup
+      setUploadedFileName(file.name);
+      setShowSuccessPopup(true);
+      
+      // Auto-hide popup after 3 seconds
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 3000);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+      // Reset the file input value so the same file can be uploaded again
+      e.target.value = '';
+    }
+  };
+
   const getFileIcon = (file) => {
     if (file.isFolder) return Folder;
     const ext = file.name?.split('.').pop().toLowerCase();
@@ -67,7 +112,30 @@ const FileView = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden relative">
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className="bg-white rounded-lg shadow-lg border border-green-200 p-4 flex items-start space-x-3 min-w-[300px]">
+            <div className="flex-shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-gray-900">Upload Successful!</h4>
+              <p className="text-sm text-gray-600 mt-1">
+                <span className="font-medium">{uploadedFileName}</span> has been uploaded successfully.
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowSuccessPopup(false)}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-b border-gray-100">
         <div className="flex items-center space-x-2">
@@ -130,10 +198,25 @@ const FileView = ({
         </div>
 
         <div className="flex items-center space-x-2">
-          <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center space-x-2 text-sm">
-            <Upload className="w-4 h-4" />
-            <span>Upload</span>
-          </button>
+          <label className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg flex items-center space-x-2 text-sm cursor-pointer">
+            {isUploading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                <span>Upload</span>
+              </>
+            )}
+            <input
+              type="file"
+              onChange={handleUpload}
+              className="hidden"
+              disabled={isUploading}
+            />
+          </label>
           <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center space-x-2 text-sm shadow-sm">
             <Folder className="w-4 h-4" />
             <span>New folder</span>

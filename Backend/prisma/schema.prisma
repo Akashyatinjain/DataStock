@@ -11,11 +11,15 @@ model User {
   id           String       @id @default(uuid())
   username     String
   email        String       @unique
-  googleId     String?  @unique
+  googleId     String?      @unique
   password     String?
   storageUsed  Int          @default(0)
+  imageUrl String?
   createdAt    DateTime     @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   authProvider AuthProvider @default(local)
+
+  @@index([email])
 }
 
 model EmailOTP {
@@ -24,6 +28,10 @@ model EmailOTP {
   otp       String
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  // optional improvement:
+  // userId String
+  // user   User @relation(fields: [userId], references: [id])
 }
 
 enum AuthProvider {

@@ -25,3 +25,17 @@ export const updateUserById = async (userId, username) => {
     }
   });
 };
+
+export const updateUserImage = async (userId, imageUrl) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { imageUrl }
+  });
+};
+
+export const updateUserProfileImage = async (userId, imageUrl) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { imageUrl }
+  });
+};

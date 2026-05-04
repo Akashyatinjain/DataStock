@@ -14,7 +14,7 @@ model User {
   googleId     String?      @unique
   password     String?
   storageUsed  Int          @default(0)
-  imageUrl String?
+  imageUrl     String?
   createdAt    DateTime     @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   authProvider AuthProvider @default(local)

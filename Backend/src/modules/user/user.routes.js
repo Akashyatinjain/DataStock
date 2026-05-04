@@ -13,4 +13,5 @@ router.post(
   upload.single("file"),
   uploadProfileImage
 );
+router.get("/me",authenticateUser, getProfile);
 export default router;

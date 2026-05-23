@@ -1,8 +1,10 @@
 import express from "express";
-import { getProfile } from "./user.controller.js";
+import { getProfile, updateProfile } from "./user.controller.js";
 import { authenticateUser } from "../../middleware/authMiddleware.js";
 import { upload } from "../../middleware/multer.middleware.js";
 import { uploadProfileImage } from "./user.controller.js";
+import { updateUser } from "./user.controller.js";
+
 
 const router = express.Router();
 
@@ -14,4 +16,5 @@ router.post(
   uploadProfileImage
 );
 router.get("/me",authenticateUser, getProfile);
+router.put("/update",authenticateUser,updateUser)
 export default router;

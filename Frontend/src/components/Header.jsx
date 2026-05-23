@@ -269,7 +269,7 @@ const Header = ({
                     )}
                   </div>
                   <div className="hidden lg:block text-left">
-                    <span className="block text-sm font-medium text-gray-900 leading-tight">{user?.name}</span>
+                    <span className="block text-sm font-medium text-gray-900 leading-tight">{user?.username}</span>
                     <span className="block text-xs text-gray-500 leading-tight">{user?.email}</span>
                   </div>
                   <ChevronDown className="hidden sm:block w-4 h-4 text-gray-400" />

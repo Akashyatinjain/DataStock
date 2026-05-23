@@ -7,6 +7,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
 import { useState,useEffect } from 'react';
+import Profile from "./pages/Profile";
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
@@ -25,12 +27,14 @@ function App() {
        <Route path="/login" element={<Login />} />
 <Route path="/signup" element={<SignUp />} />
 
+<Route path="/profile" element={<Profile />} />
         {/* Protected Route */}
         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Dashboard />
+              <Profile />
             </ProtectedRoute>
           } 
         />

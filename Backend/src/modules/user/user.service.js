@@ -1,8 +1,15 @@
 import { findUserById } from "./user.repository.js";
-import { updateUserProfileImage as updateUserProfileImageRepo } from "./user.repository.js";
+import {
+  updateUserProfileImage as updateUserProfileImageRepo,
+} from "./user.repository.js";
+
+import { updateUserById } from "./user.repository.js";
+
+// ======================
+// GET USER PROFILE
+// ======================
 
 export const getUserProfile = async (userId) => {
-
   const user = await findUserById(userId);
 
   if (!user) {
@@ -12,15 +19,43 @@ export const getUserProfile = async (userId) => {
   return user;
 };
 
-// user.service.js
+// ======================
+// UPDATE PROFILE IMAGE
+// ======================
 
-
-export const updateUserProfileImage = async (userId, imageUrl) => {
+export const updateUserProfileImage = async (
+  userId,
+  imageUrl
+) => {
   if (!userId || !imageUrl) {
-    throw new Error("UserId and imageUrl are required");
+    throw new Error(
+      "UserId and imageUrl are required"
+    );
   }
 
-  const updatedUser = await updateUserProfileImageRepo(userId, imageUrl);
+  const updatedUser =
+    await updateUserProfileImageRepo(
+      userId,
+      imageUrl
+    );
 
   return updatedUser;
+};
+
+// ======================
+// UPDATE USERNAME
+// ======================
+
+export const updateUser = async (
+  userId,
+  username
+) => {
+  if (!username) {
+    throw new Error("Username is required");
+  }
+
+  return await updateUserById(
+    userId,
+    username
+  );
 };

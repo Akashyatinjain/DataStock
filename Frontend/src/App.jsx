@@ -34,9 +34,17 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
-              <Profile />
+              {/* <Profile /> */}
             </ProtectedRoute>
           } 
+        />
+         <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
         />
 
         {/* Catch All (404) */}

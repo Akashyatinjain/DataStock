@@ -15,12 +15,68 @@ model User {
   password     String?
   storageUsed  Int          @default(0)
   imageUrl     String?
+
   createdAt    DateTime     @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt    DateTime     @default(now()) @updatedAt
+
   authProvider AuthProvider @default(local)
+
+  files        File[]
+  folders      Folder[]
 
   @@index([email])
 }
+
+model File {
+  id            String   @id @default(uuid())
+
+  fileName      String
+  originalName  String
+
+  url           String
+  publicId      String
+
+  mimeType      String
+  size          Int
+
+  isStarred     Boolean  @default(false)
+  isTrash       Boolean  @default(false)
+
+  ownerId       String
+  owner         User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  folderId      String?
+  folder        Folder? @relation(fields: [folderId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([folderId])
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+
+  name        String
+
+  ownerId     String
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  parentId    String?
+  parent      Folder? @relation("FolderHierarchy", fields: [parentId], references: [id])
+
+  children    Folder[] @relation("FolderHierarchy")
+
+  files       File[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([parentId])
+}
+
 
 model EmailOTP {
   id        String   @id @default(uuid())

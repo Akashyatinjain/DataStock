@@ -89,3 +89,29 @@ export const getUserFiles =
       });
     }
   );
+
+
+  export const deleteFile =
+  asyncHandler(
+
+    async (req, res) => {
+
+      const userId =
+        req.user.userId;
+
+      const { id } = req.params;
+
+      const result =
+        await fileService.deleteFileService(
+          id,
+          userId
+        );
+
+      return res.status(200).json({
+
+        success: true,
+
+        ...result
+      });
+    }
+  );

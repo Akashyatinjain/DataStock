@@ -27,7 +27,8 @@ import express from "express";
 
 import {
   uploadFile,
-  getUserFiles
+  getUserFiles,
+  deleteFile
 } from "./file.controller.js";
 
 import {
@@ -68,4 +69,13 @@ router.get(
   getUserFiles
 );
 
+router.delete(
+  "/:id",
+
+  authenticateUser,
+
+  deleteFile
+);
+
 export default router;
+

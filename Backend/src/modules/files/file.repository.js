@@ -42,3 +42,21 @@ export const getFilesByUserId = async (userId) => {
     }
   });
 };
+
+export const findFileById = async (fileId) => {
+
+  return prisma.file.findUnique({
+    where: {
+      id: fileId
+    }
+  });
+};
+
+export const deleteFileById = async (fileId) => {
+
+  return prisma.file.delete({
+    where: {
+      id: fileId
+    }
+  });
+};

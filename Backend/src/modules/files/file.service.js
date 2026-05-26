@@ -38,7 +38,7 @@
 // }
 
 
-import { uploadOnCloudinary } from "../../services/cloudinary.js";
+import { uploadOnCloudinary,deleteFromCloudinary } from "../../services/cloudinary.js";
 
 import * as fileRepo from "./file.repository.js";
 
@@ -117,4 +117,54 @@ export const getUserFilesService = async (
   return await fileRepo.getFilesByUserId(
     userId
   );
+};
+
+export const deleteFileService = async (
+  fileId,
+  userId
+) => {
+
+  // find file
+  const file =
+    await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  // ownership check
+  if (file.ownerId !== userId) {
+    throw new Error(
+      "Unauthorized to delete this file"
+    );
+  }
+
+  // delete from cloudinary
+  await deleteFromCloudinary(
+    file.publicId,
+    file.mimeType.startsWith("video")
+      ? "video"
+      : "image"
+  );
+
+  // delete from db
+  await fileRepo.deleteFileById(fileId);
+
+  // decrease storage used
+  await prisma.user.update({
+
+    where: {
+      id: userId
+    },
+
+    data: {
+      storageUsed: {
+        decrement: file.size
+      }
+    }
+  });
+
+  return {
+    message: "File deleted successfully"
+  };
 };

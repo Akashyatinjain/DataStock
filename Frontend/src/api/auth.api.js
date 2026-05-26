@@ -24,4 +24,28 @@ export const logout = () =>
 export const getProfile = () =>
   API.get("/user/profile");
 
+
+export const getFiles = async () => {
+  const response = await API.get('/files');
+  return response.data;
+};
+
+export const uploadFile = async (formData) => {
+  const response = await API.post(
+    '/files/upload',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const deleteFile = async (fileId) => {
+  const response = await API.delete(`/files/${fileId}`);
+  return response.data;
+};
 export default API;

@@ -13,7 +13,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { login,sendOtp,verifyOtp } from "../api/authApi";
+import { login,sendOtp,verifyOtp } from "../api/auth.api";
 import { useNavigate } from "react-router-dom";
 
 import { setupAutoLogout } from "../utils/auth";

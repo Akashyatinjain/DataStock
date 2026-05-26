@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import API from '../../../api/auth.api';
 
 const Header = ({
   searchQuery,
@@ -73,7 +74,7 @@ const Header = ({
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await API.post('/auth/logout');
       navigate('/login');
     } catch (err) {
       console.error(err);

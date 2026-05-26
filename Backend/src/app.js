@@ -11,7 +11,7 @@ import userRoutes from "./modules/user/user.routes.js";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
 import fileRoutes from "./modules/files/file.routes.js";
-
+import folderRoutes from "./modules/folders/folder.routes.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -44,6 +44,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/folders",folderRoutes);
 
 app.use(errorHandler);
 

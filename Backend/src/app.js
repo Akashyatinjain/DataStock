@@ -10,6 +10,9 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.routes.js";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
+import fileRoutes from "./modules/files/file.routes.js";
+
+
 const app = express();
 const limiter = rateLimit({
     windowMs:60*1000,
@@ -40,6 +43,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/files", fileRoutes);
 
 app.use(errorHandler);
 

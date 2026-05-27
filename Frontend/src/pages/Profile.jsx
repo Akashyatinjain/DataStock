@@ -1,25 +1,37 @@
 // src/pages/Profile.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { 
-  Camera, 
-  Mail, 
-  Calendar, 
-  HardDrive, 
-  Pencil, 
-  Save, 
-  Loader2,
-  User,
-  CheckCircle,
-  AlertCircle,
-  Clock,
-  Folder,
-  Image as ImageIcon,
-  FileText,
-  ArrowLeft
+import {
+  Camera, Mail, Calendar, HardDrive, Pencil, Save, Loader2,
+  User, CheckCircle, AlertCircle, Clock, Folder, Image as ImageIcon,
+  FileText, ArrowLeft, Copy, Trash2, BarChart3, UploadCloud,
+  Settings, Star, Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "http://localhost:5000/api/user";
+const FILES_API_URL = "http://localhost:5000/api/files";
+const FOLDERS_API_URL = "http://localhost:5000/api/folders";
+
+// --- Skeleton loader for the whole page ---
+const ProfileSkeleton = () => (
+  <div className="h-full animate-pulse p-6 max-w-5xl mx-auto space-y-6">
+    <div className="h-8 w-40 bg-gray-200 rounded" />
+    <div className="h-6 w-64 bg-gray-200 rounded" />
+    <div className="bg-white rounded-2xl p-8 flex flex-col lg:flex-row gap-10">
+      <div className="w-40 h-40 rounded-full bg-gray-200" />
+      <div className="flex-1 space-y-4">
+        <div className="h-8 w-48 bg-gray-200 rounded" />
+        <div className="h-12 bg-gray-200 rounded-xl" />
+        <div className="grid md:grid-cols-3 gap-5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+    <div className="h-32 bg-gray-200 rounded-2xl" />
+  </div>
+);
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -28,8 +40,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deletingImage, setDeletingImage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Quick stats (derived from existing backend routes)
+  const [stats, setStats] = useState({ files: 0, folders: 0 });
 
   const fileInputRef = useRef(null);
 
@@ -45,12 +61,9 @@ export default function ProfilePage() {
         method: "GET",
         credentials: "include",
       });
-
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch profile");
-      }
+      if (!response.ok) throw new Error(data.message || "Failed to fetch profile");
 
       setUser(data.user);
       setUsername(data.user.username);
@@ -62,8 +75,38 @@ export default function ProfilePage() {
     }
   };
 
+  // =========================
+  // GET QUICK STATS
+  // =========================
+  const fetchStats = async () => {
+    try {
+      const [filesRes, foldersRes] = await Promise.all([
+        fetch(FILES_API_URL, { credentials: "include" }),
+        fetch(FOLDERS_API_URL, { credentials: "include" }),
+      ]);
+
+      const filesData = filesRes.ok ? await filesRes.json() : null;
+      const foldersData = foldersRes.ok ? await foldersRes.json() : null;
+
+      const files = Array.isArray(filesData)
+        ? filesData
+        : filesData?.files || [];
+      const folders = Array.isArray(foldersData)
+        ? foldersData
+        : foldersData?.folders || [];
+
+      setStats({
+        files: files.length,
+        folders: folders.length,
+      });
+    } catch {
+      // Keep profile page working even if stats fail.
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchStats();
   }, []);
 
   // =========================
@@ -82,20 +125,13 @@ export default function ProfilePage() {
 
       const response = await fetch(`${API_BASE_URL}/update`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          username: username.trim(),
-        }),
+        body: JSON.stringify({ username: username.trim() }),
       });
-
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Update failed");
-      }
+      if (!response.ok) throw new Error(data.message || "Update failed");
 
       setUser(data.user);
       setSuccessMessage("Username updated successfully!");
@@ -117,14 +153,12 @@ export default function ProfilePage() {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         setErrorMessage("Please upload an image file");
         setTimeout(() => setErrorMessage(""), 3000);
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrorMessage("File size should be less than 5MB");
         setTimeout(() => setErrorMessage(""), 3000);
@@ -142,18 +176,11 @@ export default function ProfilePage() {
         credentials: "include",
         body: formData,
       });
-
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Upload failed");
-      }
+      if (!response.ok) throw new Error(data.message || "Upload failed");
 
-      setUser((prev) => ({
-        ...prev,
-        imageUrl: data.imageUrl,
-      }));
-      
+      setUser((prev) => ({ ...prev, imageUrl: data.imageUrl }));
       setSuccessMessage("Profile picture updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
@@ -162,7 +189,47 @@ export default function ProfilePage() {
       setTimeout(() => setErrorMessage(""), 3000);
     } finally {
       setUploading(false);
+      // Reset the file input so the same file can be re‑selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  // =========================
+  // DELETE PROFILE IMAGE
+  // =========================
+  const handleDeleteImage = async () => {
+    if (!user?.imageUrl) return;
+
+    try {
+      setDeletingImage(true);
+      const response = await fetch(`${API_BASE_URL}/delete-profile`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Deletion failed");
+
+      setUser((prev) => ({ ...prev, imageUrl: null }));
+      setSuccessMessage("Profile picture removed.");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setErrorMessage(error.message);
+      setTimeout(() => setErrorMessage(""), 3000);
+    } finally {
+      setDeletingImage(false);
+    }
+  };
+
+  // =========================
+  // COPY EMAIL TO CLIPBOARD
+  // =========================
+  const copyEmail = () => {
+    if (!user?.email) return;
+    navigator.clipboard.writeText(user.email).then(() => {
+      setSuccessMessage("Email copied to clipboard!");
+      setTimeout(() => setSuccessMessage(""), 2000);
+    });
   };
 
   // =========================
@@ -170,40 +237,23 @@ export default function ProfilePage() {
   // =========================
   const formatStorage = (bytes) => {
     if (!bytes) return "0 GB";
-    
     const gb = bytes / (1024 * 1024 * 1024);
-    
     if (gb < 0.01) {
       const mb = bytes / (1024 * 1024);
       return `${mb.toFixed(2)} MB`;
     }
-    
     return `${gb.toFixed(2)} GB`;
-  };
-
-  // =========================
-  // GO BACK TO DASHBOARD
-  // =========================
-  const goBack = () => {
-    navigate("/dashboard");
   };
 
   // =========================
   // LOADING STATE
   // =========================
   if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin text-green-600 mx-auto mb-4" size={48} />
-          <p className="text-gray-500">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   // =========================
-  // ERROR STATE
+  // ERROR STATE (no user at all)
   // =========================
   if (errorMessage && !user) {
     return (
@@ -224,8 +274,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-50">
-      {/* Success Toast */}
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-green-50">
+      {/* ---------- Success Toast ---------- */}
       {successMessage && (
         <div className="fixed top-20 right-6 z-50 animate-slide-down">
           <div className="flex items-center gap-2 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg">
@@ -235,7 +285,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Error Toast */}
+      {/* ---------- Error Toast ---------- */}
       {errorMessage && (
         <div className="fixed top-20 right-6 z-50 animate-slide-down">
           <div className="flex items-center gap-2 bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg">
@@ -246,26 +296,26 @@ export default function ProfilePage() {
       )}
 
       <div className="max-w-5xl mx-auto p-6">
-        {/* Header with Back Button */}
+        {/* ---------- Header with Back Button ---------- */}
         <div className="mb-8">
           <button
-            onClick={goBack}
+            onClick={() => navigate("/dashboard")}
             className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors mb-4 group"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Back to Dashboard</span>
           </button>
-          
           <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
           <p className="text-gray-500 mt-1">Manage your account settings and preferences</p>
         </div>
 
-        {/* Main Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        {/* ============ MAIN PROFILE CARD ============ */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
           <div className="flex flex-col lg:flex-row gap-10">
-            {/* Profile Image Section */}
-            <div className="relative w-fit">
-              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-green-500 shadow-lg bg-gray-100">
+            {/* ---------- Avatar Section ---------- */}
+            <div className="relative w-fit mx-auto lg:mx-0">
+              {/* Avatar */}
+              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-green-500 shadow-lg bg-gray-100 relative group/avatar">
                 {user?.imageUrl ? (
                   <img
                     src={user.imageUrl}
@@ -277,19 +327,46 @@ export default function ProfilePage() {
                     <User className="text-white" size={48} />
                   </div>
                 )}
+
+                {/* Upload overlay */}
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity rounded-full"
+                >
+                  <UploadCloud className="text-white" size={24} />
+                </button>
               </div>
 
-              <button
-                onClick={() => fileInputRef.current.click()}
-                disabled={uploading}
-                className="absolute bottom-2 right-2 bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploading ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Camera size={18} />
+              {/* Bottom buttons */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                  className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Upload new picture"
+                >
+                  {uploading ? (
+                    <Loader2 className="animate-spin" size={16} />
+                  ) : (
+                    <Camera size={16} />
+                  )}
+                </button>
+                {user?.imageUrl && (
+                  <button
+                    onClick={handleDeleteImage}
+                    disabled={deletingImage}
+                    className="bg-red-500 hover:bg-red-600 text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50"
+                    title="Remove picture"
+                  >
+                    {deletingImage ? (
+                      <Loader2 className="animate-spin" size={16} />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
 
               <input
                 type="file"
@@ -298,22 +375,18 @@ export default function ProfilePage() {
                 accept="image/*"
                 onChange={handleImageUpload}
               />
-              
-              {uploading && (
-                <p className="text-xs text-green-600 text-center mt-2">Uploading...</p>
-              )}
             </div>
 
-            {/* User Details */}
+            {/* ---------- Profile Info ---------- */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Profile Information</h2>
-                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                   Active
-                </div>
+                </span>
               </div>
 
-              {/* Username Edit */}
+              {/* Username edit row */}
               <div className="mb-6">
                 <label className="text-sm text-gray-500 font-medium block mb-2">
                   Username
@@ -328,11 +401,10 @@ export default function ProfilePage() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full h-12 rounded-xl border border-gray-200 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                      className="w-full h-12 rounded-xl border border-gray-200 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
                       placeholder="Enter username"
                     />
                   </div>
-
                   <button
                     onClick={handleUpdateProfile}
                     disabled={updating}
@@ -350,10 +422,10 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Info Cards */}
+              {/* Info cards */}
               <div className="grid md:grid-cols-3 gap-5">
                 {/* Email */}
-                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition relative group/card">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-blue-100 p-2 rounded-lg">
                       <Mail className="text-blue-600" size={16} />
@@ -363,6 +435,13 @@ export default function ProfilePage() {
                   <p className="font-semibold text-gray-800 text-sm break-all">
                     {user?.email}
                   </p>
+                  <button
+                    onClick={copyEmail}
+                    className="absolute top-2 right-2 p-1 rounded-lg bg-white shadow opacity-0 group-hover/card:opacity-100 transition"
+                    title="Copy email"
+                  >
+                    <Copy size={14} className="text-gray-500" />
+                  </button>
                 </div>
 
                 {/* Storage */}
@@ -371,24 +450,20 @@ export default function ProfilePage() {
                     <div className="bg-green-100 p-2 rounded-lg">
                       <HardDrive className="text-green-600" size={16} />
                     </div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Storage Used
-                    </p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Storage Used</p>
                   </div>
                   <p className="font-semibold text-gray-800 text-sm">
                     {formatStorage(user?.storageUsed)}
                   </p>
                 </div>
 
-                {/* Join Date */}
+                {/* Member Since */}
                 <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-purple-100 p-2 rounded-lg">
                       <Calendar className="text-purple-600" size={16} />
                     </div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Member Since
-                    </p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
                   </div>
                   <p className="font-semibold text-gray-800 text-sm">
                     {user?.createdAt
@@ -404,94 +479,126 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Storage Section */}
-        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800">Storage Overview</h3>
-            <span className="text-xs text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full">
-              Mini Drive
-            </span>
-          </div>
-
-          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min(
-                  ((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100,
-                  100
-                )}%`,
-              }}
-            />
-          </div>
-
-          <div className="flex justify-between mt-3 text-sm">
-            <span className="text-gray-600">{formatStorage(user?.storageUsed)} used</span>
-            <span className="text-gray-400">100 GB Total</span>
-          </div>
-
-          {/* Upgrade Prompt */}
-          {((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100 > 85 && (
-            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <p className="text-sm text-orange-700">
-                ⚠️ You're running low on storage! Consider upgrading to Pro for 1TB storage.
-              </p>
+        {/* ============ STORAGE & STATS SECTION ============ */}
+        <div className="mt-6 grid md:grid-cols-2 gap-6">
+          {/* Storage Overview */}
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <BarChart3 size={20} className="text-green-600" />
+                Storage Overview
+              </h3>
+              <span className="text-xs text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full">
+                Mini Drive
+              </span>
             </div>
-          )}
 
-          {/* Quick Access Items */}
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
-              <Clock size={14} />
-              QUICK ACCESS
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                { name: "Project Proposal.pdf", type: "pdf" },
-                { name: "Design Assets", type: "folder" },
-                { name: "Team Photo.jpg", type: "image" },
-                { name: "Q4 Report.xlsx", type: "sheet" },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition group"
-                >
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-green-50 transition">
-                    {item.type === "folder" ? (
-                      <Folder size={16} className="text-gray-500" />
-                    ) : item.type === "image" ? (
-                      <ImageIcon size={16} className="text-gray-500" />
-                    ) : (
-                      <FileText size={16} className="text-gray-500" />
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-700 truncate flex-1">{item.name}</span>
-                </div>
-              ))}
+            <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${Math.min(
+                    ((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100,
+                    100
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <div className="flex justify-between mt-3 text-sm">
+              <span className="text-gray-600 font-medium">
+                {formatStorage(user?.storageUsed)} used
+              </span>
+              <span className="text-gray-400">10 GB Total</span>
+            </div>
+
+            {((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100 > 85 && (
+              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-2">
+                <AlertCircle size={18} className="text-orange-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-orange-700">
+                  You're running low on storage! Consider upgrading to Pro for 1TB of space.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Stats (requires optional backend route) */}
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+              <Folder size={20} className="text-green-600" />
+              Quick Stats
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <FileText size={24} className="mx-auto text-blue-600 mb-2" />
+                <p className="text-2xl font-bold text-gray-800">{stats.files}</p>
+                <p className="text-xs text-gray-500">Files</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <Folder size={24} className="mx-auto text-yellow-600 mb-2" />
+                <p className="text-2xl font-bold text-gray-800">{stats.folders}</p>
+                <p className="text-xs text-gray-500">Folders</p>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* ============ QUICK ACTIONS ============ */}
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          <button className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
+            <div className="p-2 bg-purple-100 rounded-xl">
+              <Star size={20} className="text-purple-600" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">Upgrade to Pro</p>
+              <p className="text-xs text-gray-500">Get 1TB & premium support</p>
+            </div>
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
+          </button>
+
+          <button className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
+            <div className="p-2 bg-pink-100 rounded-xl">
+              <Gift size={20} className="text-pink-600" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">Refer a Friend</p>
+              <p className="text-xs text-gray-500">Earn extra storage</p>
+            </div>
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
+          </button>
+
+          <button
+            onClick={() => navigate("/settings")}
+            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group"
+          >
+            <div className="p-2 bg-gray-200 rounded-xl">
+              <Settings size={20} className="text-gray-700" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">Account Settings</p>
+              <p className="text-xs text-gray-500">Privacy, security & more</p>
+            </div>
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// Add this CSS to your index.css or App.css if you haven't already
+// --- CSS for toast animation (add to your global styles if not already present) ---
 const style = document.createElement('style');
 style.textContent = `
   @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  
   .animate-slide-down {
     animation: slideDown 0.3s ease-out;
   }
 `;
-document.head.appendChild(style);
+if (!document.querySelector('style[data-profile-anim]')) {
+  style.setAttribute('data-profile-anim', 'true');
+  document.head.appendChild(style);
+}

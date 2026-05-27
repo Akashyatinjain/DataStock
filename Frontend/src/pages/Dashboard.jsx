@@ -318,7 +318,8 @@ const Dashboard = () => {
       const formData = new FormData();
       formData.append('file', file);
       const response = await uploadFile(formData);
-      setFiles(prev => [response.file, ...prev]);
+      const uploaded = response.file || response;
+      setFiles((prev) => [{ ...uploaded, id: uploaded.id || uploaded._id }, ...prev]);
       addToast(`"${file.name}" uploaded successfully!`, 'success');
     } catch (error) {
       console.log(error);
@@ -397,6 +398,9 @@ const Dashboard = () => {
           storageData={{ used: usedGB, total: 10, categories: [] }}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
+          syncFiles
+          files={files}
+          onFileUploaded={(file) => setFiles((prev) => [file, ...prev])}
         />
 
         {/* MAIN */}

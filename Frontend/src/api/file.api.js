@@ -11,6 +11,11 @@ export const getFiles = async (folderId = null) => {
   return response.data;
 };
 
+export const getAllFiles = async () => {
+  const response = await API.get('/files', { params: { all: true } });
+  return response.data;
+};
+
 
 // ==========================
 // UPLOAD FILE

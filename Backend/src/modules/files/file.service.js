@@ -127,6 +127,10 @@ export const getUserFilesService =
     );
 };
 
+export const getAllUserFilesService = async (userId) => {
+  return fileRepo.getAllFilesByUserId(userId);
+};
+
 export const deleteFileService = async (
   fileId,
   userId

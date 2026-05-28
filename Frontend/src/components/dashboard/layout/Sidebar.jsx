@@ -41,7 +41,9 @@ const Sidebar = ({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   files: filesFromParent,
+  allFiles: allFilesFromParent,
   syncFiles = false,
+  onFilesChanged,
   folders: foldersFromParent,
   syncFolders = false,
   onFileUploaded,
@@ -54,6 +56,7 @@ const Sidebar = ({
   const selectedFolderId = getActiveFolderId(activeTab);
   const [localFiles, setLocalFiles] = useState([]);
   const files = syncFiles ? filesFromParent : localFiles;
+  const statsFiles = allFilesFromParent ?? files;
   const [profile, setProfile] = useState(null);
   const [storageData, setStorageData] = useState(storageDataProp || DEFAULT_STORAGE);
 
@@ -201,10 +204,10 @@ const Sidebar = ({
         )}
 
         {expanded && (
-          <SidebarFilters files={files} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarFilters files={statsFiles} activeTab={activeTab} setActiveTab={setActiveTab} />
         )}
 
-        {expanded && <SidebarStorage storageData={storageData} files={files} />}
+        {expanded && <SidebarStorage storageData={storageData} files={statsFiles} />}
 
         {expanded && (
           <SidebarMore activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -241,6 +244,7 @@ const Sidebar = ({
             const file = normalizeFile(f);
             if (onFileUploaded) {
               onFileUploaded(file);
+              onFilesChanged?.();
             } else {
               setLocalFiles((p) => [file, ...p]);
             }

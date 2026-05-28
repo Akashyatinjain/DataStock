@@ -25,7 +25,7 @@ import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 
-import { getFiles, uploadFile, deleteFile } from '../api/file.api';
+import { getFiles, getAllFiles, uploadFile, deleteFile } from '../api/file.api';
 import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
 import {
@@ -265,8 +265,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab]           = useState('my-drive');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [files, setFiles]     = useState([]);
-  const [folders, setFolders] = useState([]);
+  const [files, setFiles]         = useState([]);
+  const [allFiles, setAllFiles]   = useState([]);
+  const [folders, setFolders]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null); // tracks which file is being deleted
@@ -311,16 +312,31 @@ const Dashboard = () => {
     }
   }, [addToast]);
 
+  const refreshAllFiles = useCallback(async () => {
+    try {
+      const [fileRes, profileRes] = await Promise.all([
+        getAllFiles(),
+        getProfile(),
+      ]);
+      setAllFiles((fileRes.files || []).map(normalizeFile));
+      setUser(profileRes.data?.user || profileRes.user);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
   // ── FETCH ──────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
-        const [folderRes, profileRes] = await Promise.all([
+        const [folderRes, profileRes, allFilesRes] = await Promise.all([
           getFolders(),
           getProfile(),
+          getAllFiles(),
         ]);
         setFolders(normalizeList(folderRes, 'folders'));
         setUser(profileRes.data?.user || profileRes.user);
+        setAllFiles((allFilesRes.files || []).map(normalizeFile));
       } catch (error) {
         console.log(error);
         addToast('Failed to load dashboard', 'error');
@@ -344,15 +360,20 @@ const Dashboard = () => {
       if (inCurrentView) {
         setFiles((prev) => [normalized, ...prev]);
       }
+      setAllFiles((prev) => [normalized, ...prev]);
     },
     [selectedFolderId]
   );
 
-  // ── STORAGE ────────────────────────────
+  // ── STORAGE (all files: My Drive + every folder) ──
   const totalStorage = 10 * 1024 * 1024 * 1024;
-  const usedStorage = useMemo(() => files.reduce((acc, f) => acc + f.size, 0), [files]);
+  const usedStorage = useMemo(
+    () => allFiles.reduce((acc, f) => acc + (f.size || 0), 0),
+    [allFiles]
+  );
   const usedGB = (usedStorage / (1024 * 1024 * 1024)).toFixed(3);
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
+  const totalFileCount = allFiles.length;
 
   // ── FILTER ─────────────────────────────
   const filteredFiles = useMemo(() =>
@@ -372,6 +393,7 @@ const Dashboard = () => {
       if (selectedFolderId) formData.append('folderId', selectedFolderId);
       const response = await uploadFile(formData);
       addUploadedFile(response.file || response);
+      await refreshAllFiles();
       addToast(`"${file.name}" uploaded successfully!`, 'success');
     } catch (error) {
       console.log(error);
@@ -392,6 +414,7 @@ const Dashboard = () => {
       // short delay so user sees the "deleting" animation
       await new Promise(r => setTimeout(r, 600));
       setFiles(prev => prev.filter(f => f.id !== fileId));
+      setAllFiles(prev => prev.filter(f => f.id !== fileId));
       addToast(`"${file?.originalName}" was deleted.`, 'success');
     } catch (error) {
       console.log(error);
@@ -452,12 +475,15 @@ const Dashboard = () => {
           setIsMobileMenuOpen={setIsMobileMenuOpen}
           syncFiles
           files={files}
+          allFiles={allFiles}
           onFileUploaded={addUploadedFile}
+          onFilesChanged={refreshAllFiles}
           syncFolders
           folders={folders}
           onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
           onFolderDeleted={(folderId) => {
             setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));
+            refreshAllFiles();
             if (selectedFolderId === folderId) loadFiles(null);
           }}
         />
@@ -555,8 +581,8 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div>
-                  <p className="text-4xl font-extrabold text-gray-900 mt-4 tabular-nums">{files.length}</p>
-                  <p className="text-sm text-gray-400 mt-1">files stored</p>
+                  <p className="text-4xl font-extrabold text-gray-900 mt-4 tabular-nums">{totalFileCount}</p>
+                  <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
                 </div>
               </div>
             </div>

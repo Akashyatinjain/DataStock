@@ -81,6 +81,16 @@ export const getUserFiles =
       const userId =
         req.user.userId;
 
+      if (req.query.all === "true") {
+        const files =
+          await fileService.getAllUserFilesService(userId);
+
+        return res.status(200).json({
+          success: true,
+          files,
+        });
+      }
+
       const folderId =
         req.query.folderId || null;
 

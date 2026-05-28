@@ -75,6 +75,18 @@ export const getFilesByUserId =
     });
 };
 
+export const getAllFilesByUserId = async (userId) => {
+  return prisma.file.findMany({
+    where: {
+      ownerId: userId,
+      isTrash: false,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
 export const findFileById = async (fileId) => {
 
   return prisma.file.findUnique({

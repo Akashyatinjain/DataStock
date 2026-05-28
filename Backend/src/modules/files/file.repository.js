@@ -28,19 +28,51 @@ export const createFile = async (data) =>{
 //     });
 // };
 
-export const getFilesByUserId = async (userId) => {
+// export const getFilesByUserId = async (userId) => {
 
-  return prisma.file.findMany({
+//   return prisma.file.findMany({
 
-    where: {
-      ownerId: userId,
-      isTrash: false
-    },
+//     // where: {
+//     //   ownerId: userId,
+//     //   isTrash: false
+//     // },
+//     where: {
 
-    orderBy: {
-      createdAt: "desc"
-    }
-  });
+//   ownerId: userId,
+//  isTrash: false,
+
+//   folderId:
+//     folderId || null
+// },
+
+//     orderBy: {
+//       createdAt: "desc"
+//     }
+//   });
+// };
+
+export const getFilesByUserId =
+  async (
+    userId,
+    folderId = null
+  ) => {
+
+    return await prisma.file.findMany({
+
+      where: {
+
+        ownerId: userId,
+
+        folderId:
+          folderId || null,
+
+        isTrash: false
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
 };
 
 export const findFileById = async (fileId) => {

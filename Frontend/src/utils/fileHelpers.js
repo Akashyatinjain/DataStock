@@ -13,6 +13,9 @@ export const normalizeFile = (file) => {
   return { ...file, id: file.id || file._id };
 };
 
+export const getActiveFolderId = (activeTab) =>
+  activeTab?.startsWith('folder-') ? activeTab.replace('folder-', '') : null;
+
 export const getAvatarUrl = (profile) => {
   const name = profile?.name || 'User';
   return (

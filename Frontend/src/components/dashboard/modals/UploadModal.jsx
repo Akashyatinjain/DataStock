@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { uploadFile } from '../../../api/file.api';
 
-export default function UploadModal({ onClose, onUploaded, toast }) {
+export default function UploadModal({ onClose, onUploaded, toast, folderId = null }) {
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,6 +14,7 @@ export default function UploadModal({ onClose, onUploaded, toast }) {
     try {
       const form = new FormData();
       form.append('file', file);
+      if (folderId) form.append('folderId', folderId);
       const data = await uploadFile(form);
       toast('success', `"${file.name}" uploaded`);
       onUploaded?.(data.file || data);

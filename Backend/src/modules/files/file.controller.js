@@ -43,14 +43,19 @@ export const uploadFile = asyncHandler(
   async (req, res) => {
 
     const userId = req.user.userId;
-
+    const folderId =
+  req.body.folderId || null;
+  
     const file = req.file;
 
     const uploadedFile =
       await fileService.uploadFileService(
-        file,
-        userId
-      );
+  req.file,
+
+  req.user.userId,
+
+  folderId
+);
 
     return res.status(201).json({
 
@@ -76,9 +81,15 @@ export const getUserFiles =
       const userId =
         req.user.userId;
 
+      const folderId =
+        req.query.folderId || null;
+
       const files =
         await fileService.getUserFilesService(
-          userId
+
+          userId,
+
+          folderId
         );
 
       return res.status(200).json({

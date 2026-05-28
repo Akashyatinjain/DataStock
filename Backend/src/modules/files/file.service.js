@@ -51,7 +51,7 @@ import prisma from "../../config/db.js";
 
 export const uploadFileService = async (
   file,
-  userId
+  userId,folderId
 ) => {
 
   if (!file) {
@@ -63,30 +63,33 @@ export const uploadFileService = async (
     await uploadOnCloudinary(file.path);
 
   // save metadata in db
-  const savedFile =
-    await fileRepo.createFile({
+const savedFile =
+  await fileRepo.createFile({
 
-      fileName:
-        uploadedFile.original_filename,
+    fileName:
+      uploadedFile.public_id,
 
-      originalName:
-        file.originalname,
+    originalName:
+      file.originalname,
 
-      url:
-        uploadedFile.secure_url,
+    url:
+      uploadedFile.secure_url,
 
-      publicId:
-        uploadedFile.public_id,
+    publicId:
+      uploadedFile.public_id,
 
-      mimeType:
-        file.mimetype,
+    mimeType:
+      file.mimetype,
 
-      size:
-        uploadedFile.bytes,
+    size:
+      uploadedFile.bytes,
 
-      ownerId:
-        userId
-    });
+    ownerId:
+      userId,
+
+    folderId:
+      folderId || null
+  });
 
   // update user storage used
   await prisma.user.update({
@@ -110,13 +113,18 @@ export const uploadFileService = async (
 // GET USER FILES
 // ==========================
 
-export const getUserFilesService = async (
-  userId
-) => {
+export const getUserFilesService =
+  async (
+    userId,
+    folderId = null
+  ) => {
 
-  return await fileRepo.getFilesByUserId(
-    userId
-  );
+    return await fileRepo.getFilesByUserId(
+
+      userId,
+
+      folderId
+    );
 };
 
 export const deleteFileService = async (

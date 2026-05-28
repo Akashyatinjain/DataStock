@@ -26,7 +26,14 @@ import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 
 import { getFiles, uploadFile, deleteFile } from '../api/file.api';
+import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
+import {
+  normalizeList,
+  normalizeFile,
+  getActiveFolderId,
+  getFolderId,
+} from '../utils/fileHelpers';
 
 // ─────────────────────────────────────────
 // TOAST SYSTEM
@@ -38,6 +45,7 @@ const ToastIcon = ({ type }) => {
   return                         <AlertCircle  className="w-5 h-5 text-amber-400  shrink-0" />;
 };
 
+  
 const Toast = ({ toast, onRemove }) => (
   <div
     className={`
@@ -258,6 +266,7 @@ const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [files, setFiles]     = useState([]);
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null); // tracks which file is being deleted
@@ -279,22 +288,65 @@ const Dashboard = () => {
     setIsPreviewOpen(true);
   };
 
-  // ── FETCH ──────────────────────────────
-  useEffect(() => { fetchDashboardData(); }, []);
+  const selectedFolderId = useMemo(
+    () => getActiveFolderId(activeTab),
+    [activeTab]
+  );
 
-  const fetchDashboardData = async () => {
+  const selectedFolder = useMemo(
+    () => folders.find((f) => getFolderId(f) === selectedFolderId),
+    [folders, selectedFolderId]
+  );
+
+  const loadFiles = useCallback(async (folderId = null) => {
     try {
       setLoading(true);
-      const [fileRes, profileRes] = await Promise.all([getFiles(), getProfile()]);
-      setFiles(fileRes.files || []);
-      setUser(profileRes.user);
+      const fileRes = await getFiles(folderId);
+      setFiles((fileRes.files || []).map(normalizeFile));
     } catch (error) {
       console.log(error);
       addToast('Failed to load files', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
+
+  // ── FETCH ──────────────────────────────
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const [folderRes, profileRes] = await Promise.all([
+          getFolders(),
+          getProfile(),
+        ]);
+        setFolders(normalizeList(folderRes, 'folders'));
+        setUser(profileRes.data?.user || profileRes.user);
+      } catch (error) {
+        console.log(error);
+        addToast('Failed to load dashboard', 'error');
+      }
+    };
+    init();
+  }, [addToast]);
+
+  useEffect(() => {
+    loadFiles(selectedFolderId);
+  }, [selectedFolderId, loadFiles]);
+
+  const addUploadedFile = useCallback(
+    (file) => {
+      const normalized = normalizeFile(file);
+      const fileFolderId = normalized.folderId || null;
+      const inCurrentView =
+        (selectedFolderId == null && !fileFolderId) ||
+        fileFolderId === selectedFolderId;
+
+      if (inCurrentView) {
+        setFiles((prev) => [normalized, ...prev]);
+      }
+    },
+    [selectedFolderId]
+  );
 
   // ── STORAGE ────────────────────────────
   const totalStorage = 10 * 1024 * 1024 * 1024;
@@ -317,9 +369,9 @@ const Dashboard = () => {
       addToast(`Uploading "${file.name}"…`, 'info');
       const formData = new FormData();
       formData.append('file', file);
+      if (selectedFolderId) formData.append('folderId', selectedFolderId);
       const response = await uploadFile(formData);
-      const uploaded = response.file || response;
-      setFiles((prev) => [{ ...uploaded, id: uploaded.id || uploaded._id }, ...prev]);
+      addUploadedFile(response.file || response);
       addToast(`"${file.name}" uploaded successfully!`, 'success');
     } catch (error) {
       console.log(error);
@@ -400,7 +452,14 @@ const Dashboard = () => {
           setIsMobileMenuOpen={setIsMobileMenuOpen}
           syncFiles
           files={files}
-          onFileUploaded={(file) => setFiles((prev) => [file, ...prev])}
+          onFileUploaded={addUploadedFile}
+          syncFolders
+          folders={folders}
+          onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
+          onFolderDeleted={(folderId) => {
+            setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));
+            if (selectedFolderId === folderId) loadFiles(null);
+          }}
         />
 
         {/* MAIN */}
@@ -410,8 +469,23 @@ const Dashboard = () => {
             {/* ── TOP BAR ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Drive</h1>
-                <p className="text-gray-400 mt-1 text-sm">Manage and organize your cloud files</p>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  {selectedFolder ? selectedFolder.name : 'My Drive'}
+                </h1>
+                <p className="text-gray-400 mt-1 text-sm">
+                  {selectedFolder
+                    ? `Files inside "${selectedFolder.name}"`
+                    : 'Files not in any folder'}
+                </p>
+                {selectedFolder && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('my-drive')}
+                    className="mt-2 text-sm font-medium text-green-600 hover:text-green-700"
+                  >
+                    ← Back to My Drive
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-3">
@@ -491,7 +565,12 @@ const Dashboard = () => {
             {!loading && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                  {searchQuery ? `Results for "${searchQuery}"` : 'All Files'} — {filteredFiles.length}
+                  {searchQuery
+                    ? `Results for "${searchQuery}"`
+                    : selectedFolder
+                      ? `${selectedFolder.name}`
+                      : 'My Drive'}{' '}
+                  — {filteredFiles.length}
                 </h3>
               </div>
             )}
@@ -515,10 +594,18 @@ const Dashboard = () => {
                   <Folder className="w-10 h-10 text-gray-300" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  {searchQuery ? 'No files match your search' : 'No files uploaded yet'}
+                  {searchQuery
+                    ? 'No files match your search'
+                    : selectedFolder
+                      ? 'This folder is empty'
+                      : 'No files in My Drive yet'}
                 </h2>
                 <p className="text-gray-400 mb-8 text-sm">
-                  {searchQuery ? 'Try a different keyword' : 'Upload your first file to get started with DataStock'}
+                  {searchQuery
+                    ? 'Try a different keyword'
+                    : selectedFolder
+                      ? 'Upload a file to add it to this folder'
+                      : 'Upload your first file to get started with DataStock'}
                 </p>
                 {!searchQuery && (
                   <label className="cursor-pointer inline-flex">

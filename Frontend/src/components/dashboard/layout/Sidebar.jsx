@@ -5,7 +5,12 @@ import { getFolders, deleteFolder } from '../../../api/folder.api';
 import { getFiles } from '../../../api/file.api';
 import { getProfile, logout } from '../../../api/auth.api';
 import { DEFAULT_STORAGE } from '../../../utils/constants';
-import { normalizeList, computeUsedGB, normalizeFile } from '../../../utils/fileHelpers';
+import {
+  normalizeList,
+  computeUsedGB,
+  normalizeFile,
+  getActiveFolderId,
+} from '../../../utils/fileHelpers';
 
 import useToast from '../toast/useToast';
 import Toast from '../toast/Toast';
@@ -37,11 +42,16 @@ const Sidebar = ({
   setIsMobileMenuOpen,
   files: filesFromParent,
   syncFiles = false,
+  folders: foldersFromParent,
+  syncFolders = false,
   onFileUploaded,
   onFolderCreated,
+  onFolderDeleted,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
-  const [folders, setFolders] = useState([]);
+  const [localFolders, setLocalFolders] = useState([]);
+  const folders = syncFolders ? foldersFromParent : localFolders;
+  const selectedFolderId = getActiveFolderId(activeTab);
   const [localFiles, setLocalFiles] = useState([]);
   const files = syncFiles ? filesFromParent : localFiles;
   const [profile, setProfile] = useState(null);
@@ -75,10 +85,10 @@ const Sidebar = ({
   }, [storageDataProp]);
 
   useEffect(() => {
-    fetchFolders();
+    if (!syncFolders) fetchFolders();
     fetchProfile();
     if (!syncFiles) fetchFiles();
-  }, [syncFiles]);
+  }, [syncFiles, syncFolders]);
 
   useEffect(() => {
     if (!showNewMenu) return;
@@ -93,7 +103,7 @@ const Sidebar = ({
     setLoadingFolders(true);
     try {
       const data = await getFolders();
-      setFolders(normalizeList(data, 'folders'));
+      setLocalFolders(normalizeList(data, 'folders'));
     } catch {
       toast('error', 'Could not load folders');
     } finally {
@@ -128,7 +138,10 @@ const Sidebar = ({
     setDeletingFolderId(folderId);
     try {
       await deleteFolder(folderId);
-      setFolders((p) => p.filter((f) => (f._id || f.id) !== folderId));
+      if (!syncFolders) {
+        setLocalFolders((p) => p.filter((f) => (f._id || f.id) !== folderId));
+      }
+      onFolderDeleted?.(folderId);
       if (activeTab === `folder-${folderId}`) setActiveTab('my-drive');
       toast('success', 'Folder deleted');
     } catch {
@@ -214,7 +227,7 @@ const Sidebar = ({
         <NewFolderModal
           onClose={() => setShowNewFolder(false)}
           onCreated={(f) => {
-            setFolders((p) => [...p, f]);
+            if (!syncFolders) setLocalFolders((p) => [...p, f]);
             onFolderCreated?.(f);
           }}
           toast={toast}
@@ -223,6 +236,7 @@ const Sidebar = ({
       {showUpload && (
         <UploadModal
           onClose={() => setShowUpload(false)}
+          folderId={selectedFolderId}
           onUploaded={(f) => {
             const file = normalizeFile(f);
             if (onFileUploaded) {

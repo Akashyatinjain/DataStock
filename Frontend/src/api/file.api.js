@@ -5,11 +5,9 @@ import API from './auth.api';
 // GET FILES
 // ==========================
 
-export const getFiles = async () => {
-
-  const response =
-    await API.get('/files');
-
+export const getFiles = async (folderId = null) => {
+  const params = folderId ? { folderId } : {};
+  const response = await API.get('/files', { params });
   return response.data;
 };
 

@@ -46,13 +46,14 @@ const Sidebar = ({
   onFilesChanged,
   folders: foldersFromParent,
   syncFolders = false,
+  foldersLoading: foldersLoadingFromParent = false,
   onFileUploaded,
   onFolderCreated,
   onFolderDeleted,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [localFolders, setLocalFolders] = useState([]);
-  const folders = syncFolders ? foldersFromParent : localFolders;
+  const folders = syncFolders ? (foldersFromParent ?? []) : localFolders;
   const selectedFolderId = getActiveFolderId(activeTab);
   const [localFiles, setLocalFiles] = useState([]);
   const files = syncFiles ? filesFromParent : localFiles;
@@ -60,7 +61,8 @@ const Sidebar = ({
   const [profile, setProfile] = useState(null);
   const [storageData, setStorageData] = useState(storageDataProp || DEFAULT_STORAGE);
 
-  const [loadingFolders, setLoadingFolders] = useState(true);
+  const [loadingFolders, setLoadingFolders] = useState(!syncFolders);
+  const showFoldersLoading = syncFolders ? foldersLoadingFromParent : loadingFolders;
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -88,7 +90,11 @@ const Sidebar = ({
   }, [storageDataProp]);
 
   useEffect(() => {
-    if (!syncFolders) fetchFolders();
+    if (syncFolders) {
+      setLoadingFolders(false);
+    } else {
+      fetchFolders();
+    }
     fetchProfile();
     if (!syncFiles) fetchFiles();
   }, [syncFiles, syncFolders]);
@@ -194,7 +200,7 @@ const Sidebar = ({
         {expanded && (
           <SidebarFolders
             folders={folders}
-            loading={loadingFolders}
+            loading={showFoldersLoading}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             deletingFolderId={deletingFolderId}

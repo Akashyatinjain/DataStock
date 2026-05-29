@@ -267,7 +267,8 @@ const Dashboard = () => {
 
   const [files, setFiles]         = useState([]);
   const [allFiles, setAllFiles]   = useState([]);
-  const [folders, setFolders]     = useState([]);
+  const [folders, setFolders]         = useState([]);
+  const [foldersLoading, setFoldersLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null); // tracks which file is being deleted
@@ -329,6 +330,7 @@ const Dashboard = () => {
   useEffect(() => {
     const init = async () => {
       try {
+        setFoldersLoading(true);
         const [folderRes, profileRes, allFilesRes] = await Promise.all([
           getFolders(),
           getProfile(),
@@ -340,6 +342,8 @@ const Dashboard = () => {
       } catch (error) {
         console.log(error);
         addToast('Failed to load dashboard', 'error');
+      } finally {
+        setFoldersLoading(false);
       }
     };
     init();
@@ -480,6 +484,7 @@ const Dashboard = () => {
           onFilesChanged={refreshAllFiles}
           syncFolders
           folders={folders}
+          foldersLoading={foldersLoading}
           onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
           onFolderDeleted={(folderId) => {
             setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));

@@ -1,9 +1,7 @@
 import API from './auth.api';
 
 
-// ==========================
-// GET FOLDERS
-// ==========================
+
 
 export const getFolders = async () => {
 
@@ -14,9 +12,6 @@ export const getFolders = async () => {
 };
 
 
-// ==========================
-// CREATE FOLDER
-// ==========================
 
 export const createFolder = async (
   data
@@ -31,10 +26,6 @@ export const createFolder = async (
   return response.data;
 };
 
-
-// ==========================
-// DELETE FOLDER
-// ==========================
 
 export const deleteFolder = async (
   folderId

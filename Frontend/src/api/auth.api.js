@@ -3,7 +3,7 @@ import { Aperture } from "lucide-react";
 
 const API = axios.create({
     baseURL:"http://localhost:5000/api",
-    withCredentials:true
+    withCredentials:true  //withCredentials: true hone par browser automatically token cookie ko backend tak bhej dega.
 })
 
 export const signup = (data)=>
@@ -35,7 +35,7 @@ export const uploadFile = async (formData) => {
     '/files/upload',
     formData,
     {
-      headers: {
+      headers: { // 'Content-Type': 'multipart/form-data' is set automatically by the browser when using FormData
         'Content-Type': 'multipart/form-data',
       },
     }

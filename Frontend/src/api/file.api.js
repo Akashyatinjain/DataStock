@@ -1,9 +1,6 @@
 import API from './auth.api';
 
 
-// ==========================
-// GET FILES
-// ==========================
 
 export const getFiles = async (folderId = null) => {
   const params = folderId ? { folderId } : {};
@@ -17,9 +14,6 @@ export const getAllFiles = async () => {
 };
 
 
-// ==========================
-// UPLOAD FILE
-// ==========================
 
 export const uploadFile = async (
   formData
@@ -31,8 +25,7 @@ export const uploadFile = async (
       formData,
       {
         headers: {
-          'Content-Type':
-            'multipart/form-data',
+          'Content-Type': 'multipart/form-data',
         },
       }
     );
@@ -41,16 +34,12 @@ export const uploadFile = async (
 };
 
 
-// ==========================
-// DELETE FILE
-// ==========================
 
 export const deleteFile = async (
   fileId
 ) => {
 
-  const response =
-    await API.delete(
+  const response = await API.delete(
       `/files/${fileId}`
     );
 

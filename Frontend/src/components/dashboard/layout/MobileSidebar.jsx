@@ -1,15 +1,4 @@
-import { Menu, X, ChevronRight } from 'lucide-react';
-
-export function MobileSidebarToggle({ isOpen, onToggle }) {
-  return (
-    <button
-      onClick={onToggle}
-      className="fixed top-[72px] left-4 z-30 p-2 bg-white rounded-xl shadow border border-gray-200 md:hidden"
-    >
-      <Menu className="w-5 h-5 text-gray-700" />
-    </button>
-  );
-}
+import { X, ChevronRight } from 'lucide-react';
 
 export function MobileSidebarOverlay({ isOpen, onClose }) {
   return (
@@ -25,7 +14,7 @@ export function MobileSidebarOverlay({ isOpen, onClose }) {
 export function MobileSidebarPanel({ isOpen, children, onClose }) {
   return (
     <aside
-      className={`relative fixed left-0 top-16 h-[calc(100vh-64px)] bg-white border-r border-gray-200 z-50 transition-transform duration-300 w-72 ${
+      className={`fixed left-0 top-14 z-50 h-[calc(100dvh-3.5rem)] w-[min(85vw,18rem)] border-r border-gray-200 bg-white transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
@@ -47,7 +36,7 @@ export function DesktopSidebarPanel({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-16 h-[calc(100vh-64px)] bg-white border-r border-gray-200 transition-all duration-300 ${
+      className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] border-r border-gray-200 bg-white transition-all duration-300 ${
         sidebarCollapsed ? 'w-20' : 'w-72'
       }`}
     >

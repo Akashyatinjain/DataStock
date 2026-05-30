@@ -1,6 +1,6 @@
 // App.jsx
 import React from 'react';
-import { 
+import {
   Cloud,
   HardDrive,
   Share2,
@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ArrowUpRight,
+  PlayCircle,
   Check,
   Star
 } from 'lucide-react';
@@ -142,8 +143,8 @@ const HomePage = () => {
             </div>
 
             {/* Right - Visual */}
-            <div className="relative">
-              <div className="bg-gray-50 rounded-3xl p-6 border border-gray-200">
+            <div className="relative overflow-hidden">
+              <div className="bg-gray-50 rounded-3xl p-6 border border-gray-200 overflow-hidden">
                 {/* Storage Bar */}
                 <div className="mb-6">
                   <div className="flex justify-between text-sm mb-2">
@@ -187,10 +188,10 @@ const HomePage = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100">
+              <div className="hidden md:flex absolute -top-4 -right-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100">
                 <Share2 className="w-5 h-5 text-green-600" />
               </div>
-              <div className="absolute -bottom-4 -left-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100">
+              <div className="hidden md:flex absolute -bottom-4 -left-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100">
                 <Lock className="w-5 h-5 text-black" />
               </div>
             </div>
@@ -402,19 +403,5 @@ const HomePage = () => {
     </div>
   );
 };
-
-// Missing component
-const PlayCircle = (props) => (
-  <svg 
-    {...props}
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" />
-  </svg>
-);
 
 export default HomePage;

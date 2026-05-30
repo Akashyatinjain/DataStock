@@ -466,35 +466,36 @@ const Dashboard = () => {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      <div className="flex pt-16">
+      {/* Sidebar is fixed/overlay — not in document flow */}
+      <Sidebar
+        sidebarCollapsed={sidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        storageData={{ used: usedGB, total: 10, categories: [] }}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        syncFiles
+        files={files}
+        allFiles={allFiles}
+        onFileUploaded={addUploadedFile}
+        onFilesChanged={refreshAllFiles}
+        syncFolders
+        folders={folders}
+        foldersLoading={foldersLoading}
+        onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
+        onFolderDeleted={(folderId) => {
+          setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));
+          refreshAllFiles();
+          if (selectedFolderId === folderId) loadFiles(null);
+        }}
+      />
 
-        {/* SIDEBAR */}
-        <Sidebar
-          sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          storageData={{ used: usedGB, total: 10, categories: [] }}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-          syncFiles
-          files={files}
-          allFiles={allFiles}
-          onFileUploaded={addUploadedFile}
-          onFilesChanged={refreshAllFiles}
-          syncFolders
-          folders={folders}
-          foldersLoading={foldersLoading}
-          onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
-          onFolderDeleted={(folderId) => {
-            setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));
-            refreshAllFiles();
-            if (selectedFolderId === folderId) loadFiles(null);
-          }}
-        />
-
-        {/* MAIN */}
-        <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+      <main
+        className={`w-full pt-14 md:pt-16 transition-all duration-300 ${
+          sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
+        }`}
+      >
           <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px]">
 
             {/* ── TOP BAR ── */}
@@ -620,7 +621,7 @@ const Dashboard = () => {
 
             {/* ── EMPTY STATE ── */}
             {!loading && filteredFiles.length === 0 && (
-              <div className="bg-white border border-dashed border-gray-200 rounded-3xl p-16 text-center">
+              <div className="bg-white border border-dashed border-gray-200 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100">
                   <Folder className="w-10 h-10 text-gray-300" />
                 </div>
@@ -631,7 +632,7 @@ const Dashboard = () => {
                       ? 'This folder is empty'
                       : 'No files in My Drive yet'}
                 </h2>
-                <p className="text-gray-400 mb-8 text-sm">
+                <p className="text-gray-400 mb-6 text-sm">
                   {searchQuery
                     ? 'Try a different keyword'
                     : selectedFolder
@@ -641,7 +642,7 @@ const Dashboard = () => {
                 {!searchQuery && (
                   <label className="cursor-pointer inline-flex">
                     <input type="file" className="hidden" onChange={handleUpload} />
-                    <div className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
+                    <div className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
                       <Plus className="w-4 h-4" />
                       Upload your first file
                     </div>
@@ -687,8 +688,7 @@ const Dashboard = () => {
             )}
 
           </div>
-        </main>
-      </div>
+      </main>
 
       {/* PREVIEW MODAL */}
       <FilePreviewModal

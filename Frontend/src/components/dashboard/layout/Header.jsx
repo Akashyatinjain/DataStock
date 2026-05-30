@@ -99,7 +99,7 @@ const Header = ({
     return (
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center space-x-4">
               <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse" />
               <div className="w-24 h-4 bg-gray-200 rounded animate-pulse hidden sm:block" />
@@ -126,7 +126,7 @@ const Header = ({
 
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
 
             {/* ── Left ── */}
             <div className="flex items-center space-x-4">

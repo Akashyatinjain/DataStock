@@ -24,9 +24,7 @@ import SidebarFolders from './SidebarFolders';
 import SidebarFilters from './SidebarFilters';
 import SidebarStorage from './SidebarStorage';
 import SidebarMore from './SidebarMore';
-import SidebarProfile from './SidebarProfile';
 import {
-  MobileSidebarToggle,
   MobileSidebarOverlay,
   MobileSidebarPanel,
   DesktopSidebarPanel,
@@ -51,7 +49,9 @@ const Sidebar = ({
   onFolderCreated,
   onFolderDeleted,
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 768
+  );
   const [localFolders, setLocalFolders] = useState([]);
   const folders = syncFolders ? (foldersFromParent ?? []) : localFolders;
   const selectedFolderId = getActiveFolderId(activeTab);
@@ -78,12 +78,14 @@ const Sidebar = ({
     const check = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      setSidebarCollapsed(mobile);
+      if (mobile) {
+        setIsMobileMenuOpen(false);
+      }
     };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
-  }, [setSidebarCollapsed]);
+  }, [setIsMobileMenuOpen]);
 
   useEffect(() => {
     if (storageDataProp) setStorageData(storageDataProp);
@@ -270,16 +272,12 @@ const Sidebar = ({
     </>
   );
 
-  if (isMobile) {
-    return (
-      <>
+  return (
+    <>
+      <div className="md:hidden">
         <MobileSidebarOverlay
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
-        />
-        <MobileSidebarToggle
-          isOpen={isMobileMenuOpen}
-          onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
         <MobileSidebarPanel
           isOpen={isMobileMenuOpen}
@@ -287,19 +285,17 @@ const Sidebar = ({
         >
           {sidebarBody}
         </MobileSidebarPanel>
-        {modals}
-      </>
-    );
-  }
+      </div>
 
-  return (
-    <>
-      <DesktopSidebarPanel
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      >
-        {sidebarBody}
-      </DesktopSidebarPanel>
+      <div className="hidden md:block">
+        <DesktopSidebarPanel
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        >
+          {sidebarBody}
+        </DesktopSidebarPanel>
+      </div>
+
       {modals}
     </>
   );

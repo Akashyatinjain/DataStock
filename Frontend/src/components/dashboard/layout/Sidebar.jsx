@@ -220,13 +220,13 @@ const Sidebar = ({
         )}
       </div>
 
-      {expanded && (
+      {/* {expanded && (
         <SidebarProfile
           profile={profile}
           onEditProfile={() => setShowProfile(true)}
           onLogout={handleLogout}
         />
-      )}
+      )} */}
     </div>
   );
 

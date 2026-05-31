@@ -47,7 +47,7 @@ export function DesktopSidebarPanel({
       >
         <ChevronRight
           className={`w-4 h-4 text-gray-500 transition-transform ${
-            sidebarCollapsed ? 'rotate-180' : ''
+            sidebarCollapsed ? '' : 'rotate-180'
           }`}
         />
       </button>

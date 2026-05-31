@@ -237,10 +237,10 @@ const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
 // ─────────────────────────────────────────
 
 const UploadButton = ({ uploading, onChange }) => (
-  <label className="cursor-pointer">
+  <label className="cursor-pointer inline-flex max-w-full">
     <input type="file" className="hidden" onChange={onChange} />
     <div className={`
-      px-5 py-3 rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm
+      px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
       ${uploading
         ? 'bg-green-100 text-green-700 cursor-not-allowed'
         : 'bg-green-600 hover:bg-green-700 text-white hover:shadow-md active:scale-95'}
@@ -492,19 +492,19 @@ const Dashboard = () => {
       />
 
       <main
-        className={`w-full pt-14 md:pt-16 transition-all duration-300 ${
+        className={`w-full md:w-auto pt-14 md:pt-16 transition-all duration-300 ${
           sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
         }`}
       >
           <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px]">
 
             {/* ── TOP BAR ── */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-              <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
+              <div className="min-w-0">
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">
                   {selectedFolder ? selectedFolder.name : 'My Drive'}
                 </h1>
-                <p className="text-gray-400 mt-1 text-sm">
+                <p className="text-gray-400 mt-1 text-sm truncate">
                   {selectedFolder
                     ? `Files inside "${selectedFolder.name}"`
                     : 'Files not in any folder'}
@@ -520,7 +520,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
                 {/* View toggle */}
                 <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
                   <button

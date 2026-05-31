@@ -34,6 +34,7 @@ import {
   getActiveFolderId,
   getFolderId,
 } from '../utils/fileHelpers';
+import { QUICK_FILTERS } from '../utils/filters';
 
 // ─────────────────────────────────────────
 // TOAST SYSTEM
@@ -350,8 +351,10 @@ const Dashboard = () => {
   }, [addToast]);
 
   useEffect(() => {
-    loadFiles(selectedFolderId);
-  }, [selectedFolderId, loadFiles]);
+    if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {
+      loadFiles(selectedFolderId);
+    }
+  }, [activeTab, selectedFolderId, loadFiles]);
 
   const addUploadedFile = useCallback(
     (file) => {
@@ -379,10 +382,194 @@ const Dashboard = () => {
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
   const totalFileCount = allFiles.length;
 
+  // ── CURRENT VIEW SELECTION ──
+  const displayFiles = useMemo(() => {
+    if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {
+      return files;
+    }
+
+    if (activeTab?.startsWith('filter-')) {
+      const filterName = activeTab.replace('filter-', '').toLowerCase();
+      const activeFilter = QUICK_FILTERS.find(q => q.name.toLowerCase() === filterName);
+      if (activeFilter) {
+        return allFiles.filter(activeFilter.filter);
+      }
+    }
+
+    if (activeTab === 'recent') {
+      return [...allFiles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    if (activeTab === 'starred') {
+      return allFiles.filter(f => f.starred || f.isStarred);
+    }
+
+    if (activeTab === 'shared') {
+      return allFiles.filter(f => f.shared || f.isShared);
+    }
+
+    if (activeTab === 'trash') {
+      return allFiles.filter(f => f.trashed || f.isTrashed);
+    }
+
+    if (activeTab === 'archive') {
+      return allFiles.filter(f => f.archived || f.isArchived);
+    }
+
+    return files;
+  }, [activeTab, files, allFiles]);
+
+  const { pageTitle, pageSubtitle } = useMemo(() => {
+    if (selectedFolder) {
+      return {
+        pageTitle: selectedFolder.name,
+        pageSubtitle: `Files inside "${selectedFolder.name}"`,
+      };
+    }
+
+    if (activeTab === 'my-drive') {
+      return {
+        pageTitle: 'My Drive',
+        pageSubtitle: 'Files not in any folder',
+      };
+    }
+
+    if (activeTab?.startsWith('filter-')) {
+      const filterName = activeTab.replace('filter-', '');
+      const title = filterName.charAt(0).toUpperCase() + filterName.slice(1);
+      return {
+        pageTitle: title,
+        pageSubtitle: `All ${title.toLowerCase()} files`,
+      };
+    }
+
+    if (activeTab === 'recent') {
+      return {
+        pageTitle: 'Recent',
+        pageSubtitle: 'Recently accessed and uploaded files',
+      };
+    }
+
+    if (activeTab === 'starred') {
+      return {
+        pageTitle: 'Starred',
+        pageSubtitle: 'Files you have starred',
+      };
+    }
+
+    if (activeTab === 'shared') {
+      return {
+        pageTitle: 'Shared',
+        pageSubtitle: 'Files shared with you',
+      };
+    }
+
+    if (activeTab === 'trash') {
+      return {
+        pageTitle: 'Trash',
+        pageSubtitle: 'Deleted files',
+      };
+    }
+
+    if (activeTab === 'archive') {
+      return {
+        pageTitle: 'Archive',
+        pageSubtitle: 'Archived files',
+      };
+    }
+
+    return {
+      pageTitle: 'My Drive',
+      pageSubtitle: 'Files not in any folder',
+    };
+  }, [activeTab, selectedFolder]);
+
+  const emptyState = useMemo(() => {
+    if (searchQuery) {
+      return {
+        title: 'No files match your search',
+        desc: 'Try a different keyword',
+        showUpload: false,
+      };
+    }
+
+    if (selectedFolder) {
+      return {
+        title: 'This folder is empty',
+        desc: 'Upload a file to add it to this folder',
+        showUpload: true,
+      };
+    }
+
+    if (activeTab === 'my-drive') {
+      return {
+        title: 'No files in My Drive yet',
+        desc: 'Upload your first file to get started with DataStock',
+        showUpload: true,
+      };
+    }
+
+    if (activeTab?.startsWith('filter-')) {
+      const filterName = activeTab.replace('filter-', '');
+      const title = filterName.charAt(0).toUpperCase() + filterName.slice(1);
+      return {
+        title: `No ${title} found`,
+        desc: `You haven't uploaded any ${title.toLowerCase()} files yet`,
+        showUpload: true,
+      };
+    }
+
+    if (activeTab === 'recent') {
+      return {
+        title: 'No recent files',
+        desc: 'Your recently uploaded files will appear here',
+        showUpload: false,
+      };
+    }
+
+    if (activeTab === 'starred') {
+      return {
+        title: 'No starred files',
+        desc: 'Star files to easily find them later',
+        showUpload: false,
+      };
+    }
+
+    if (activeTab === 'shared') {
+      return {
+        title: 'No shared files',
+        desc: 'Files shared with you by others will appear here',
+        showUpload: false,
+      };
+    }
+
+    if (activeTab === 'trash') {
+      return {
+        title: 'Trash is empty',
+        desc: 'Deleted files will appear here',
+        showUpload: false,
+      };
+    }
+
+    if (activeTab === 'archive') {
+      return {
+        title: 'Archive is empty',
+        desc: 'Archived files will appear here',
+        showUpload: false,
+      };
+    }
+
+    return {
+      title: 'No files found',
+      desc: 'Get started by uploading a file',
+      showUpload: true,
+    };
+  }, [activeTab, searchQuery, selectedFolder]);
+
   // ── FILTER ─────────────────────────────
   const filteredFiles = useMemo(() =>
-    files.filter(f => f.originalName?.toLowerCase().includes(searchQuery.toLowerCase())),
-    [files, searchQuery]
+    displayFiles.filter(f => f.originalName?.toLowerCase().includes(searchQuery.toLowerCase())),
+    [displayFiles, searchQuery]
   );
 
   // ── UPLOAD ─────────────────────────────
@@ -502,14 +689,12 @@ const Dashboard = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
               <div className="min-w-0">
                 <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">
-                  {selectedFolder ? selectedFolder.name : 'My Drive'}
+                  {pageTitle}
                 </h1>
                 <p className="text-gray-400 mt-1 text-sm truncate">
-                  {selectedFolder
-                    ? `Files inside "${selectedFolder.name}"`
-                    : 'Files not in any folder'}
+                  {pageSubtitle}
                 </p>
-                {selectedFolder && (
+                {(selectedFolder || activeTab !== 'my-drive') && (
                   <button
                     type="button"
                     onClick={() => setActiveTab('my-drive')}
@@ -599,9 +784,7 @@ const Dashboard = () => {
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                   {searchQuery
                     ? `Results for "${searchQuery}"`
-                    : selectedFolder
-                      ? `${selectedFolder.name}`
-                      : 'My Drive'}{' '}
+                    : pageTitle}{' '}
                   — {filteredFiles.length}
                 </h3>
               </div>
@@ -626,25 +809,17 @@ const Dashboard = () => {
                   <Folder className="w-10 h-10 text-gray-300" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">
-                  {searchQuery
-                    ? 'No files match your search'
-                    : selectedFolder
-                      ? 'This folder is empty'
-                      : 'No files in My Drive yet'}
+                  {emptyState.title}
                 </h2>
                 <p className="text-gray-400 mb-6 text-sm">
-                  {searchQuery
-                    ? 'Try a different keyword'
-                    : selectedFolder
-                      ? 'Upload a file to add it to this folder'
-                      : 'Upload your first file to get started with DataStock'}
+                  {emptyState.desc}
                 </p>
-                {!searchQuery && (
+                {emptyState.showUpload && (
                   <label className="cursor-pointer inline-flex">
                     <input type="file" className="hidden" onChange={handleUpload} />
                     <div className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
                       <Plus className="w-4 h-4" />
-                      Upload your first file
+                      Upload a file
                     </div>
                   </label>
                 )}

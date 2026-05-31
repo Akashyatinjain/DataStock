@@ -146,11 +146,26 @@ const FilePreviewModal = ({
           {/* PDF */}
           {
             isPdf && (
-              <iframe
-  src={`${url}#toolbar=1&navpanes=0`}
-  title={file.originalName}
-  className="w-full h-full rounded-xl bg-white"
-/>
+              <div className="w-full h-[78vh] flex flex-col">
+                <div className="bg-emerald-50 border-b border-emerald-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 text-sm">
+                  <div className="text-gray-700">
+                    <span className="font-semibold text-emerald-800">💡 Tip:</span> If the preview below says "No preview available", your Cloudinary account is blocking PDF delivery. You can enable it in your <strong className="text-emerald-950">Cloudinary Console &gt; Settings &gt; Security &gt; Allow delivery of PDF and ZIP files</strong>.
+                  </div>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition inline-flex items-center gap-1 shrink-0 justify-center whitespace-nowrap"
+                  >
+                    Open PDF in New Tab
+                  </a>
+                </div>
+                <iframe
+                  src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+                  title={file.originalName}
+                  className="w-full flex-1 border-0 bg-white"
+                />
+              </div>
             )
           }
 
@@ -160,7 +175,7 @@ const FilePreviewModal = ({
               <iframe
                 src={url}
                 title={file.originalName}
-                className="w-full h-full bg-white"
+                className="w-full h-[78vh] bg-white border-0"
               />
             )
           }
@@ -171,7 +186,7 @@ const FilePreviewModal = ({
               <iframe
                 src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
                 title={file.originalName}
-                className="w-full h-full"
+                className="w-full h-[78vh] border-0"
               />
             )
           }

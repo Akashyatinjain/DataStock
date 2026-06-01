@@ -38,7 +38,7 @@ const Header = ({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/user/me', { credentials: 'include' });
+        const res = await fetch(import.meta.env.VITE_API_URL + '/user/me', { credentials: 'include' });
         const data = await res.json();
         setUser(data.user);
       } catch (err) {

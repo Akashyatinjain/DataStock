@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:5000/api/user";
-const FILES_API_URL = "http://localhost:5000/api/files";
-const FOLDERS_API_URL = "http://localhost:5000/api/folders";
+const API_BASE_URL = import.meta.env.VITE_API_URL + "/user";
+const FILES_API_URL = import.meta.env.VITE_API_URL + "/files";
+const FOLDERS_API_URL = import.meta.env.VITE_API_URL + "/folders";
 
 // --- Skeleton loader for the whole page ---
 const ProfileSkeleton = () => (

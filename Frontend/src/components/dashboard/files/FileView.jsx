@@ -46,7 +46,8 @@ const FileView = ({
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:5000/api/user/upload-profile", {
+      // const res = await fetch("http://localhost:5000/api/user/upload-profile", {
+        const res = await fetch(import.meta.env.VITE_API_URL + "/user/upload-profile", {
         method: "POST",
         credentials: "include",
         body: formData,

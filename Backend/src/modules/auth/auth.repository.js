@@ -41,6 +41,22 @@ export const createGoogleUser = ({ email, username, googleId }) => {
   });
 };
 
+export const linkGoogleToUser = (userId, { googleId }) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      googleId,
+      authProvider: "google",
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      authProvider: true,
+    },
+  });
+};
+
 export const deleteExistingOTP = async(email)=>{
   return prisma.emailOTP.deleteMany({
     where:{email}

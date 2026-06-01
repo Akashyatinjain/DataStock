@@ -29,22 +29,28 @@ router.get(
 
 // Step 2: Callback
 
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: `${frontendUrl()}/login`,
-  }),
-  async (req, res, next) => {
-    try {
-      const user = await authService.googleLogin(req.user);
-      const token = createToken(user);
-      res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
-    } catch (error) {
-      next(error);
+router.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, async (err, googleUser) => {
+    const loginUrl = `${frontendUrl()}/login`;
+
+    if (err || !googleUser) {
+      console.error("Google OAuth error:", err);
+      return res.redirect(`${loginUrl}?error=google_auth_failed`);
     }
-  }
-);
+
+    try {
+      const user = await authService.googleLogin(googleUser);
+      const token = createToken(user);
+      return res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
+    } catch (error) {
+      console.error("Google login error:", error);
+      const message = encodeURIComponent(
+        error.message || "Google sign-in failed"
+      );
+      return res.redirect(`${loginUrl}?error=${message}`);
+    }
+  })(req, res, next);
+});
 
 router.post("/send-otp", sendOTPController);
 router.post("/verify-otp", verifyOTPController);

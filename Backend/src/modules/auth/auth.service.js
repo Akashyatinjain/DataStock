@@ -102,26 +102,39 @@ export const signInUserLocal = async ({ email, password }, res) => {
    GOOGLE LOGIN
 ========================= */
 export const googleLogin = async (googleUser) => {
-
   const { email, name, googleId } = googleUser;
 
-  let user = await authRepo.findUserByEmail(email);
-
-  if (user) {
-    if (user.authProvider !== "google") {
-      throw new Error("Account already exists with different login method");
-    }
-
-    return user;
+  if (!email) {
+    throw new Error("Google account did not provide an email");
   }
 
-  user = await authRepo.createGoogleUser({
-    email,
-    username: name,
-    googleId
-  });
+  if (!googleId) {
+    throw new Error("Google account ID missing");
+  }
 
-  return user;
+  const normalizedEmail = email.toLowerCase().trim();
+
+  let user = await authRepo.findUserByEmail(normalizedEmail);
+
+  if (user) {
+    if (user.authProvider === "google") {
+      return user;
+    }
+
+    // Same email signed up with password/OTP — link Google instead of failing
+    return authRepo.linkGoogleToUser(user.id, { googleId });
+  }
+
+  const existingGoogleUser = await authRepo.findUserByGoogleId(googleId);
+  if (existingGoogleUser) {
+    return existingGoogleUser;
+  }
+
+  return authRepo.createGoogleUser({
+    email: normalizedEmail,
+    username: name?.trim() || normalizedEmail.split("@")[0],
+    googleId,
+  });
 };
 
 

@@ -1,5 +1,5 @@
 // LoginPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Cloud, 
   Mail, 
@@ -35,6 +35,20 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (error) {
+      setErrors({
+        general:
+          error === "google_auth_failed"
+            ? "Google sign-in was cancelled or failed. Please try again."
+            : decodeURIComponent(error),
+      });
+      window.history.replaceState({}, document.title, "/login");
+    }
+  }, []);
 
   // Handle OTP input
 const handleOtpRequest = async (e) => {
@@ -293,9 +307,14 @@ if (res.data.token) {
               ) : (
                 /* Login Step */
                 <>
-                  {/* Google Sign In Button */}
-                 {/* Google Sign In Button */}
-<button
+                  {errors.general && (
+                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <span>{errors.general}</span>
+                    </div>
+                  )}
+
+                  <button
   onClick={handleGoogleLogin}
   className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-xl py-3 px-4 mb-6 hover:border-green-600 hover:text-green-600 transition font-medium"
 >

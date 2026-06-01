@@ -33,12 +33,17 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
+const backendUrl = (process.env.BACKEND_URL || "http://localhost:5000").replace(
+  /\/$/,
+  ""
+);
+
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-     callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`
+      callbackURL: `${backendUrl}/api/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       const email =

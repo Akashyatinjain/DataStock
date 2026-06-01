@@ -19,10 +19,10 @@ export const signUpUserLocal = async ({ username, email, password }, res) => {
     // check existing user
     const existUser = await findUserByEmail(normalizedEmail);
     if (existUser) {
-      return res.status(400).json({
-        message: "email already exists"
-      });
-    }
+  const err = new Error("Email already exists");
+  err.statusCode = 400;
+  throw err;
+}
 
     // hash password
     const hashedPassword = await hashPassword(password);
@@ -46,7 +46,8 @@ export const signUpUserLocal = async ({ username, email, password }, res) => {
     return {
       message: "User created successfully",
       user: safeUser,
-      token
+      token,
+      success: true
     };
 
   } catch (error) {

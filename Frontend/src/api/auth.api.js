@@ -2,7 +2,7 @@ import axios from "axios";
 import { Aperture } from "lucide-react";
 
 const API = axios.create({
-    baseURL:"http://localhost:5000/api",
+    baseURL:"http://localhost:5000/api" || import.meta.env.VITE_API_URL,
     withCredentials:true  //withCredentials: true hone par browser automatically token cookie ko backend tak bhej dega.
 })
 

@@ -19,12 +19,6 @@ export function MobileSidebarPanel({ isOpen, children, onClose }) {
       }`}
     >
       {children}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg md:hidden"
-      >
-        <X className="w-5 h-5" />
-      </button>
     </aside>
   );
 }

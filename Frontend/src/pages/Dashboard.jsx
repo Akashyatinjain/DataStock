@@ -37,15 +37,7 @@ import {
 import { QUICK_FILTERS } from '../utils/filters';
 
 // At the top of Dashboard.jsx or in a useEffect in App.jsx
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  if (token) {
-    localStorage.setItem("token", token);
-    // Clean the URL
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-}, []);
+
 // ─────────────────────────────────────────
 // TOAST SYSTEM
 // ─────────────────────────────────────────
@@ -269,6 +261,15 @@ const UploadButton = ({ uploading, onChange }) => (
 // ─────────────────────────────────────────
 
 const Dashboard = () => {
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  if (token) {
+    localStorage.setItem("token", token);
+    // Clean the URL
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+}, []);
   const [previewFile, setPreviewFile]       = useState(null);
   const [isPreviewOpen, setIsPreviewOpen]   = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

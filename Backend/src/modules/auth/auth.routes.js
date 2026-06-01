@@ -24,7 +24,7 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     // ✅ Redirect to frontend dashboard
-    res.redirect("http://localhost:5173/dashboard");
+    res.redirect(import.meta.env.VITE_FRONTEND_URL + "/dashboard");
   }
 );
 

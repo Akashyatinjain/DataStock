@@ -57,7 +57,7 @@ console.log("Google profile:", req.user);
       secure: false
     });
 
-    res.redirect("http://localhost:3000/dashboard");
+    res.redirect(import.meta.env.VITE_FRONTEND_URL + "/dashboard");
 
   } catch (error) {
     res.status(500).json({ message: error.message });

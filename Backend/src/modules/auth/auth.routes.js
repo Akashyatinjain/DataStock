@@ -19,12 +19,12 @@ router.get(
 );
 
 // Step 2: Callback
+
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false }),
+  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
   (req, res) => {
-    // ✅ Redirect to frontend dashboard
-    res.redirect(import.meta.env.VITE_FRONTEND_URL + "/dashboard");
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
   }
 );
 

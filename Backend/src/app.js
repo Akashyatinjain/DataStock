@@ -2,7 +2,7 @@ import express from "express"
 import Helmet from "helmet"
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
-import  {errorHandler}  from "./middleware/errorHandler.js";
+import  errorHandler  from "./middleware/errorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js"
 import  session  from "express-session";
 import passport from "./modules/auth/providers/googleAuth.js";

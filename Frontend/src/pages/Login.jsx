@@ -152,7 +152,7 @@ if (res.data.token) {
 
   // Handle Google login
  const handleGoogleLogin = () => {
-  window.location.href = "http://localhost:5000/api/auth/google"|| import.meta.env.VITE_API_URL + "/auth/google";
+  window.location.href = import.meta.env.VITE_API_URL + "/auth/google";
 };
 
   // Resend OTP

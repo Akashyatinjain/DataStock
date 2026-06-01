@@ -7,6 +7,7 @@ import {
   Settings, Star, Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { authFetch } from "../utils/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL + "/user";
 const FILES_API_URL = import.meta.env.VITE_API_URL + "/files";
@@ -57,10 +58,7 @@ export default function ProfilePage() {
       setLoading(true);
       setErrorMessage("");
 
-      const response = await fetch(`${API_BASE_URL}/me`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await authFetch(`${API_BASE_URL}/me`, { method: "GET" });
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.message || "Failed to fetch profile");
@@ -81,8 +79,8 @@ export default function ProfilePage() {
   const fetchStats = async () => {
     try {
       const [filesRes, foldersRes] = await Promise.all([
-        fetch(FILES_API_URL, { credentials: "include" }),
-        fetch(FOLDERS_API_URL, { credentials: "include" }),
+        authFetch(FILES_API_URL),
+        authFetch(FOLDERS_API_URL),
       ]);
 
       const filesData = filesRes.ok ? await filesRes.json() : null;
@@ -123,10 +121,9 @@ export default function ProfilePage() {
       setUpdating(true);
       setErrorMessage("");
 
-      const response = await fetch(`${API_BASE_URL}/update`, {
+      const response = await authFetch(`${API_BASE_URL}/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ username: username.trim() }),
       });
       const data = await response.json();
@@ -171,9 +168,8 @@ export default function ProfilePage() {
       setUploading(true);
       setErrorMessage("");
 
-      const response = await fetch(`${API_BASE_URL}/upload-profile`, {
+      const response = await authFetch(`${API_BASE_URL}/upload-profile`, {
         method: "POST",
-        credentials: "include",
         body: formData,
       });
       const data = await response.json();
@@ -202,9 +198,8 @@ export default function ProfilePage() {
 
     try {
       setDeletingImage(true);
-      const response = await fetch(`${API_BASE_URL}/delete-profile`, {
+      const response = await authFetch(`${API_BASE_URL}/delete-profile`, {
         method: "DELETE",
-        credentials: "include",
       });
       const data = await response.json();
 

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../../api/auth.api';
+import { authFetch } from '../../../utils/auth';
 
 const Header = ({
   searchQuery,
@@ -38,7 +39,7 @@ const Header = ({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(import.meta.env.VITE_API_URL + '/user/me', { credentials: 'include' });
+        const res = await authFetch(`${import.meta.env.VITE_API_URL}/user/me`);
         const data = await res.json();
         setUser(data.user);
       } catch (err) {

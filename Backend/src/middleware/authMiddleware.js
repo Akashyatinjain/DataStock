@@ -10,8 +10,8 @@ export const authenticateUser = (req, res, next) => {
       token = req.cookies.token;
     }
 
-    // Check Authorization header
-    else if (req.headers.authorization?.startsWith("Bearer ")) {
+    // Check Authorization header (Bearer token from localStorage)
+    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
     }
 

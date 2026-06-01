@@ -2,14 +2,21 @@ import express from "express"
 import { signInUser, signUpUser,logoutUser } from "./auth.controller.js"
 import { signUpvalidation,loginValidation } from "./auth.validation.js";
 import passport from "./providers/googleAuth.js";
-import jwt from "jsonwebtoken";
-
 import {
+
   sendOTPController,
   verifyOTPController
 } from "./auth.controller.js";
-import { googleCallback } from "./auth.controller.js";
+import * as authService from "./auth.service.js";
+import { createToken } from "../../utils/token.utils.js";
+
 const router = express.Router();
+
+const frontendUrl =
+  () =>
+    process.env.FRONTEND_URL ||
+    process.env.CLIENT_URL ||
+    "http://localhost:5173";
 
 router.post("/login",loginValidation,signInUser);
 router.post("/signup",signUpvalidation,signUpUser);
@@ -24,17 +31,18 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-  (req, res) => {
-    // Generate JWT from the user passport gave you
-    const token = jwt.sign(
-      { id: req.user.googleId, email: req.user.email, name: req.user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Send token to frontend via URL param
-    res.redirect(`${process.env.VITE_API_URL}/dashboard?token=${token}`);
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${frontendUrl()}/login`,
+  }),
+  async (req, res, next) => {
+    try {
+      const user = await authService.googleLogin(req.user);
+      const token = createToken(user);
+      res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

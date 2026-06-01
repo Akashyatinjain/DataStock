@@ -1,6 +1,7 @@
 import asyncHandler from "../../utils/asyncHandler.js";
 import * as authService from "./auth.service.js";
 import { createToken } from "../../utils/token.utils.js";
+import { clearAuthCookie } from "../../utils/cookie.utils.js";
 
 
 export const signUpUser = asyncHandler(async (req, res) => {
@@ -17,7 +18,7 @@ export const signInUser = asyncHandler(async (req, res) => {
 
 
 export const logoutUser = (req, res) => {
-  res.clearCookie("token");
+  clearAuthCookie(res);
 
   res.status(200).json({
     message: "Logout successful"
@@ -45,20 +46,14 @@ export const verifyOTPController = async (req, res) => {
 
 export const googleCallback = async (req, res) => {
   try {
-
     const user = await authService.googleLogin(req.user);
+    const token = createToken(user);
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.CLIENT_URL ||
+      "http://localhost:5173";
 
-    const token = createToken(user.id);
-const googleUser = req.user;
-console.log("Google profile:", req.user);
-    // send token in cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false
-    });
-
-    res.redirect(import.meta.env.VITE_FRONTEND_URL + "/dashboard");
-
+    res.redirect(`${frontendUrl}/dashboard?token=${token}`);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

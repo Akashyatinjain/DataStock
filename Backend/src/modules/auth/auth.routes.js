@@ -39,17 +39,29 @@ router.get("/google/callback", (req, res, next) => {
       return res.redirect(`${loginUrl}?error=google_auth_failed`);
     }
 
+    // try {
+    //   const user = await authService.googleLogin(googleUser);
+    //   const token = createToken(user);
+    //   return res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
+    // } catch (error) {
+    //   console.error("Google login error:", error);
+    //   const message = encodeURIComponent(
+    //     error.message || "Google sign-in failed"
+    //   );
+    //   return res.redirect(`${loginUrl}?error=${message}`);
+    // }
     try {
-      const user = await authService.googleLogin(googleUser);
-      const token = createToken(user);
-      return res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
-    } catch (error) {
-      console.error("Google login error:", error);
-      const message = encodeURIComponent(
-        error.message || "Google sign-in failed"
-      );
-      return res.redirect(`${loginUrl}?error=${message}`);
-    }
+  const user = await authService.googleLogin(googleUser);
+  console.log("=== GOOGLE LOGIN USER:", JSON.stringify(user));  // ← add
+  const token = createToken(user);
+  console.log("=== TOKEN:", token);  // ← add
+  return res.redirect(`${frontendUrl()}/dashboard?token=${token}`);
+} catch (error) {
+  console.error("=== GOOGLE LOGIN ERROR:", error.message);  // ← add
+  console.error("=== STACK:", error.stack);                 // ← add
+  const message = encodeURIComponent(error.message || "Google sign-in failed");
+  return res.redirect(`${loginUrl}?error=${message}`);
+}
   })(req, res, next);
 });
 

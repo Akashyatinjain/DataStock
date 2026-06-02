@@ -1,7 +1,16 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import {jwtDecode} from "jwt-decode";
 
 const ProtectedRoute = ({ children }) => {
+  // Google OAuth flow: backend redirects to /dashboard?token=xxx
+  // Extract and persist the token BEFORE the auth check
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get("token");
+  if (urlToken) {
+    localStorage.setItem("token", urlToken);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   const token = localStorage.getItem("token");
 
   if (!token) return <Navigate to="/login" />;

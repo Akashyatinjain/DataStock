@@ -8,7 +8,13 @@ export const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("SMTP ERROR:", error);
+  } else {
+    console.log("SMTP READY");
+  }
+});
 export const sendOTPEmail = async (email, otp) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,

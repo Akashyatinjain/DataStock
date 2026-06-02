@@ -15,11 +15,27 @@ transporter.verify((error, success) => {
     console.log("SMTP READY");
   }
 });
+// export const sendOTPEmail = async (email, otp) => {
+//   await transporter.sendMail({
+//     from: process.env.EMAIL_USER,
+//     to: email,
+//     subject: "Your OTP Verification Code",
+//     text: `Your OTP for login is ${otp}`,
+//   });
+// };
+
 export const sendOTPEmail = async (email, otp) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your OTP Verification Code",
-    text: `Your OTP for login is ${otp}`,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP Verification Code",
+      text: `Your OTP for login is ${otp}`,
+    });
+
+    console.log("Mail sent:", info.messageId);
+  } catch (error) {
+    console.error("Mail error:", error);
+    throw error;
+  }
 };

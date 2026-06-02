@@ -32,7 +32,8 @@ router.get(
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, async (err, googleUser) => {
     const loginUrl = `${frontendUrl()}/login`;
-
+ console.log("=== PASSPORT ERR:", JSON.stringify(err));
+    console.log("=== GOOGLE USER:", JSON.stringify(googleUser));
     if (err || !googleUser) {
       console.error("Google OAuth error:", err);
       return res.redirect(`${loginUrl}?error=google_auth_failed`);

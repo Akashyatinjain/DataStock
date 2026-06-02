@@ -4,11 +4,9 @@ import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js"
-import  session  from "express-session";
 import passport from "./modules/auth/providers/googleAuth.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./modules/user/user.routes.js";
-import listEndpoints from "express-list-endpoints";
 import cors from "cors";
 import fileRoutes from "./modules/files/file.routes.js";
 import folderRoutes from "./modules/folders/folder.routes.js";
@@ -20,13 +18,6 @@ const limiter = rateLimit({
 })
 
 app.disable("x-powered-by");
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
-);
 
 app.use(cors({
   origin: [
@@ -38,19 +29,27 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(passport.initialize());
-app.use(passport.session());
 app.use(Helmet());
 app.use(morgan("dev"));
 app.use(limiter);
 app.use(cookieParser());
 
 
+// Health check route — Render pings GET / to verify the service is alive
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "DataStock API",
+    version: "1.0.0",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/files", fileRoutes);
-app.use("/api/folders",folderRoutes);
+app.use("/api/folders", folderRoutes);
 
 app.use(errorHandler);
 
-console.log(listEndpoints(app));
 export default app;

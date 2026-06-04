@@ -19,6 +19,8 @@ import {
   X,
   Download,
   Eye,
+  Bell,
+  Check,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -28,6 +30,7 @@ import FilePreviewModal from '../components/ui/FilePreviewModal';
 import { getFiles, getAllFiles, uploadFile, deleteFile } from '../api/file.api';
 import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
+import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
 import {
   normalizeList,
   normalizeFile,
@@ -36,11 +39,7 @@ import {
 } from '../utils/fileHelpers';
 import { QUICK_FILTERS } from '../utils/filters';
 
-// At the top of Dashboard.jsx or in a useEffect in App.jsx
-
-// ─────────────────────────────────────────
-// TOAST SYSTEM
-// ─────────────────────────────────────────
+import { socket } from "../socket";
 
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
@@ -256,9 +255,7 @@ const UploadButton = ({ uploading, onChange }) => (
   </label>
 );
 
-// ─────────────────────────────────────────
-// MAIN DASHBOARD
-// ─────────────────────────────────────────
+
 
 const Dashboard = () => {
   useEffect(() => {
@@ -287,6 +284,10 @@ const Dashboard = () => {
 
   const [viewMode, setViewMode] = useState('grid');
   const [user, setUser] = useState(null);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   // Toast state
   const [toasts, setToasts] = useState([]);
@@ -366,6 +367,46 @@ const Dashboard = () => {
       loadFiles(selectedFolderId);
     }
   }, [activeTab, selectedFolderId, loadFiles]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setNotificationsLoading(true);
+      const res = await getNotifications();
+      if (res.success) {
+        setNotifications(res.notifications || []);
+      }
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to load notifications', 'error');
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [addToast]);
+
+  useEffect(() => {
+    if (activeTab === 'notifications' && user?.id) {
+      fetchNotifications();
+    }
+  }, [activeTab, user, fetchNotifications]);
+
+  // Live notifications listener for real-time toasts and page updates
+  useEffect(() => {
+    if (user?.id) {
+      const handleNewNotification = (notification) => {
+        // Show real-time visual toast
+        addToast(notification.message, 'success');
+        
+        // Update notifications list if user is on notifications page
+        setNotifications((prev) => [notification, ...prev]);
+      };
+
+      socket.on('notification', handleNewNotification);
+
+      return () => {
+        socket.off('notification', handleNewNotification);
+      };
+    }
+  }, [user, addToast]);
 
   const addUploadedFile = useCallback(
     (file) => {
@@ -489,6 +530,13 @@ const Dashboard = () => {
       };
     }
 
+    if (activeTab === 'notifications') {
+      return {
+        pageTitle: 'Notifications',
+        pageSubtitle: 'Latest system and file activities',
+      };
+    }
+
     return {
       pageTitle: 'My Drive',
       pageSubtitle: 'Files not in any folder',
@@ -566,6 +614,14 @@ const Dashboard = () => {
       return {
         title: 'Archive is empty',
         desc: 'Archived files will appear here',
+        showUpload: false,
+      };
+    }
+
+    if (activeTab === 'notifications') {
+      return {
+        title: 'All caught up!',
+        desc: 'No new notifications to display',
         showUpload: false,
       };
     }
@@ -716,81 +772,85 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
-                {/* View toggle */}
-                <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    title="Grid view"
-                  >
-                    <Grid3X3 className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    title="List view"
-                  >
-                    <List className="w-5 h-5" />
-                  </button>
-                </div>
+              {activeTab !== 'notifications' && (
+                <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
+                  {/* View toggle */}
+                  <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      title="Grid view"
+                    >
+                      <Grid3X3 className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      title="List view"
+                    >
+                      <List className="w-5 h-5" />
+                    </button>
+                  </div>
 
-                <UploadButton uploading={uploading} onChange={handleUpload} />
-              </div>
+                  <UploadButton uploading={uploading} onChange={handleUpload} />
+                </div>
+              )}
             </div>
 
             {/* ── STATS ROW ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            {activeTab !== 'notifications' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 
-              {/* Storage card */}
-              <div className="sm:col-span-2 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-5">
+                {/* Storage card */}
+                <div className="sm:col-span-2 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h2 className="text-base font-semibold text-gray-900">Storage Usage</h2>
+                      <p className="text-gray-400 text-sm mt-0.5">{usedGB} GB used of 10 GB</p>
+                    </div>
+                    <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                      <HardDrive className="w-5 h-5 text-green-600" />
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${storagePercentage}%`,
+                        background: storagePercentage > 80
+                          ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
+                          : 'linear-gradient(90deg, #22c55e, #10b981)',
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs text-gray-400">0 GB</span>
+                    <span className="text-xs font-semibold text-gray-500">{storagePercentage.toFixed(1)}%</span>
+                    <span className="text-xs text-gray-400">10 GB</span>
+                  </div>
+                </div>
+
+                {/* File count card */}
+                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-gray-900">Total Files</h2>
+                    <div className="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center">
+                      <Folder className="w-5 h-5 text-sky-500" />
+                    </div>
+                  </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">Storage Usage</h2>
-                    <p className="text-gray-400 text-sm mt-0.5">{usedGB} GB used of 10 GB</p>
+                    <p className="text-4xl font-extrabold text-gray-900 mt-4 tabular-nums">{totalFileCount}</p>
+                    <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
                   </div>
-                  <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
-                    <HardDrive className="w-5 h-5 text-green-600" />
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${storagePercentage}%`,
-                      background: storagePercentage > 80
-                        ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                        : 'linear-gradient(90deg, #22c55e, #10b981)',
-                    }}
-                  />
-                </div>
-
-                <div className="flex justify-between mt-2">
-                  <span className="text-xs text-gray-400">0 GB</span>
-                  <span className="text-xs font-semibold text-gray-500">{storagePercentage.toFixed(1)}%</span>
-                  <span className="text-xs text-gray-400">10 GB</span>
                 </div>
               </div>
-
-              {/* File count card */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-gray-900">Total Files</h2>
-                  <div className="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center">
-                    <Folder className="w-5 h-5 text-sky-500" />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-4xl font-extrabold text-gray-900 mt-4 tabular-nums">{totalFileCount}</p>
-                  <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* ── SECTION HEADER ── */}
-            {!loading && filteredFiles.length > 0 && (
+            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                   {searchQuery
@@ -802,7 +862,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LOADING ── */}
-            {loading && (
+            {activeTab !== 'notifications' && loading && (
               <div className="flex flex-col items-center justify-center py-32 gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center">
@@ -814,7 +874,7 @@ const Dashboard = () => {
             )}
 
             {/* ── EMPTY STATE ── */}
-            {!loading && filteredFiles.length === 0 && (
+            {activeTab !== 'notifications' && !loading && filteredFiles.length === 0 && (
               <div className="bg-white border border-dashed border-gray-200 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100">
                   <Folder className="w-10 h-10 text-gray-300" />
@@ -838,7 +898,7 @@ const Dashboard = () => {
             )}
 
             {/* ── GRID VIEW ── */}
-            {!loading && filteredFiles.length > 0 && viewMode === 'grid' && (
+            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
                 {filteredFiles.map(file => (
                   <FileCard
@@ -853,7 +913,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LIST VIEW ── */}
-            {!loading && filteredFiles.length > 0 && viewMode === 'list' && (
+            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 bg-gray-50/80">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
@@ -870,6 +930,104 @@ const Dashboard = () => {
                     deletingId={deletingId}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* ── NOTIFICATIONS VIEW ── */}
+            {activeTab === 'notifications' && (
+              <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-green-600" />
+                    All Notifications
+                  </h2>
+                  {notifications.some(n => !n.isRead) && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await markAllAsRead();
+                          setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                          addToast("All notifications marked as read", "success");
+                        } catch (err) {
+                          addToast("Failed to mark all read", "error");
+                        }
+                      }}
+                      className="text-xs font-semibold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-xl transition"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {notificationsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+                    <p className="text-sm text-gray-400">Loading notifications…</p>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Bell className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900 mb-1">No notifications</h3>
+                    <p className="text-xs text-gray-400">We'll let you know when something happens!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
+                          !notif.isRead
+                            ? 'bg-green-50/20 border-green-100 shadow-sm'
+                            : 'bg-white border-gray-100 hover:bg-gray-50/50'
+                        }`}
+                      >
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            !notif.isRead ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            <Bell className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-sm ${!notif.isRead ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                              {notif.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(notif.createdAt).toLocaleDateString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+
+                        {!notif.isRead && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await markAsRead(notif.id);
+                                setNotifications(prev =>
+                                  prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+                                );
+                                addToast("Notification marked as read", "success");
+                              } catch (err) {
+                                addToast("Failed to update notification", "error");
+                              }
+                            }}
+                            className="p-2 hover:bg-green-50 text-gray-400 hover:text-green-600 rounded-xl transition shrink-0"
+                            title="Mark as read"
+                          >
+                            <Check className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

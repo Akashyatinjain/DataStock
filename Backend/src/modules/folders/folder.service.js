@@ -10,6 +10,7 @@ import {
 
 import prisma
 from "../../config/db.js";
+import { createNotificationService } from "../notifications/notification.service.js";
 export const createFolderService = async (name,userId,parentId = null) => {
 
   if (!name) {
@@ -18,14 +19,15 @@ export const createFolderService = async (name,userId,parentId = null) => {
     );
   }
 
-  return await folderRepo.createFolder({
-
+  const folder = await folderRepo.createFolder({
     name,
-
     ownerId: userId,
-
     parentId
   });
+
+  await createNotificationService(userId, `Folder "${name}" created successfully`);
+
+  return folder;
 };
 
 
@@ -96,6 +98,8 @@ export const deleteFolderService =
     await folderRepo.deleteFolderById(
       folderId
     );
+
+    await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
 
     return {
       message:

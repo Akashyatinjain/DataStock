@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
+import Notifications from './pages/Notifications';
 import { useState,useEffect } from 'react';
 import Profile from "./pages/Profile";
 
@@ -43,6 +44,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
             </ProtectedRoute>
           }
         />

@@ -5,6 +5,7 @@ import {
   Star,
   Trash2,
   Archive,
+  Bell,
 } from 'lucide-react';
 
 export const NAV_ITEMS = [
@@ -12,6 +13,7 @@ export const NAV_ITEMS = [
   { id: 'shared', label: 'Shared', icon: Users },
   { id: 'recent', label: 'Recent', icon: Clock },
   { id: 'starred', label: 'Starred', icon: Star },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
 ];
 
 export const MORE_ITEMS = [

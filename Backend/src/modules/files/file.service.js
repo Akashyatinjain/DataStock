@@ -43,11 +43,7 @@ import { uploadOnCloudinary,deleteFromCloudinary } from "../../services/cloudina
 import * as fileRepo from "./file.repository.js";
 
 import prisma from "../../config/db.js";
-
-
-// ==========================
-// UPLOAD FILE SERVICE
-// ==========================
+import { createNotificationService } from "../notifications/notification.service.js";
 
 export const uploadFileService = async (
   file,
@@ -105,13 +101,18 @@ const savedFile =
     }
   });
 
-  return savedFile;
+  await createNotificationService(
+    userId,
+    `File "${file.originalname}" uploaded successfully`
+  );
+
+  return {
+    savedFile,
+    message: "File uploaded successfully"
+  };
 };
 
 
-// ==========================
-// GET USER FILES
-// ==========================
 
 export const getUserFilesService =
   async (
@@ -176,6 +177,10 @@ export const deleteFileService = async (
     }
   });
 
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" deleted successfully`
+  );
   return {
     message: "File deleted successfully"
   };

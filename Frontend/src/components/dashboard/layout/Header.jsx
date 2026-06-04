@@ -1,5 +1,5 @@
 // components/Header.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Cloud,
   Search,
@@ -17,7 +17,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import API from '../../../api/auth.api';
 import { authFetch } from '../../../utils/auth';
-
+import { socket } from "../../../socket";
+import { getNotifications } from '../../../api/notification.api';
 const Header = ({
   searchQuery,
   setSearchQuery,
@@ -30,10 +31,41 @@ const Header = ({
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
-  const notificationsRef = useRef(null);
+  useEffect(() => {
+    if (user?.id) {
+      // Connect / join the user's socket room
+      socket.emit("join", user.id);
+
+      // Fetch existing notifications
+      const fetchNotifications = async () => {
+        try {
+          const res = await getNotifications();
+          if (res.success) {
+            setNotifications(res.notifications || []);
+          }
+        } catch (err) {
+          console.error("Failed to fetch notifications:", err);
+        }
+      };
+      fetchNotifications();
+
+      // Listen for incoming notifications
+      const handleNewNotification = (notification) => {
+        setNotifications((prev) => [notification, ...prev]);
+      };
+
+      socket.on("notification", handleNewNotification);
+
+      return () => {
+        socket.off("notification", handleNewNotification);
+      };
+    }
+  }, [user]);
+
+
 
   // Fetch current user
   useEffect(() => {
@@ -63,15 +95,10 @@ const Header = ({
   // Close notifications dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
+      // Cleanup if needed
     };
-    if (showNotifications) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showNotifications]);
+    return () => {};
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -87,13 +114,7 @@ const Header = ({
     return 'U';
   };
 
-  const notifications = [
-    { id: 1, title: 'New file shared with you', message: 'Sarah shared "Project Proposal.pdf"', time: '5 min ago', unread: true },
-    { id: 2, title: 'Storage almost full', message: 'You have used 45.2 GB of 100 GB', time: '2 hours ago', unread: true },
-    { id: 3, title: 'File downloaded', message: 'team-photo.jpg was downloaded', time: 'Yesterday', unread: false },
-  ];
-
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Skeleton loader — avoids full layout shift while user data loads
   if (isLoading) {
@@ -202,50 +223,16 @@ const Header = ({
               </button>
 
               {/* Notifications */}
-              <div className="relative hidden sm:block" ref={notificationsRef}>
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded-lg transition relative"
-                  aria-label="Notifications"
-                >
-                  <Bell className="w-5 h-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                  )}
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 py-2 animate-slideDown">
-                    <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-                      <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-                      <button className="text-xs text-green-600 hover:text-green-700">Mark all read</button>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className={`px-4 py-3 hover:bg-gray-50 transition border-b border-gray-50 last:border-0 ${
-                            notif.unread ? 'bg-green-50/30' : ''
-                          }`}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div
-                              className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${
-                                notif.unread ? 'bg-green-600' : 'bg-gray-300'
-                              }`}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{notif.title}</p>
-                              <p className="text-xs text-gray-600 mt-0.5">{notif.message}</p>
-                              <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              <button
+                onClick={() => navigate('/notifications')}
+                className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded-lg transition relative hidden sm:block"
+                aria-label="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
                 )}
-              </div>
+              </button>
 
               {/* Settings */}
               <button

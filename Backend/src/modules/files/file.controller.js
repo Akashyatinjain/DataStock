@@ -34,9 +34,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import * as fileService from "./file.service.js";
 
 
-// ==========================
-// UPLOAD FILE
-// ==========================
+
 
 export const uploadFile = asyncHandler(
 
@@ -69,9 +67,6 @@ export const uploadFile = asyncHandler(
 );
 
 
-// ==========================
-// GET USER FILES
-// ==========================
 
 export const getUserFiles =
   asyncHandler(

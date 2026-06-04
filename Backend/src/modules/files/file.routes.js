@@ -42,9 +42,6 @@ import {
 const router = express.Router();
 
 
-// ==========================
-// UPLOAD FILE
-// ==========================
 
 router.post(
   "/upload",
@@ -57,9 +54,6 @@ router.post(
 );
 
 
-// ==========================
-// GET USER FILES
-// ==========================
 
 router.get(
   "/",

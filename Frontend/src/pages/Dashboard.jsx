@@ -73,9 +73,6 @@ const ToastContainer = ({ toasts, onRemove }) => (
   </div>
 );
 
-// ─────────────────────────────────────────
-// FILE TYPE CONFIG
-// ─────────────────────────────────────────
 
 const FILE_TYPES = {
   image:   { icon: ImageIcon, color: 'text-sky-500',     bg: 'bg-sky-50',     label: 'Image'    },
@@ -100,9 +97,7 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
 };
 
-// ─────────────────────────────────────────
-// FILE CARD — GRID
-// ─────────────────────────────────────────
+
 
 const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
   const type = getFileType(file.mimeType);
@@ -176,9 +171,6 @@ const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
   );
 };
 
-// ─────────────────────────────────────────
-// FILE ROW — LIST
-// ─────────────────────────────────────────
 
 const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
   const type = getFileType(file.mimeType);
@@ -234,9 +226,7 @@ const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
   );
 };
 
-// ─────────────────────────────────────────
-// UPLOAD DROP ZONE (drag & drop bonus)
-// ─────────────────────────────────────────
+
 
 const UploadButton = ({ uploading, onChange }) => (
   <label className="cursor-pointer inline-flex max-w-full">
@@ -339,7 +329,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  // ── FETCH ──────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
@@ -633,13 +622,11 @@ const Dashboard = () => {
     };
   }, [activeTab, searchQuery, selectedFolder]);
 
-  // ── FILTER ─────────────────────────────
   const filteredFiles = useMemo(() =>
     displayFiles.filter(f => f.originalName?.toLowerCase().includes(searchQuery.toLowerCase())),
     [displayFiles, searchQuery]
   );
 
-  // ── UPLOAD ─────────────────────────────
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -662,7 +649,6 @@ const Dashboard = () => {
     }
   };
 
-  // ── DELETE ─────────────────────────────
   const handleDelete = async (fileId) => {
     const file = files.find(f => f.id === fileId);
     try {
@@ -682,9 +668,7 @@ const Dashboard = () => {
     }
   };
 
-  // ─────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────
+ 
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">

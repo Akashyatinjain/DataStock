@@ -13,7 +13,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL + "/user";
 const FILES_API_URL = import.meta.env.VITE_API_URL + "/files";
 const FOLDERS_API_URL = import.meta.env.VITE_API_URL + "/folders";
 
-// --- Skeleton loader for the whole page ---
 const ProfileSkeleton = () => (
   <div className="h-full animate-pulse p-6 max-w-5xl mx-auto space-y-6">
     <div className="h-8 w-40 bg-gray-200 rounded" />
@@ -50,9 +49,9 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef(null);
 
-  // =========================
-  // GET PROFILE
-  // =========================
+  
+  
+  
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -73,9 +72,8 @@ export default function ProfilePage() {
     }
   };
 
-  // =========================
-  // GET QUICK STATS
-  // =========================
+  
+  
   const fetchStats = async () => {
     try {
       const [filesRes, foldersRes] = await Promise.all([
@@ -107,9 +105,8 @@ export default function ProfilePage() {
     fetchStats();
   }, []);
 
-  // =========================
-  // UPDATE USERNAME
-  // =========================
+  
+  
   const handleUpdateProfile = async () => {
     if (!username.trim()) {
       setErrorMessage("Username cannot be empty");
@@ -142,9 +139,8 @@ export default function ProfilePage() {
     }
   };
 
-  // =========================
-  // UPLOAD PROFILE IMAGE
-  // =========================
+  
+  
   const handleImageUpload = async (e) => {
     try {
       const file = e.target.files[0];
@@ -190,9 +186,8 @@ export default function ProfilePage() {
     }
   };
 
-  // =========================
-  // DELETE PROFILE IMAGE
-  // =========================
+  
+  
   const handleDeleteImage = async () => {
     if (!user?.imageUrl) return;
 
@@ -216,9 +211,8 @@ export default function ProfilePage() {
     }
   };
 
-  // =========================
-  // COPY EMAIL TO CLIPBOARD
-  // =========================
+  
+  
   const copyEmail = () => {
     if (!user?.email) return;
     navigator.clipboard.writeText(user.email).then(() => {
@@ -227,9 +221,8 @@ export default function ProfilePage() {
     });
   };
 
-  // =========================
-  // STORAGE FORMATTER
-  // =========================
+  
+  
   const formatStorage = (bytes) => {
     if (!bytes) return "0 GB";
     const gb = bytes / (1024 * 1024 * 1024);
@@ -240,16 +233,14 @@ export default function ProfilePage() {
     return `${gb.toFixed(2)} GB`;
   };
 
-  // =========================
-  // LOADING STATE
-  // =========================
+  
+  
   if (loading) {
     return <ProfileSkeleton />;
   }
 
-  // =========================
-  // ERROR STATE (no user at all)
-  // =========================
+  
+  
   if (errorMessage && !user) {
     return (
       <div className="h-full flex items-center justify-center p-6">
@@ -304,7 +295,7 @@ export default function ProfilePage() {
           <p className="text-gray-500 mt-1">Manage your account settings and preferences</p>
         </div>
 
-        {/* ============ MAIN PROFILE CARD ============ */}
+        {/*  MAIN PROFILE CARD  */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* ---------- Avatar Section ---------- */}
@@ -474,7 +465,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ============ STORAGE & STATS SECTION ============ */}
+        {/*  STORAGE & STATS SECTION  */}
         <div className="mt-6 grid md:grid-cols-2 gap-6">
           {/* Storage Overview */}
           <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6">
@@ -539,7 +530,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ============ QUICK ACTIONS ============ */}
+        {/*  QUICK ACTIONS  */}
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           <button className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
             <div className="p-2 bg-purple-100 rounded-xl">

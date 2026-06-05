@@ -185,3 +185,27 @@ export const deleteFileService = async (
     message: "File deleted successfully"
   };
 };
+
+export const toggleStarFileService = async (fileId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to update this file");
+  }
+
+  const updatedFile = await fileRepo.updateFileStarred(
+    fileId,
+    !file.isStarred
+  );
+
+  return {
+    file: updatedFile,
+    message: updatedFile.isStarred
+      ? "File added to starred"
+      : "File removed from starred",
+  };
+};

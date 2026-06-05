@@ -105,6 +105,13 @@ export const deleteFileById = async (fileId) => {
   });
 };
 
+export const updateFileStarred = async (fileId, isStarred) => {
+  return prisma.file.update({
+    where: { id: fileId },
+    data: { isStarred },
+  });
+};
+
 export const deleteFilesByFolderId = async (folderId) => {
   return await prisma.file.deleteMany({
     where: {

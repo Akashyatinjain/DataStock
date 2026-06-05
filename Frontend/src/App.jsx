@@ -20,22 +20,15 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* Home */}
-        <Route path="/" element={<HomePage />} />
-
-        {/* Auth Routes */}
+       <Route path="/" element={<HomePage />} />
        <Route path="/login" element={<Login />} />
-<Route path="/signup" element={<SignUp />} />
-
-<Route path="/profile" element={<Profile />} />
-        {/* Protected Route */}
-        <Route 
+       <Route path="/signup" element={<SignUp />} />
+       <Route path="/profile" element={<Profile />} />
+       <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Dashboard />
-              {/* <Profile /> */}
             </ProtectedRoute>
           } 
         />
@@ -47,7 +40,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/notifications"
           element={
@@ -56,8 +48,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Catch All (404) */}
         <Route path="*" element={<NotFound />} />
 
       </Routes>

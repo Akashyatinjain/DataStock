@@ -45,3 +45,8 @@ export const deleteFile = async (
 
   return response.data;
 };
+
+export const toggleStarFile = async (fileId) => {
+  const response = await API.patch(`/files/${fileId}/star`);
+  return response.data;
+};

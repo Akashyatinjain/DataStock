@@ -28,7 +28,8 @@ import express from "express";
 import {
   uploadFile,
   getUserFiles,
-  deleteFile
+  deleteFile,
+  toggleStarFile,
 } from "./file.controller.js";
 
 import {
@@ -43,33 +44,14 @@ const router = express.Router();
 
 
 
-router.post(
-  "/upload",
+router.post("/upload",authenticateUser,upload.single("file"),uploadFile);
 
-  authenticateUser,
+router.get("/",authenticateUser,getUserFiles);
 
-  upload.single("file"),
+router.patch("/:id/star", authenticateUser, toggleStarFile);
 
-  uploadFile
-);
+router.delete("/:id",authenticateUser,deleteFile);
 
-
-
-router.get(
-  "/",
-
-  authenticateUser,
-
-  getUserFiles
-);
-
-router.delete(
-  "/:id",
-
-  authenticateUser,
-
-  deleteFile
-);
 
 export default router;
 

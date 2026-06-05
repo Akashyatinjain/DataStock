@@ -21,13 +21,14 @@ import {
   Eye,
   Bell,
   Check,
+  Star,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 
-import { getFiles, getAllFiles, uploadFile, deleteFile } from '../api/file.api';
+import { getFiles, getAllFiles, uploadFile, deleteFile, toggleStarFile } from '../api/file.api';
 import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
@@ -99,10 +100,12 @@ const formatFileSize = (bytes) => {
 
 
 
-const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
+const FileCard = ({ file, onDelete, onPreview, onToggleStar, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
+  const isStarring = starringId === file.id;
+  const isStarred = file.starred || file.isStarred;
 
   return (
     <div
@@ -140,9 +143,14 @@ const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
           {type.label}
         </span>
 
-        <h3 className="font-semibold text-gray-900 truncate text-sm leading-snug mb-1">
-          {file.originalName}
-        </h3>
+        <div className="flex items-center gap-1.5 mb-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 truncate text-sm leading-snug flex-1">
+            {file.originalName}
+          </h3>
+          {isStarred && (
+            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+          )}
+        </div>
         <p className="text-xs text-gray-400 mb-4">{formatFileSize(file.size)}</p>
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-50">
@@ -150,6 +158,22 @@ const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+            <button
+              onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
+              disabled={isStarring}
+              className={`p-1.5 rounded-lg transition ${
+                isStarred
+                  ? 'text-yellow-500 hover:bg-yellow-50'
+                  : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
+              }`}
+              title={isStarred ? 'Remove from starred' : 'Add to starred'}
+            >
+              {isStarring ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+              )}
+            </button>
             <button
               onClick={e => { e.stopPropagation(); onPreview(file); }}
               className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
@@ -172,10 +196,12 @@ const FileCard = ({ file, onDelete, onPreview, deletingId }) => {
 };
 
 
-const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
+const FileRow = ({ file, onDelete, onPreview, onToggleStar, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
+  const isStarring = starringId === file.id;
+  const isStarred = file.starred || file.isStarred;
 
   return (
     <div
@@ -191,7 +217,12 @@ const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
           <Icon className={`w-5 h-5 ${type.color}`} />
         </div>
         <div className="min-w-0">
-          <p className="font-medium text-gray-900 text-sm truncate">{file.originalName}</p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="font-medium text-gray-900 text-sm truncate">{file.originalName}</p>
+            {isStarred && (
+              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+            )}
+          </div>
           <p className="text-[11px] text-gray-400 truncate">{file.url}</p>
         </div>
       </div>
@@ -207,6 +238,22 @@ const FileRow = ({ file, onDelete, onPreview, deletingId }) => {
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
         ) : (
           <>
+            <button
+              onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
+              disabled={isStarring}
+              className={`p-1.5 opacity-0 group-hover:opacity-100 rounded-lg transition ${
+                isStarred
+                  ? 'text-yellow-500 hover:bg-yellow-50 opacity-100'
+                  : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
+              }`}
+              title={isStarred ? 'Remove from starred' : 'Add to starred'}
+            >
+              {isStarring ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
+              )}
+            </button>
             <button
               onClick={e => { e.stopPropagation(); onPreview(file); }}
               className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
@@ -270,7 +317,8 @@ const Dashboard = () => {
   const [foldersLoading, setFoldersLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null); // tracks which file is being deleted
+  const [deletingId, setDeletingId] = useState(null);
+  const [starringId, setStarringId] = useState(null);
 
   const [viewMode, setViewMode] = useState('grid');
   const [user, setUser] = useState(null);
@@ -649,8 +697,34 @@ const Dashboard = () => {
     }
   };
 
+  const updateFileInState = useCallback((fileId, updater) => {
+    setFiles(prev => prev.map(f => (f.id === fileId ? updater(f) : f)));
+    setAllFiles(prev => prev.map(f => (f.id === fileId ? updater(f) : f)));
+  }, []);
+
+  const handleToggleStar = async (fileId) => {
+    const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
+    try {
+      setStarringId(fileId);
+      const response = await toggleStarFile(fileId);
+      const updated = normalizeFile(response.file);
+      updateFileInState(fileId, () => updated);
+      addToast(
+        updated.starred
+          ? `"${file?.originalName}" added to starred`
+          : `"${file?.originalName}" removed from starred`,
+        'success'
+      );
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to update starred status', 'error');
+    } finally {
+      setStarringId(null);
+    }
+  };
+
   const handleDelete = async (fileId) => {
-    const file = files.find(f => f.id === fileId);
+    const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
     try {
       setDeletingId(fileId);
       addToast(`Deleting "${file?.originalName}"…`, 'info');
@@ -890,7 +964,9 @@ const Dashboard = () => {
                     file={file}
                     onDelete={handleDelete}
                     onPreview={handlePreview}
+                    onToggleStar={handleToggleStar}
                     deletingId={deletingId}
+                    starringId={starringId}
                   />
                 ))}
               </div>
@@ -911,7 +987,9 @@ const Dashboard = () => {
                     file={file}
                     onDelete={handleDelete}
                     onPreview={handlePreview}
+                    onToggleStar={handleToggleStar}
                     deletingId={deletingId}
+                    starringId={starringId}
                   />
                 ))}
               </div>

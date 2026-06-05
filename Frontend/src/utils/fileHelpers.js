@@ -10,7 +10,13 @@ export const getFolderId = (folder) => folder._id || folder.id;
 
 export const normalizeFile = (file) => {
   if (!file) return file;
-  return { ...file, id: file.id || file._id };
+  const isStarred = file.isStarred ?? file.starred ?? false;
+  return {
+    ...file,
+    id: file.id || file._id,
+    isStarred,
+    starred: isStarred,
+  };
 };
 
 export const getActiveFolderId = (activeTab) =>

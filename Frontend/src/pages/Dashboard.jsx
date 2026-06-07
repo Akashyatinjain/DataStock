@@ -22,16 +22,19 @@ import {
   Bell,
   Check,
   Star,
+  Share2,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
+import ShareModal from '../components/dashboard/modals/ShareModal';
 
 import { getFiles, getAllFiles, uploadFile, deleteFile, toggleStarFile } from '../api/file.api';
 import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
+import { getSharedWithMe } from '../api/share.api';
 import {
   normalizeList,
   normalizeFile,
@@ -100,7 +103,7 @@ const formatFileSize = (bytes) => {
 
 
 
-const FileCard = ({ file, onDelete, onPreview, onToggleStar, deletingId, starringId }) => {
+const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -175,6 +178,13 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, deletingId, starrin
               )}
             </button>
             <button
+              onClick={e => { e.stopPropagation(); onShare(file); }}
+              className="p-1.5 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+              title="Share"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+            <button
               onClick={e => { e.stopPropagation(); onPreview(file); }}
               className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
               title="Preview"
@@ -196,7 +206,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, deletingId, starrin
 };
 
 
-const FileRow = ({ file, onDelete, onPreview, onToggleStar, deletingId, starringId }) => {
+const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -253,6 +263,13 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, deletingId, starring
               ) : (
                 <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
               )}
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onShare(file); }}
+              className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+              title="Share"
+            >
+              <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={e => { e.stopPropagation(); onPreview(file); }}
@@ -319,6 +336,19 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [starringId, setStarringId] = useState(null);
+
+  // Share modal state
+  const [shareModalFile, setShareModalFile] = useState(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
+  // Shared-with-me state
+  const [sharedWithMe, setSharedWithMe] = useState([]);
+  const [sharedLoading, setSharedLoading] = useState(false);
+
+  const handleShare = useCallback((file) => {
+    setShareModalFile(file);
+    setIsShareOpen(true);
+  }, []);
 
   const [viewMode, setViewMode] = useState('grid');
   const [user, setUser] = useState(null);
@@ -426,6 +456,26 @@ const Dashboard = () => {
     }
   }, [activeTab, user, fetchNotifications]);
 
+  // Load shared-with-me when that tab is active
+  const loadSharedWithMe = useCallback(async () => {
+    try {
+      setSharedLoading(true);
+      const res = await getSharedWithMe();
+      setSharedWithMe(res.shares || []);
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to load shared files', 'error');
+    } finally {
+      setSharedLoading(false);
+    }
+  }, [addToast]);
+
+  useEffect(() => {
+    if (activeTab === 'shared') {
+      loadSharedWithMe();
+    }
+  }, [activeTab, loadSharedWithMe]);
+
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
@@ -494,7 +544,13 @@ const Dashboard = () => {
     }
 
     if (activeTab === 'shared') {
-      return allFiles.filter(f => f.shared || f.isShared);
+      // Return shared-with-me files (from API), normalized
+      return sharedWithMe.map(share => ({
+        ...share.file,
+        _sharedBy: share.sharedBy,
+        _permission: share.permission,
+        _shareId: share.id,
+      }));
     }
 
     if (activeTab === 'trash') {
@@ -908,7 +964,7 @@ const Dashboard = () => {
             )}
 
             {/* ── SECTION HEADER ── */}
-            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && (
+            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                   {searchQuery
@@ -920,19 +976,21 @@ const Dashboard = () => {
             )}
 
             {/* ── LOADING ── */}
-            {activeTab !== 'notifications' && loading && (
+            {activeTab !== 'notifications' && (activeTab === 'shared' ? sharedLoading : loading) && (
               <div className="flex flex-col items-center justify-center py-32 gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-green-500" />
                   </div>
                 </div>
-                <p className="text-sm text-gray-400 font-medium">Loading your files…</p>
+                <p className="text-sm text-gray-400 font-medium">
+                  {activeTab === 'shared' ? 'Loading shared files…' : 'Loading your files…'}
+                </p>
               </div>
             )}
 
             {/* ── EMPTY STATE ── */}
-            {activeTab !== 'notifications' && !loading && filteredFiles.length === 0 && (
+            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
               <div className="bg-white border border-dashed border-gray-200 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100">
                   <Folder className="w-10 h-10 text-gray-300" />
@@ -956,7 +1014,7 @@ const Dashboard = () => {
             )}
 
             {/* ── GRID VIEW ── */}
-            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && viewMode === 'grid' && (
+            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
                 {filteredFiles.map(file => (
                   <FileCard
@@ -965,6 +1023,7 @@ const Dashboard = () => {
                     onDelete={handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
+                    onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
                   />
@@ -973,7 +1032,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LIST VIEW ── */}
-            {activeTab !== 'notifications' && !loading && filteredFiles.length > 0 && viewMode === 'list' && (
+            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 bg-gray-50/80">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
@@ -988,6 +1047,7 @@ const Dashboard = () => {
                     onDelete={handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
+                    onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
                   />
@@ -1101,6 +1161,14 @@ const Dashboard = () => {
         file={previewFile}
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
+      />
+
+      {/* SHARE MODAL */}
+      <ShareModal
+        file={shareModalFile}
+        isOpen={isShareOpen}
+        onClose={() => { setIsShareOpen(false); setShareModalFile(null); }}
+        onToast={addToast}
       />
 
       {/* TOAST CONTAINER */}

@@ -26,6 +26,12 @@ model User {
 
   notifications Notification[]
 
+  sharedBy FileShare[] @relation("SharedBy")
+
+  sharedTo FileShare[] @relation("SharedTo")
+
+  publicShares PublicShare[]
+
   @@index([email])
 }
 
@@ -52,6 +58,9 @@ model File {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  sharedWith FileShare[] @relation("FileShares")
+  publicShares PublicShare[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -111,4 +120,52 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+
+model FileShare {
+  id String @id @default(uuid())
+
+  fileId String
+  file File @relation("FileShares", fields:[fileId], references:[id], onDelete:Cascade)
+
+  sharedById String
+  sharedBy User @relation("SharedBy", fields: [sharedById], references: [id])
+
+  sharedToId String
+  sharedTo User @relation("SharedTo", fields: [sharedToId], references: [id])
+
+  permission SharePermission @default(VIEW)
+
+  createdAt DateTime @default(now())
+
+  @@unique([fileId, sharedToId])
+  @@index([sharedToId])
+}
+
+
+model PublicShare {
+  id String @id @default(uuid())
+
+  token String @unique
+
+  fileId String
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  isActive Boolean @default(true)
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([ownerId])
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
 }

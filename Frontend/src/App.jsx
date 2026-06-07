@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import Notifications from './pages/Notifications';
 import { useState,useEffect } from 'react';
 import Profile from "./pages/Profile";
+import PublicSharePage from './pages/PublicSharePage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -48,6 +49,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Public share route — no auth required */}
+        <Route path="/share/:token" element={<PublicSharePage />} />
         <Route path="*" element={<NotFound />} />
 
       </Routes>

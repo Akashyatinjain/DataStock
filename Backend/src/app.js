@@ -11,6 +11,7 @@ import cors from "cors";
 import fileRoutes from "./modules/files/file.routes.js";
 import folderRoutes from "./modules/folders/folder.routes.js";
 import notificationRoutes from "./modules/notifications/notification.routes.js";
+import shareRoutes from "./modules/share/share.routes.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -51,6 +52,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/folders", folderRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/share", shareRoutes);
 
 app.use(errorHandler);
 

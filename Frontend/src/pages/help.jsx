@@ -18,13 +18,21 @@ import {
   FileText,
   MessageSquare,
   Star,
+  Shield,
   Clock,
   CheckCircle,
   ArrowRight,
   Menu,
   X
 } from 'lucide-react';
-
+// Helper component for Shield icon (since not imported initially)
+// const Shield = () => (
+//   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+//     <path d="M12 8v4" />
+//     <path d="M12 16h.01" />
+//   </svg>
+// );
 // Mock data for help articles
 const helpArticles = [
   {
@@ -134,14 +142,7 @@ const categories = [
   { id: "File Management", name: "File Management", icon: FolderKanban, count: 3 },
 ];
 
-// Helper component for Shield icon (since not imported initially)
-const Shield = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <path d="M12 8v4" />
-    <path d="M12 16h.01" />
-  </svg>
-);
+
 
 // Main Help Page Component
 const HelpPage = () => {

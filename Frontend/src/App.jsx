@@ -10,7 +10,7 @@ import Notifications from './pages/Notifications';
 import { useState,useEffect } from 'react';
 import Profile from "./pages/Profile";
 import PublicSharePage from './pages/PublicSharePage';
-
+import HelpPage from './pages/help';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
@@ -25,6 +25,7 @@ function App() {
        <Route path="/login" element={<Login />} />
        <Route path="/signup" element={<SignUp />} />
        <Route path="/profile" element={<Profile />} />
+       <Route path="/help" element={<HelpPage />} />
        <Route 
           path="/dashboard" 
           element={

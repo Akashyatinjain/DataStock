@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   HelpCircle,
@@ -20,440 +21,732 @@ import {
   Star,
   Shield,
   Clock,
-  CheckCircle,
   ArrowRight,
-  Menu,
-  X
+  ArrowLeft,
+  X,
+  CheckCircle2,
+  Share2,
+  Trash2,
+  Cloud,
 } from 'lucide-react';
-// Helper component for Shield icon (since not imported initially)
-// const Shield = () => (
-//   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-//     <path d="M12 8v4" />
-//     <path d="M12 16h.01" />
-//   </svg>
-// );
-// Mock data for help articles
-const helpArticles = [
+
+import Header from '../components/dashboard/layout/Header';
+
+const HELP_ARTICLES = [
   {
     id: 1,
-    title: "Getting started with DataStock",
-    description: "Learn the basics of uploading, organizing, and sharing your files.",
-    category: "Getting Started",
+    title: 'Getting started with DataStock',
+    description: 'Learn the basics of uploading, organizing, and sharing your files.',
+    category: 'Getting Started',
     icon: BookOpen,
-    readTime: "5 min read",
+    readTime: '5 min read',
     popular: true,
+    content: [
+      'DataStock gives you 10 GB of free cloud storage to upload, organize, and access your files from anywhere.',
+      'To upload a file, open My Drive and click Upload File, or use the + New button in the sidebar.',
+      'Create folders from the sidebar to keep projects organized. Drag-and-drop support is coming soon.',
+      'Use the grid or list view toggle in the top-right to switch how files are displayed.',
+    ],
   },
   {
     id: 2,
-    title: "How to reset your password",
-    description: "Step-by-step guide to resetting your account password securely.",
-    category: "Account & Security",
+    title: 'How to reset your password',
+    description: 'Step-by-step guide to resetting your account password securely.',
+    category: 'Account & Security',
     icon: Settings,
-    readTime: "3 min read",
+    readTime: '3 min read',
     popular: true,
+    content: [
+      'Go to the Login page and click Forgot password.',
+      'Enter the email linked to your account. You will receive a one-time password (OTP) if OTP login is enabled.',
+      'Alternatively, sign in with Google if you linked your Google account during signup.',
+      'For account recovery issues, email support@datastock.app with your registered email address.',
+    ],
   },
   {
     id: 3,
-    title: "Understanding storage plans and limits",
-    description: "Compare plans, upgrade storage, and manage your subscription.",
-    category: "Billing & Plans",
+    title: 'Understanding storage plans and limits',
+    description: 'Compare plans, upgrade storage, and manage your subscription.',
+    category: 'Billing & Plans',
     icon: CreditCard,
-    readTime: "4 min read",
+    readTime: '4 min read',
     popular: false,
+    content: [
+      'Every account starts with 10 GB of free storage. Your usage is shown on the Dashboard under Storage Usage.',
+      'Storage is calculated from all files across My Drive and every folder.',
+      'When you reach 90% capacity, consider deleting unused files or moving them to Trash.',
+      'Paid plans with expanded storage will be available soon — check back on the Profile page for updates.',
+    ],
   },
   {
     id: 4,
-    title: "Sharing files and folders with teams",
+    title: 'Sharing files and folders with teams',
     description: "Collaborate effectively using DataStock's sharing features.",
-    category: "File Management",
+    category: 'File Management',
     icon: Users,
-    readTime: "6 min read",
+    readTime: '6 min read',
     popular: true,
+    content: [
+      'Open any file in My Drive and click the Share icon on the file card or row.',
+      'Enter the recipient\'s email address and choose a permission level: View or Edit.',
+      'Shared files appear under the Shared tab in your sidebar for easy access.',
+      'You can also generate a public link to share files with anyone — no account required.',
+      'Manage existing shares from the Share modal by revoking access at any time.',
+    ],
   },
   {
     id: 5,
-    title: "Recovering deleted files",
-    description: "How to restore files from the trash within the retention period.",
-    category: "File Management",
-    icon: FolderKanban,
-    readTime: "2 min read",
+    title: 'Recovering deleted files',
+    description: 'How to restore files from the trash within the retention period.',
+    category: 'File Management',
+    icon: Trash2,
+    readTime: '2 min read',
     popular: false,
+    content: [
+      'Deleted files are moved to Trash, accessible from the More section in the sidebar.',
+      'Open Trash, find your file, and click Restore to return it to its original location.',
+      'Files in Trash are permanently deleted after 30 days and cannot be recovered.',
+      'To delete immediately, select the file in Trash and choose Delete forever.',
+    ],
   },
   {
     id: 6,
-    title: "Two-factor authentication setup",
-    description: "Secure your account with an extra layer of protection.",
-    category: "Account & Security",
+    title: 'Two-factor authentication setup',
+    description: 'Secure your account with an extra layer of protection.',
+    category: 'Account & Security',
     icon: Shield,
-    readTime: "4 min read",
+    readTime: '4 min read',
     popular: false,
+    content: [
+      'Two-factor authentication (2FA) adds a verification step when signing in.',
+      'Go to Profile → Account Settings and look for the Security section.',
+      'Enable 2FA and follow the prompts to link an authenticator app or phone number.',
+      'Save your backup codes in a safe place in case you lose access to your device.',
+    ],
   },
   {
     id: 7,
-    title: "Uploading large files via desktop app",
-    description: "Tips and best practices for uploading large media files.",
-    category: "File Management",
+    title: 'Uploading large files',
+    description: 'Tips and best practices for uploading large media files.',
+    category: 'File Management',
     icon: Upload,
-    readTime: "3 min read",
+    readTime: '3 min read',
     popular: false,
+    content: [
+      'DataStock supports images, videos, PDFs, archives, and most common file types.',
+      'For large uploads, use a stable internet connection and avoid closing the browser tab.',
+      'If an upload fails, try again — partial uploads are not saved.',
+      'Check your remaining storage on the Dashboard before uploading very large files.',
+    ],
   },
   {
     id: 8,
-    title: "Billing and invoice FAQs",
-    description: "Common questions about invoices, receipts, and payment methods.",
-    category: "Billing & Plans",
+    title: 'Billing and invoice FAQs',
+    description: 'Common questions about invoices, receipts, and payment methods.',
+    category: 'Billing & Plans',
     icon: FileText,
-    readTime: "5 min read",
+    readTime: '5 min read',
     popular: false,
+    content: [
+      'DataStock is currently free for all users with the default 10 GB plan.',
+      'When paid plans launch, invoices will be available under Profile → Billing.',
+      'We accept major credit cards and UPI for Indian users.',
+      'Contact billing@datastock.app for any payment or refund questions.',
+    ],
   },
 ];
 
-// Mock data for FAQ accordion
-const faqItems = [
+const FAQ_ITEMS = [
   {
-    question: "How do I invite team members to shared folders?",
-    answer: "Navigate to any folder you own, click the 'Share' button, enter email addresses, and set permission levels (view, comment, or edit). They'll receive an invitation email.",
+    question: 'How do I invite team members to shared folders?',
+    answer:
+      "Open a file or folder, click Share, enter their email, and set permission to View or Edit. They'll receive a notification and the file will appear under their Shared tab.",
   },
   {
-    question: "What file types are supported for preview?",
-    answer: "DataStock supports preview for images (JPEG, PNG, GIF, SVG), videos (MP4, MOV), documents (PDF, DOCX, XLSX, PPTX), and text files (TXT, CSV, MD).",
+    question: 'What file types are supported for preview?',
+    answer:
+      'DataStock supports preview for images (JPEG, PNG, GIF, WebP), videos (MP4, MOV), PDFs, and plain text files. Other types can be downloaded.',
   },
   {
-    question: "How is my data protected?",
-    answer: "All files are encrypted at rest using AES-256 and in transit using TLS 1.3. We also offer optional client-side encryption for enterprise customers.",
+    question: 'How is my data protected?',
+    answer:
+      'Files are stored securely on Cloudinary with encrypted HTTPS transfer. Your account is protected by password or Google OAuth sign-in.',
   },
   {
-    question: "Can I access my files offline?",
-    answer: "Yes, with our desktop and mobile apps, you can mark specific files or folders for offline access. They'll sync automatically when you're back online.",
+    question: 'How do I star a file for quick access?',
+    answer:
+      'Hover over any file in My Drive and click the star icon. Starred files appear under the Starred tab in the sidebar.',
   },
   {
-    question: "What happens when I reach my storage limit?",
-    answer: "You'll receive notifications when you're at 90% and 100% capacity. New uploads will be blocked until you free up space or upgrade your plan.",
+    question: 'What happens when I reach my storage limit?',
+    answer:
+      "You'll see your usage on the Dashboard progress bar. New uploads may fail once you hit 10 GB — delete unused files or empty Trash to free space.",
   },
 ];
 
-// Help category list for sidebar
-const categories = [
-  { id: "all", name: "All Topics", icon: HelpCircle, count: 8 },
-  { id: "Getting Started", name: "Getting Started", icon: BookOpen, count: 1 },
-  { id: "Account & Security", name: "Account & Security", icon: Settings, count: 2 },
-  { id: "Billing & Plans", name: "Billing & Plans", icon: CreditCard, count: 2 },
-  { id: "File Management", name: "File Management", icon: FolderKanban, count: 3 },
+const CATEGORIES = [
+  { id: 'all', name: 'All Topics', icon: HelpCircle },
+  { id: 'Getting Started', name: 'Getting Started', icon: BookOpen },
+  { id: 'Account & Security', name: 'Account & Security', icon: Settings },
+  { id: 'Billing & Plans', name: 'Billing & Plans', icon: CreditCard },
+  { id: 'File Management', name: 'File Management', icon: FolderKanban },
 ];
 
+const SUPPORT_EMAIL = 'support@datastock.app';
 
+const Toast = ({ message, onClose }) => (
+  <div className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/30 bg-gray-900/95 text-sm font-medium text-white min-w-[280px] animate-slide-in">
+    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+    <span className="flex-1 text-gray-100">{message}</span>
+    <button onClick={onClose} className="text-gray-500 hover:text-white transition">
+      <X className="w-4 h-4" />
+    </button>
+  </div>
+);
 
-// Main Help Page Component
+const ArticleModal = ({ article, onClose }) => {
+  if (!article) return null;
+  const Icon = article.icon;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-2xl max-h-[85vh] overflow-hidden animate-fade-up">
+        <div className="flex items-start justify-between gap-4 p-6 border-b border-gray-100">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+              <Icon className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                {article.category}
+              </span>
+              <h2 className="text-xl font-bold text-gray-900 mt-2">{article.title}</h2>
+              <p className="text-sm text-gray-400 mt-1">{article.readTime}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition shrink-0"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)] space-y-4">
+          {article.content.map((paragraph, i) => (
+            <p key={i} className="text-sm text-gray-600 leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ContactModal = ({ onClose, onSubmit }) => {
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
+    setSubmitting(true);
+    await new Promise((r) => setTimeout(r, 800));
+    onSubmit(form);
+    setSubmitting(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden animate-fade-up">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900">Contact Support</h2>
+              <p className="text-xs text-gray-400">We typically reply within 4 hours</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Name</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500"
+              placeholder="Your name"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+            <input
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Message</label>
+            <textarea
+              required
+              rows={4}
+              value={form.message}
+              onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 resize-none"
+              placeholder="Describe your issue..."
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition"
+          >
+            {submitting ? 'Sending…' : 'Send Message'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const HelpPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // Filter articles based on search and category
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const categoryCounts = useMemo(() => {
+    const counts = { all: HELP_ARTICLES.length };
+    HELP_ARTICLES.forEach((a) => {
+      counts[a.category] = (counts[a.category] || 0) + 1;
+    });
+    return counts;
+  }, []);
+
   const filteredArticles = useMemo(() => {
-    return helpArticles.filter((article) => {
-      const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = activeCategory === "all" || article.category === activeCategory;
+    const q = searchQuery.toLowerCase().trim();
+    return HELP_ARTICLES.filter((article) => {
+      const matchesSearch =
+        !q ||
+        article.title.toLowerCase().includes(q) ||
+        article.description.toLowerCase().includes(q) ||
+        article.category.toLowerCase().includes(q);
+      const matchesCategory = activeCategory === 'all' || article.category === activeCategory;
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, activeCategory]);
 
-  // Popular articles for quick access
-  const popularArticles = helpArticles.filter(article => article.popular).slice(0, 3);
+  const popularArticles = HELP_ARTICLES.filter((a) => a.popular).slice(0, 3);
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const handleEmailSupport = () => {
+    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=DataStock%20Support%20Request`;
+  };
+
+  const handleContactSubmit = () => {
+    showToast('Message sent! Our team will get back to you soon.');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Top Navigation Bar - Matches DataStock style */}
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3 md:px-6">
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 rounded-lg">
-              <HardDrive className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              DataStock
-            </span>
-          </div>
+    <div className="min-h-screen bg-[#f7f8fa]">
+      <style>{`
+        @keyframes slide-in {
+          from { opacity: 0; transform: translateX(2rem); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in { animation: slide-in 0.25s ease forwards; }
+        .animate-fade-up  { animation: fade-up 0.35s ease forwards; }
+      `}</style>
 
-          {/* Search Bar - Center */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search help articles, guides, and FAQs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              />
-            </div>
-          </div>
+      <Header
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-
-          {/* Right Icons - Help button */}
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full">
-              <LifeBuoy className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">Help Center</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar */}
-        <div className="md:hidden px-4 pb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search help articles..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Layout - Sidebar + Content */}
-      <div className="flex flex-col md:flex-row max-w-7xl mx-auto px-4 py-6 md:px-6 gap-6">
-        {/* Sidebar - Left Navigation (Matches DataStock folder style) */}
-        <aside className={`
-          ${isMobileMenuOpen ? 'block' : 'hidden'} 
-          md:block w-full md:w-72 flex-shrink-0
-          bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden
-          transition-all duration-200
-        `}>
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Support Hub</h2>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Knowledge Base</span>
-              <span className="text-gray-400">{helpArticles.length} articles</span>
-            </div>
-          </div>
-
-          <nav className="p-3">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`
-                  w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all mb-1
-                  ${activeCategory === category.id 
-                    ? 'bg-blue-50 text-blue-700 font-medium' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                  }
-                `}
-              >
-                <div className="flex items-center gap-3">
-                  <category.icon className={`w-4 h-4 ${activeCategory === category.id ? 'text-blue-600' : 'text-gray-400'}`} />
-                  <span className="text-sm">{category.name}</span>
-                </div>
-                <span className={`text-xs ${activeCategory === category.id ? 'text-blue-500' : 'text-gray-400'}`}>
-                  {category.count}
-                </span>
-              </button>
-            ))}
-          </nav>
-
-          {/* Support Status Card - Similar to Storage Usage in original design */}
-          <div className="m-4 p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700">Response Time</span>
-            </div>
-            <div className="text-2xl font-bold text-gray-800">&lt; 4 hrs</div>
-            <div className="text-xs text-gray-500 mt-1">Average for all plans</div>
-            <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full w-3/4 bg-green-500 rounded-full"></div>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>Priority support</span>
-              <span>24/7</span>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 space-y-8">
-          {/* Hero Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-8 text-white shadow-lg">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">How can we help you?</h1>
-            <p className="text-blue-100 mb-5">Find answers, guides, and support resources for DataStock</p>
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search for solutions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/40"
-              />
-            </div>
-          </div>
-
-          {/* Popular Articles Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                <h2 className="text-lg font-semibold text-gray-800">Popular guides</h2>
-              </div>
-              <span className="text-xs text-gray-400">Most viewed this week</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {popularArticles.map((article) => (
-                <div key={article.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer group">
-                  <div className="flex items-start justify-between">
-                    <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition">
-                      <article.icon className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mt-3 mb-1">{article.title}</h3>
-                  <p className="text-xs text-gray-500 line-clamp-2">{article.description}</p>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-gray-400">{article.readTime}</span>
-                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Filtered Articles Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-lg font-semibold text-gray-800">
-                {searchQuery ? `Search results for "${searchQuery}"` : "All help articles"}
-              </h2>
-              {activeCategory !== "all" && (
+      <div className="pt-14 sm:pt-16">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          {/* Page header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              {isLoggedIn && (
                 <button
-                  onClick={() => setActiveCategory("all")}
-                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-1.5 text-sm font-medium text-green-600 hover:text-green-700 mb-2 transition"
                 >
-                  Clear filter <X className="w-3 h-3" />
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Dashboard
                 </button>
               )}
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Help Center</h1>
+              <p className="text-gray-400 mt-1 text-sm">Find answers, guides, and support for DataStock</p>
             </div>
-            {filteredArticles.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <FileQuestion className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="text-gray-600 font-medium">No articles found</h3>
-                <p className="text-sm text-gray-400 mt-1">Try adjusting your search or browse categories</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredArticles.map((article) => (
-                  <div key={article.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer group">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition">
-                        <article.icon className="w-5 h-5 text-gray-500 group-hover:text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                            {article.category}
-                          </span>
-                          <span className="text-xs text-gray-400">{article.readTime}</span>
-                        </div>
-                        <h3 className="font-semibold text-gray-800 mb-1">{article.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-2">{article.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl">
+              <LifeBuoy className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">Support Hub</span>
+            </div>
           </div>
 
-          {/* FAQ Accordion Section */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="border-b border-gray-100 px-6 py-4 bg-gray-50/50">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-blue-600" />
-                <h2 className="font-semibold text-gray-800">Frequently asked questions</h2>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar */}
+            <aside
+              className={`${
+                isMobileMenuOpen ? 'block' : 'hidden'
+              } lg:block w-full lg:w-72 shrink-0`}
+            >
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden sticky top-20">
+                <div className="p-4 border-b border-gray-50">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Categories</p>
+                  <p className="text-sm text-gray-500">{HELP_ARTICLES.length} articles available</p>
+                </div>
+
+                <nav className="p-3">
+                  {CATEGORIES.map((category) => {
+                    const Icon = category.icon;
+                    const count = categoryCounts[category.id] || 0;
+                    const isActive = activeCategory === category.id;
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          setActiveCategory(category.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition mb-1 text-sm font-medium ${
+                          isActive
+                            ? 'bg-green-50 text-green-700'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-green-600' : 'text-gray-400'}`} />
+                          <span>{category.name}</span>
+                        </div>
+                        <span className={`text-xs ${isActive ? 'text-green-500' : 'text-gray-400'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                <div className="m-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-700">Response Time</span>
+                  </div>
+                  <p className="text-2xl font-extrabold text-gray-900">&lt; 4 hrs</p>
+                  <p className="text-xs text-gray-400 mt-1">Average for all plans</p>
+                  <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: '75%',
+                        background: 'linear-gradient(90deg, #22c55e, #10b981)',
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {faqItems.map((item, idx) => (
-                <div key={idx} className="px-6 py-4">
-                  <button
-                    onClick={() => toggleFaq(idx)}
-                    className="w-full flex items-center justify-between text-left font-medium text-gray-800 hover:text-blue-600 transition"
-                  >
-                    <span>{item.question}</span>
-                    {openFaqIndex === idx ? (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                  {openFaqIndex === idx && (
-                    <div className="mt-3 pl-0 text-sm text-gray-500 leading-relaxed border-l-2 border-blue-200 pl-4">
-                      {item.answer}
-                    </div>
+            </aside>
+
+            {/* Main content */}
+            <main className="flex-1 min-w-0 space-y-6">
+              {/* Hero search */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                    <HelpCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">How can we help you?</h2>
+                    <p className="text-sm text-gray-400">Search guides, FAQs, and troubleshooting tips</p>
+                  </div>
+                </div>
+                <div className="relative max-w-xl">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search help articles..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Contact Support Section */}
-          <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-lg">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-xl">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
+              {/* Popular guides — hide when searching */}
+              {!searchQuery && activeCategory === 'all' && (
                 <div>
-                  <h3 className="font-semibold">Still need help?</h3>
-                  <p className="text-gray-300 text-sm">Our support team is ready to assist you</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Popular guides</h2>
+                    </div>
+                    <span className="text-xs text-gray-400">Most viewed</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {popularArticles.map((article) => {
+                      const Icon = article.icon;
+                      return (
+                        <button
+                          key={article.id}
+                          onClick={() => setSelectedArticle(article)}
+                          className="bg-white border border-gray-100 rounded-2xl p-4 text-left hover:border-green-200 hover:shadow-md transition-all group"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition">
+                              <Icon className="w-5 h-5 text-green-600" />
+                            </div>
+                            <Clock className="w-3.5 h-3.5 text-gray-300" />
+                          </div>
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{article.title}</h3>
+                          <p className="text-xs text-gray-400 line-clamp-2">{article.description}</p>
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-xs text-gray-400">{article.readTime}</span>
+                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-green-600 group-hover:translate-x-0.5 transition" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Articles grid */}
+              <div>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                    {searchQuery
+                      ? `Results for "${searchQuery}"`
+                      : activeCategory === 'all'
+                        ? 'All help articles'
+                        : activeCategory}
+                    {' '}
+                    — {filteredArticles.length}
+                  </h2>
+                  {activeCategory !== 'all' && (
+                    <button
+                      onClick={() => setActiveCategory('all')}
+                      className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1 font-medium"
+                    >
+                      Clear filter <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                {filteredArticles.length === 0 ? (
+                  <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
+                    <FileQuestion className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-semibold">No articles found</h3>
+                    <p className="text-sm text-gray-400 mt-1">Try a different search term or browse categories</p>
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setActiveCategory('all');
+                      }}
+                      className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition"
+                    >
+                      Reset filters
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredArticles.map((article) => {
+                      const Icon = article.icon;
+                      return (
+                        <button
+                          key={article.id}
+                          onClick={() => setSelectedArticle(article)}
+                          className="bg-white border border-gray-100 rounded-2xl p-4 text-left hover:border-green-200 hover:shadow-md transition-all group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-green-50 transition shrink-0">
+                              <Icon className="w-5 h-5 text-gray-500 group-hover:text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                  {article.category}
+                                </span>
+                                <span className="text-xs text-gray-400">{article.readTime}</span>
+                              </div>
+                              <h3 className="font-semibold text-gray-900 mb-1">{article.title}</h3>
+                              <p className="text-sm text-gray-500 line-clamp-2">{article.description}</p>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-green-600 shrink-0 mt-1 transition" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* FAQ */}
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-green-600" />
+                    <h2 className="font-semibold text-gray-900">Frequently asked questions</h2>
+                  </div>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {FAQ_ITEMS.map((item, idx) => (
+                    <div key={idx} className="px-6 py-4">
+                      <button
+                        onClick={() => toggleFaq(idx)}
+                        className="w-full flex items-center justify-between text-left font-medium text-gray-900 hover:text-green-700 transition gap-4"
+                      >
+                        <span className="text-sm">{item.question}</span>
+                        {openFaqIndex === idx ? (
+                          <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                        )}
+                      </button>
+                      {openFaqIndex === idx && (
+                        <p className="mt-3 text-sm text-gray-500 leading-relaxed border-l-2 border-green-200 pl-4">
+                          {item.answer}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="flex gap-3">
-                <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Email Support
-                </button>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-medium transition flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4" />
-                  Live Chat
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white mt-8">
-        <div className="max-w-7xl mx-auto px-4 py-5 md:px-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-          <div className="flex items-center gap-2">
-            <HardDrive className="w-3.5 h-3.5" />
-            <span>© 2026 DataStock. All rights reserved.</span>
-          </div>
-          <div className="flex gap-4 mt-2 md:mt-0">
-            <a href="#" className="hover:text-gray-700">Terms</a>
-            <a href="#" className="hover:text-gray-700">Privacy</a>
-            <a href="#" className="hover:text-gray-700">Status</a>
+              {/* Contact support */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Still need help?</h3>
+                      <p className="text-gray-400 text-sm">Our support team is ready to assist you</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={handleEmailSupport}
+                      className="px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 transition flex items-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email Support
+                    </button>
+                    <button
+                      onClick={() => setShowContactModal(true)}
+                      className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Contact Us
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick links */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: 'Upload files', icon: Upload, action: () => navigate(isLoggedIn ? '/dashboard' : '/login') },
+                  { label: 'Share files', icon: Share2, action: () => setSelectedArticle(HELP_ARTICLES.find((a) => a.id === 4)) },
+                  { label: 'My Drive', icon: HardDrive, action: () => navigate(isLoggedIn ? '/dashboard' : '/login') },
+                  { label: 'Sign up free', icon: Cloud, action: () => navigate('/signup') },
+                ].map(({ label, icon: Icon, action }) => (
+                  <button
+                    key={label}
+                    onClick={action}
+                    className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-100 rounded-2xl hover:border-green-200 hover:shadow-sm transition text-center"
+                  >
+                    <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-green-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </main>
           </div>
         </div>
-      </footer>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-200 bg-white mt-4">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2">
+              <Cloud className="w-3.5 h-3.5 text-green-600" />
+              <span>© 2026 DataStock. All rights reserved.</span>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => navigate('/')} className="hover:text-gray-700 transition">Home</button>
+              <button onClick={() => navigate('/login')} className="hover:text-gray-700 transition">Login</button>
+              <button onClick={() => navigate('/signup')} className="hover:text-gray-700 transition">Sign Up</button>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      {selectedArticle && (
+        <ArticleModal article={selectedArticle} onClose={() => setSelectedArticle(null)} />
+      )}
+
+      {showContactModal && (
+        <ContactModal
+          onClose={() => setShowContactModal(false)}
+          onSubmit={handleContactSubmit}
+        />
+      )}
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 };

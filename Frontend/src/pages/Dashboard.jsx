@@ -113,17 +113,17 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
   return (
     <div
       className={`
-        relative group bg-white border rounded-2xl overflow-hidden
+        relative group bg-white dark:bg-gray-900 border rounded-2xl overflow-hidden
         transition-all duration-300 cursor-pointer select-none
         ${isDeleting
-          ? 'border-red-200 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-100 hover:border-green-200 hover:shadow-xl hover:-translate-y-1 shadow-sm'}
+          ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
+          : 'border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-xl hover:-translate-y-1 shadow-sm'}
       `}
       onClick={() => !isDeleting && onPreview(file)}
     >
       {/* Deleting overlay */}
       {isDeleting && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-red-500">Deleting…</span>
         </div>
@@ -131,7 +131,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
 
       {/* Image preview strip */}
       {file.mimeType?.includes('image') ? (
-        <div className="h-40 overflow-hidden bg-gray-50">
+        <div className="h-40 overflow-hidden bg-gray-50 dark:bg-gray-800">
           <img src={file.url} alt={file.originalName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>
       ) : (
@@ -147,7 +147,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
         </span>
 
         <div className="flex items-center gap-1.5 mb-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate text-sm leading-snug flex-1">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm leading-snug flex-1">
             {file.originalName}
           </h3>
           {isStarred && (
@@ -156,7 +156,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
         </div>
         <p className="text-xs text-gray-400 mb-4">{formatFileSize(file.size)}</p>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
           <span className="text-[11px] text-gray-400">
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
@@ -216,8 +216,8 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
   return (
     <div
       className={`
-        grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50
-        hover:bg-gray-50/80 transition items-center cursor-pointer group
+        grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 dark:border-gray-800
+        hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
       `}
       onClick={() => !isDeleting && onPreview(file)}
@@ -228,7 +228,7 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <p className="font-medium text-gray-900 text-sm truncate">{file.originalName}</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{file.originalName}</p>
             {isStarred && (
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
             )}
@@ -237,7 +237,7 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
         </div>
       </div>
 
-      <div className="col-span-2 text-sm text-gray-500">{formatFileSize(file.size)}</div>
+      <div className="col-span-2 text-sm text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</div>
 
       <div className="col-span-3 text-sm text-gray-400">
         {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -298,7 +298,7 @@ const UploadButton = ({ uploading, onChange }) => (
     <div className={`
       px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
       ${uploading
-        ? 'bg-green-100 text-green-700 cursor-not-allowed'
+        ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 cursor-not-allowed'
         : 'bg-green-600 hover:bg-green-700 text-white hover:shadow-md active:scale-95'}
     `}>
       {uploading
@@ -801,7 +801,7 @@ const Dashboard = () => {
  
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa]">
+    <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">
 
       {/* Inline keyframes */}
       <style>{`
@@ -869,7 +869,7 @@ const Dashboard = () => {
             {/* ── TOP BAR ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
               <div className="min-w-0">
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">
+                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight truncate">
                   {pageTitle}
                 </h1>
                 <p className="text-gray-400 mt-1 text-sm truncate">
@@ -889,17 +889,17 @@ const Dashboard = () => {
               {activeTab !== 'notifications' && (
                 <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
                   {/* View toggle */}
-                  <div className="flex items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                  <div className="flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-1 shadow-sm">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                       title="Grid view"
                     >
                       <Grid3X3 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                       title="List view"
                     >
                       <List className="w-5 h-5" />
@@ -916,10 +916,10 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 
                 {/* Storage card */}
-                <div className="sm:col-span-2 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div className="sm:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
                     <div>
-                      <h2 className="text-base font-semibold text-gray-900">Storage Usage</h2>
+                      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Storage Usage</h2>
                       <p className="text-gray-400 text-sm mt-0.5">{usedGB} GB used of 10 GB</p>
                     </div>
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
@@ -928,7 +928,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-1000"
                       style={{
@@ -948,15 +948,15 @@ const Dashboard = () => {
                 </div>
 
                 {/* File count card */}
-                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-gray-900">Total Files</h2>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Total Files</h2>
                     <div className="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center">
                       <Folder className="w-5 h-5 text-sky-500" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-4xl font-extrabold text-gray-900 mt-4 tabular-nums">{totalFileCount}</p>
+                    <p className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-4 tabular-nums">{totalFileCount}</p>
                     <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
                   </div>
                 </div>
@@ -991,11 +991,11 @@ const Dashboard = () => {
 
             {/* ── EMPTY STATE ── */}
             {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
-              <div className="bg-white border border-dashed border-gray-200 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
-                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100">
-                  <Folder className="w-10 h-10 text-gray-300" />
+              <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-gray-700">
+                  <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   {emptyState.title}
                 </h2>
                 <p className="text-gray-400 mb-6 text-sm">
@@ -1033,8 +1033,8 @@ const Dashboard = () => {
 
             {/* ── LIST VIEW ── */}
             {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
-              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 bg-gray-50/80">
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
                   <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Size</div>
                   <div className="col-span-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Date</div>
@@ -1057,9 +1057,9 @@ const Dashboard = () => {
 
             {/* ── NOTIFICATIONS VIEW ── */}
             {activeTab === 'notifications' && (
-              <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
-                <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <Bell className="w-5 h-5 text-green-600" />
                     All Notifications
                   </h2>
@@ -1074,7 +1074,7 @@ const Dashboard = () => {
                           addToast("Failed to mark all read", "error");
                         }
                       }}
-                      className="text-xs font-semibold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-xl transition"
+                      className="text-xs font-semibold text-green-600 hover:text-green-700 bg-green-50 dark:bg-green-950/40 hover:bg-green-100 dark:hover:bg-green-950/60 px-3 py-1.5 rounded-xl transition"
                     >
                       Mark all read
                     </button>
@@ -1088,10 +1088,10 @@ const Dashboard = () => {
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Bell className="w-8 h-8 text-gray-300" />
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Bell className="w-8 h-8 text-gray-300 dark:text-gray-600" />
                     </div>
-                    <h3 className="text-base font-bold text-gray-900 mb-1">No notifications</h3>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">No notifications</h3>
                     <p className="text-xs text-gray-400">We'll let you know when something happens!</p>
                   </div>
                 ) : (
@@ -1101,18 +1101,18 @@ const Dashboard = () => {
                         key={notif.id}
                         className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
                           !notif.isRead
-                            ? 'bg-green-50/20 border-green-100 shadow-sm'
-                            : 'bg-white border-gray-100 hover:bg-gray-50/50'
+                            ? 'bg-green-50/20 dark:bg-green-950/20 border-green-100 dark:border-green-900/50 shadow-sm'
+                            : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'
                         }`}
                       >
                         <div className="flex items-start gap-4 min-w-0">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            !notif.isRead ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                            !notif.isRead ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                           }`}>
                             <Bell className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <p className={`text-sm ${!notif.isRead ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                            <p className={`text-sm ${!notif.isRead ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
                               {notif.message}
                             </p>
                             <p className="text-xs text-gray-400 mt-1">

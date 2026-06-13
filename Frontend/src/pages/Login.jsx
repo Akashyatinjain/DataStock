@@ -17,6 +17,7 @@ import { login,sendOtp,verifyOtp } from "../api/auth.api";
 import { useNavigate } from "react-router-dom";
 
 import { setupAutoLogout } from "../utils/auth";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const logout = () => {
   localStorage.removeItem("token");
@@ -180,24 +181,27 @@ if (res.data.token) {
   };
 
   return (
-    <div className="min-h-screen bg-white font-['Inter']">
+    <div className="min-h-screen bg-white dark:bg-gray-950 font-['Inter'] transition-colors duration-200">
       {/* Simple Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <Cloud className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-black">DataStock</span>
+              <span className="font-bold text-xl text-black dark:text-white">DataStock</span>
             </div>
-            <a 
-              href="/signup" 
-              className="text-gray-600 hover:text-black transition flex items-center space-x-1"
-            >
-              <span>Need an account?</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <a 
+                href="/signup" 
+                className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition flex items-center space-x-1 text-sm"
+              >
+                <span className="hidden sm:inline">Need an account?</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </nav>
@@ -207,7 +211,7 @@ if (res.data.token) {
         <div className="max-w-md mx-auto w-full">
           {/* Success State */}
           {step === 'success' ? (
-            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-xl text-center">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 shadow-xl text-center">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
@@ -218,7 +222,7 @@ if (res.data.token) {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xl">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-xl">
               {/* Header */}
               <div className="text-center mb-8">
                 {step === 'otp-verification' && (

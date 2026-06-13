@@ -22,9 +22,11 @@ export default function SidebarNav({
           <button
             key={item.id}
             onClick={() => handleClick(item.id)}
-            className={`
+          className={`
               w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm font-medium
-              ${activeTab === item.id ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-100'}
+              ${activeTab === item.id
+                ? 'bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}
             `}
           >
             <Icon className="w-5 h-5" />

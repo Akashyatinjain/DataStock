@@ -12,7 +12,7 @@ export default function SidebarFolders({
 }) {
   return (
     <>
-      <div className="my-5 border-t border-gray-200" />
+      <div className="my-5 border-t border-gray-200 dark:border-gray-800" />
       <div>
         <div className="flex items-center justify-between mb-3 px-2">
           <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
@@ -44,7 +44,9 @@ export default function SidebarFolders({
                   onClick={() => setActiveTab(tabId)}
                   className={`
                     group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-sm cursor-pointer
-                    ${activeTab === tabId ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}
+                    ${activeTab === tabId
+                      ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 font-medium'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}
                   `}
                 >
                   <Folder className="w-5 h-5 text-yellow-500 shrink-0" />

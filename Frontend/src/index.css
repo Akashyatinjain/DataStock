@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Optional global styles */
 
 *, *::before, *::after {
@@ -15,6 +17,15 @@ html, body {
 
 body {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  @apply bg-[#f7f8fa] text-gray-900 transition-colors duration-200;
+}
+
+.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 img, video, iframe {

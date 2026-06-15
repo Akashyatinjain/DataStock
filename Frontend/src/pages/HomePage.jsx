@@ -52,7 +52,7 @@ const HomePage = () => {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.scrollTo(0, 0)}>
-              <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md">
+              <div className="w-10 h-10 bg-green rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md">
                 <Cloud className="w-6 h-6 text-white" />
               </div>
               <span className="font-bold text-2xl tracking-tight text-gray-900">DataStock</span>
@@ -63,7 +63,7 @@ const HomePage = () => {
               <a href="#features" className="text-gray-600 hover:text-green-600 font-medium transition-colors">Features</a>
               <a href="#how-it-works" className="text-gray-600 hover:text-green-600 font-medium transition-colors">How it works</a>
               <a href="#pricing" className="text-gray-600 hover:text-green-600 font-medium transition-colors">Pricing</a>
-              
+
               <div className="flex items-center space-x-4 ml-4">
                 <button
                   onClick={handleLogin}
@@ -130,18 +130,18 @@ const HomePage = () => {
               </span>
               <span className="text-sm font-medium text-green-700">Introducing DataStock</span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-8 leading-[1.1]">
               The intelligent home for your <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">digital life.</span>
             </h1>
-            
+
             <p className="text-xl sm:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
               Never lose a file again. Store, organize, and securely share your documents, photos, and projects from anywhere.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-              <button 
+              <button
                 onClick={handleSignup}
                 className="w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-black transform hover:-translate-y-1 transition-all duration-200 shadow-xl shadow-gray-900/20 flex items-center justify-center space-x-2 group"
               >
@@ -161,7 +161,7 @@ const HomePage = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50 z-10 bottom-0 h-1/3 mt-auto"></div>
             <div className="bg-white rounded-t-3xl border-t border-x border-gray-200 shadow-2xl overflow-hidden p-2 transform transition-transform hover:scale-[1.01] duration-500">
               <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col md:flex-row gap-6">
-                
+
                 {/* Mock Sidebar */}
                 <div className="hidden md:block w-64 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
                   <div className="flex items-center space-x-2 mb-6">
@@ -228,12 +228,12 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Trusted by innovative teams worldwide</p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-             {/* Fake logos using text for layout */}
-             <div className="text-2xl font-bold font-serif text-gray-800">Acme Corp</div>
-             <div className="text-2xl font-extrabold italic text-gray-800">GlobalTech</div>
-             <div className="text-2xl font-medium tracking-widest text-gray-800">NEXUS</div>
-             <div className="text-2xl font-black lowercase text-gray-800">horizon</div>
-             <div className="text-2xl font-bold text-gray-800 flex items-center"><Cloud className="w-6 h-6 mr-1"/> Vertex</div>
+            {/* Fake logos using text for layout */}
+            <div className="text-2xl font-bold font-serif text-gray-800">Acme Corp</div>
+            <div className="text-2xl font-extrabold italic text-gray-800">GlobalTech</div>
+            <div className="text-2xl font-medium tracking-widest text-gray-800">NEXUS</div>
+            <div className="text-2xl font-black lowercase text-gray-800">horizon</div>
+            <div className="text-2xl font-bold text-gray-800 flex items-center"><Cloud className="w-6 h-6 mr-1" /> Vertex</div>
           </div>
         </div>
       </section>
@@ -245,12 +245,12 @@ const HomePage = () => {
             <div>
               <h2 className="text-sm font-bold text-green-600 tracking-wide uppercase mb-3">Why DataStock?</h2>
               <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
-                More than just storage. <br/>It's your central hub.
+                More than just storage. <br />It's your central hub.
               </h3>
               <p className="text-lg text-gray-600 mb-8">
                 In a world scattered with devices and apps, DataStock brings everything together. We provide a single, secure place for your photos, documents, and creative projects.
               </p>
-              
+
               <div className="space-y-6">
                 {[
                   { icon: Upload, title: 'Effortless Syncing', desc: 'Drag and drop files to instantly back them up to the cloud. Access them on your phone, tablet, or PC.' },
@@ -271,16 +271,16 @@ const HomePage = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="relative">
               {/* Decorative background shape */}
               <div className="absolute inset-0 bg-green-600 rounded-3xl transform rotate-3 scale-105 opacity-10"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000" 
-                alt="Person using cloud storage on laptop" 
+              <img
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
+                alt="Person using cloud storage on laptop"
                 className="rounded-3xl shadow-2xl relative z-10 object-cover h-[600px] w-full"
               />
-              
+
               {/* Floating card */}
               <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl z-20 border border-gray-100 animate-bounce" style={{ animationDuration: '3s' }}>
                 <div className="flex items-center space-x-4">
@@ -359,7 +359,7 @@ const HomePage = () => {
       <section id="pricing" className="py-24 bg-slate-900 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Glow effect */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/20 rounded-full blur-[120px] pointer-events-none"></div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-6">
@@ -406,15 +406,15 @@ const HomePage = () => {
                     </span>
                   </div>
                 )}
-                
+
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                 <p className="text-gray-400 mb-6">{plan.description}</p>
-                
+
                 <div className="flex items-end mb-6">
                   <span className="text-5xl font-extrabold text-white">{plan.price}</span>
                   <span className="text-gray-400 ml-2 mb-1">{plan.period}</span>
                 </div>
-                
+
                 <div className="bg-gray-900/50 rounded-xl p-4 mb-8 border border-gray-700/50">
                   <span className="text-green-400 font-bold text-xl">{plan.storage}</span>
                   <span className="text-gray-400 ml-2">secure storage</span>
@@ -428,14 +428,13 @@ const HomePage = () => {
                     </li>
                   ))}
                 </ul>
-                
-                <button 
-                  onClick={plan.name === 'Basic' ? handleSignup : () => {}}
-                  className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg ${
-                  plan.popular 
-                    ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' 
-                    : 'bg-white text-gray-900 hover:bg-gray-100'
-                }`}>
+
+                <button
+                  onClick={plan.name === 'Basic' ? handleSignup : () => { }}
+                  className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg ${plan.popular
+                      ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30'
+                      : 'bg-white text-gray-900 hover:bg-gray-100'
+                    }`}>
                   {plan.name === 'Basic' ? 'Get Started' : 'Upgrade to ' + plan.name}
                 </button>
               </div>
@@ -454,7 +453,7 @@ const HomePage = () => {
             Join the millions of people who trust DataStock to keep their files safe, accessible, and perfectly organized.
           </p>
           <div className="flex justify-center">
-            <button 
+            <button
               onClick={handleSignup}
               className="px-10 py-5 bg-black text-white rounded-2xl font-bold text-xl hover:bg-green-600 transform hover:scale-105 transition-all duration-300 shadow-2xl flex items-center space-x-3 group"
             >
@@ -493,7 +492,7 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <h4 className="font-bold text-gray-900 mb-5 uppercase text-sm tracking-wider">Product</h4>
               <ul className="space-y-3">
@@ -506,7 +505,7 @@ const HomePage = () => {
                 ))}
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-bold text-gray-900 mb-5 uppercase text-sm tracking-wider">Company</h4>
               <ul className="space-y-3">
@@ -533,7 +532,7 @@ const HomePage = () => {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 font-medium text-sm">© {new Date().getFullYear()} DataStock Inc. All rights reserved.</p>
             <div className="flex items-center space-x-2 text-sm font-medium text-gray-500">
@@ -548,4 +547,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default HomePage;

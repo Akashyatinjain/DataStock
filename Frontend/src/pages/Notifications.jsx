@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ArrowLeft, CheckCircle2, Circle, Trash2, Filter } from 'lucide-react';
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
-import { socket } from '../socket';
-import { apiUrl } from '../utils/auth';
+import { connectSocket, socket } from '../socket';
+import { authFetch, apiUrl } from '../utils/auth';
 
 export default function Notifications() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function Notifications() {
 
   useEffect(() => {
     if (user?.id) {
+      connectSocket();
       socket.emit('join', user.id);
       const handleNewNotification = (notification) => {
         setNotifications((prev) => [notification, ...prev]);
@@ -32,13 +33,7 @@ export default function Notifications() {
 
   const fetchUser = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        apiUrl('/user/me'),
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await authFetch(apiUrl('/user/me'));
       const data = await response.json();
       setUser(data.user);
     } catch (err) {

@@ -1,25 +1,45 @@
 import { io } from "socket.io-client";
-import { BACKEND_BASE_URL } from "./api/axios";
+import { getToken } from "./utils/auth";
+import { BACKEND_BASE_URL } from "./config/api.js";
+
+let socketInstance = null;
 
 const getSocketUrl = (url) => {
   if (!url) return "";
   return url.endsWith("/api") ? url.slice(0, -4) : url;
 };
 
-const socketUrl = getSocketUrl(BACKEND_BASE_URL);
-console.log("Connecting Socket.io to:", socketUrl);
-
-export const socket = io(
-  socketUrl,
-  {
-    withCredentials: true,
+export const getSocket = () => {
+  if (!socketInstance) {
+    socketInstance = io(getSocketUrl(BACKEND_BASE_URL), {
+      withCredentials: true,
+      autoConnect: false,
+    });
   }
-);
 
-socket.on("connect", () => {
-  console.log("Socket.io connected successfully! ID:", socket.id);
-});
+  return socketInstance;
+};
 
-socket.on("connect_error", (error) => {
-  console.error("Socket.io connection error:", error);
-});
+export const connectSocket = () => {
+  const socket = getSocket();
+  socket.auth = { token: getToken() };
+
+  if (!socket.connected) {
+    socket.connect();
+  } else {
+    socket.disconnect();
+    socket.connect();
+  }
+
+  return socket;
+};
+
+export const disconnectSocket = () => {
+  if (socketInstance?.connected) {
+    socketInstance.disconnect();
+  }
+};
+
+export const socket = getSocket();
+
+export default socket;

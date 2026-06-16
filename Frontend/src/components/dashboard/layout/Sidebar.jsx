@@ -3,7 +3,8 @@ import { Plus } from 'lucide-react';
 
 import { getFolders, deleteFolder } from '../../../api/folder.api';
 import { getFiles } from '../../../api/file.api';
-import { getProfile, logout } from '../../../api/auth.api';
+import { getProfile } from '../../../api/auth.api';
+import { clearAuth } from '../../../utils/auth';
 import { DEFAULT_STORAGE } from '../../../utils/constants';
 import {
   normalizeList,
@@ -163,12 +164,7 @@ const Sidebar = ({
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      window.location.href = '/login';
-    } catch (e) {
-      toast('error', e.message || 'Logout failed');
-    }
+    await clearAuth();
   };
 
   const sidebarBody = (

@@ -44,7 +44,7 @@ import {
 } from '../utils/fileHelpers';
 import { QUICK_FILTERS } from '../utils/filters';
 
-import { socket } from "../socket";
+import { connectSocket, socket } from "../socket";
 
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
@@ -314,15 +314,6 @@ const UploadButton = ({ uploading, onChange }) => (
 
 
 const Dashboard = () => {
-  useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  if (token) {
-    localStorage.setItem("token", token);
-    // Clean the URL
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-}, []);
   const [previewFile, setPreviewFile]       = useState(null);
   const [isPreviewOpen, setIsPreviewOpen]   = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -508,6 +499,9 @@ const Dashboard = () => {
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
+      connectSocket();
+      socket.emit("join", user.id);
+
       const handleNewNotification = (notification) => {
         // Show real-time visual toast
         addToast(notification.message, 'success');

@@ -1,11 +1,13 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api.js";
+import {
+  clearStoredAuth,
+  getToken,
+  persistAuth,
+  setupAutoLogout,
+} from "../utils/auth";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-export const BACKEND_BASE_URL = API_BASE_URL.endsWith("/api")
-  ? API_BASE_URL.slice(0, -4)
-  : API_BASE_URL;
+export { API_BASE_URL, BACKEND_BASE_URL } from "../config/api.js";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -13,11 +15,73 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+let refreshPromise = null;
+
+API.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const status = error.response?.status;
+    const requestUrl = originalRequest?.url || "";
+
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/signup") ||
+      requestUrl.includes("/auth/logout") ||
+      requestUrl.includes("/auth/refresh") ||
+      requestUrl.includes("/auth/session");
+
+    if (
+      status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint
+    ) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    try {
+      if (!refreshPromise) {
+        refreshPromise = API.post("/auth/refresh")
+          .then((response) => {
+            const { token, user } = response.data || {};
+            if (token) {
+              persistAuth({ token, user });
+              setupAutoLogout(token);
+            }
+            return token;
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
+      }
+
+      const token = await refreshPromise;
+      if (!token) {
+        throw new Error("Unable to refresh session");
+      }
+
+      originalRequest.headers.Authorization = `Bearer ${token}`;
+      return API(originalRequest);
+    } catch (refreshError) {
+      clearStoredAuth();
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+
+      return Promise.reject(refreshError);
+    }
+  }
+);
 
 export default API;

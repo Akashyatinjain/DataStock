@@ -1,30 +1,63 @@
-import { Navigate, useLocation } from "react-router-dom";
-import {jwtDecode} from "jwt-decode";
+import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  bootstrapAuthSession,
+  clearStoredAuth,
+  getToken,
+  isAuthenticated,
+  persistAuth,
+  setupAutoLogout,
+} from "../utils/auth";
 
 const ProtectedRoute = ({ children }) => {
-  // Google OAuth flow: backend redirects to /dashboard?token=xxx
-  // Extract and persist the token BEFORE the auth check
-  const params = new URLSearchParams(window.location.search);
-  const urlToken = params.get("token");
-  if (urlToken) {
-    localStorage.setItem("token", urlToken);
-    window.history.replaceState({}, document.title, window.location.pathname);
+  const [checking, setChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const verifyAccess = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const authProvider = params.get("auth");
+
+      if (authProvider) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      if (isAuthenticated()) {
+        setupAutoLogout(getToken());
+        if (!cancelled) {
+          setAllowed(true);
+          setChecking(false);
+        }
+        return;
+      }
+
+      const session = await bootstrapAuthSession();
+      if (!cancelled) {
+        setAllowed(Boolean(session));
+        setChecking(false);
+      }
+    };
+
+    verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        Checking session...
+      </div>
+    );
   }
 
-  const token = localStorage.getItem("token");
-
-  if (!token) return <Navigate to="/login" />;
-
-  try {
-    const decoded = jwtDecode(token);
-
-    if (decoded.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      return <Navigate to="/login" />;
-    }
-  } catch (err) {
-    return <Navigate to="/login" />;
+  if (!allowed) {
+    clearStoredAuth();
+    return <Navigate to="/login" replace />;
   }
 
   return children;

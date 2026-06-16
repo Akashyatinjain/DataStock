@@ -1,60 +1,51 @@
 import asyncHandler from "../../utils/asyncHandler.js";
 import * as authService from "./auth.service.js";
-import { createToken } from "../../utils/token.utils.js";
-import { clearAuthCookie } from "../../utils/cookie.utils.js";
-
-
-export const signUpUser = asyncHandler(async (req, res) => {
-   const result = await authService.signUpUserLocal(req.body, res);
-  return res.status(201).json(result);  
+import {
+  getSessionFromRequest,
+  refreshAuthSession,
+  revokeAuthSession,
+} from "../../utils/authSession.utils.js";
+  const result = await authService.signUpUserLocal(req.body, res);
+  return res.status(201).json(result);
 });
-
-
 
 export const signInUser = asyncHandler(async (req, res) => {
   const result = await authService.signInUserLocal(req.body, res);
   return res.status(200).json(result);
 });
 
-
-export const logoutUser = (req, res) => {
-  clearAuthCookie(res);
+export const logoutUser = asyncHandler(async (req, res) => {
+  await revokeAuthSession(req, res);
 
   res.status(200).json({
-    message: "Logout successful"
+    message: "Logout successful",
   });
-};
+});
 
+export const getSession = asyncHandler(async (req, res) => {
+  const session = await getSessionFromRequest(req, res);
+  return res.status(200).json({
+    success: true,
+    ...session,
+  });
+});
 
-export const sendOTPController=asyncHandler(async (req,res)=>{
+export const refreshSession = asyncHandler(async (req, res) => {
+  const session = await refreshAuthSession(req, res);
+  return res.status(200).json({
+    success: true,
+    ...session,
+  });
+});
+
+export const sendOTPController = asyncHandler(async (req, res) => {
   const { email } = req.body;
-console.log("Email received:", email);
   const result = await authService.requestOTPService(email);
-
   res.json(result);
 });
 
-
-export const verifyOTPController = async (req, res) => {
+export const verifyOTPController = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
-
-  const result = await authService.verifyOTPService(email, otp);
-
+  const result = await authService.verifyOTPService(email, otp, res);
   res.json(result);
-};
-
-
-export const googleCallback = async (req, res) => {
-  try {
-    const user = await authService.googleLogin(req.user);
-    const token = createToken(user);
-    const frontendUrl =
-      process.env.FRONTEND_URL ||
-      process.env.CLIENT_URL ||
-      "http://localhost:5173";
-
-    res.redirect(`${frontendUrl}/dashboard?token=${token}`);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+});

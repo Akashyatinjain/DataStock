@@ -1,14 +1,72 @@
-// utils/auth.js
 import { jwtDecode } from "jwt-decode";
-import { API_BASE_URL } from "../api/axios";
+import { API_BASE_URL } from "../config/api.js";
+
+const TOKEN_KEY = "token";
+const USER_KEY = "user";
 
 export const apiUrl = (path = "") => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE_URL}${normalizedPath}`;
 };
 
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+
+export const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const persistAuth = ({ token, user }) => {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+  if (user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+};
+
+export const clearStoredAuth = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+};
+
+export const clearAuth = async () => {
+  try {
+    await fetch(apiUrl("/auth/logout"), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Authorization: getToken() ? `Bearer ${getToken()}` : undefined,
+      },
+    });
+  } catch {
+    // Continue clearing client state even if logout API fails.
+  }
+
+  clearStoredAuth();
+  window.location.href = "/login";
+};
+
+export const isTokenExpired = (token) => {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+};
+
+export const isAuthenticated = () => {
+  const token = getToken();
+  return Boolean(token && !isTokenExpired(token));
+};
+
 export const authFetch = (url, options = {}) => {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const headers = { ...options.headers };
 
   if (token) {
@@ -22,23 +80,54 @@ export const authFetch = (url, options = {}) => {
   });
 };
 
-export const setupAutoLogout = (token, logout) => {
+let autoLogoutTimer;
+
+export const setupAutoLogout = (token, logoutFn = clearAuth) => {
+  if (autoLogoutTimer) {
+    clearTimeout(autoLogoutTimer);
+  }
+
   try {
     const decoded = jwtDecode(token);
-
-    const expiryTime = decoded.exp * 1000; // convert to ms
-    const currentTime = Date.now();
-
-    const timeout = expiryTime - currentTime;
+    const timeout = decoded.exp * 1000 - Date.now();
 
     if (timeout > 0) {
-      setTimeout(() => {
-        logout();
+      autoLogoutTimer = setTimeout(() => {
+        logoutFn();
       }, timeout);
     } else {
-      logout(); // already expired
+      logoutFn();
     }
-  } catch (err) {
-    logout();
+  } catch {
+    logoutFn();
   }
+};
+
+export const bootstrapAuthSession = async () => {
+  try {
+    const response = await fetch(apiUrl("/auth/session"), {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Authorization: getToken() ? `Bearer ${getToken()}` : undefined,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Session unavailable");
+    }
+
+    const data = await response.json();
+    const { token, user } = data || {};
+
+    if (token && user) {
+      persistAuth({ token, user });
+      setupAutoLogout(token);
+      return { token, user };
+    }
+  } catch {
+    clearStoredAuth();
+  }
+
+  return null;
 };

@@ -16,14 +16,10 @@ import {
 import { login,sendOtp,verifyOtp } from "../api/auth.api";
 import { useNavigate } from "react-router-dom";
 
-import { apiUrl, setupAutoLogout } from "../utils/auth";
+import { apiUrl, clearAuth, persistAuth, setupAutoLogout } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
-const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.location.href = "/login";
-};
+const logout = clearAuth;
 
 
 const LoginPage = () => {
@@ -91,10 +87,10 @@ const handlePasswordLogin = async (e) => {
 
     const res = await login({ email, password });
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-
-    // ✅ AUTO LOGOUT HERE
+    persistAuth({
+      token: res.data.token,
+      user: res.data.user,
+    });
     setupAutoLogout(res.data.token, logout);
 
     setStep("success");
@@ -134,16 +130,12 @@ const handleOtpVerification = async (e) => {
 
     const res = await verifyOtp(email, otpValue);
 
-    console.log(res.data);
-if (res.data.token) {
-  localStorage.setItem("token", res.data.token);
-
-  // ✅ correct place
-  setupAutoLogout(res.data.token, logout);
-}
-    // save user if backend sends it
-    if (res.data.user) {
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+    if (res.data.token) {
+      persistAuth({
+        token: res.data.token,
+        user: res.data.user,
+      });
+      setupAutoLogout(res.data.token, logout);
     }
 
     setStep("success");
@@ -171,13 +163,18 @@ if (res.data.token) {
 };
 
   // Resend OTP
-  const handleResendOtp = () => {
-    setIsLoading(true);
-    setTimeout(() => {
+  const handleResendOtp = async () => {
+    try {
+      setIsLoading(true);
+      await sendOtp(email);
+      setErrors({ otp: "A new OTP has been sent to your email." });
+    } catch (err) {
+      setErrors({
+        otp: err.response?.data?.message || "Failed to resend OTP",
+      });
+    } finally {
       setIsLoading(false);
-      // Show resend success message
-      alert('OTP resent successfully!');
-    }, 1000);
+    }
   };
 
   return (

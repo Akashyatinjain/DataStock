@@ -1,3 +1,4 @@
+import "./config/env.js";
 import express from "express"
 import Helmet from "helmet"
 import rateLimit from "express-rate-limit";
@@ -38,9 +39,17 @@ app.use(cors({
   ].filter(Boolean),
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(passport.initialize());
-app.use(Helmet());
+app.use(
+  Helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    referrerPolicy: { policy: "no-referrer" },
+    hsts: process.env.NODE_ENV === "production"
+      ? { maxAge: 31536000, includeSubDomains: true }
+      : false,
+  })
+);
 app.use(morgan("dev"));
 app.use(limiter);
 app.use(cookieParser());

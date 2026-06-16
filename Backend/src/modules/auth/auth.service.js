@@ -1,103 +1,68 @@
 import { createUser, findUserByEmail } from "./auth.repository.js";
 import { hashPassword, comparePassword } from "./providers/passwordAuth.js";
-import { createToken } from "../../utils/token.utils.js";
-import { setAuthCookie } from "../../utils/cookie.utils.js";
 import { sendOTP, verifyOTP } from "./providers/otpAuth.js";
 import * as authRepo from "./auth.repository.js";
+import {
+  issueAuthSession,
+  sanitizeUser,
+} from "../../utils/authSession.utils.js";
 
 /* =========================
    SIGNUP LOCAL
 ========================= */
 export const signUpUserLocal = async ({ username, email, password }, res) => {
-  try {
-    if (!username || !email || !password) {
-      throw new Error("Username, email and password are required");
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // check existing user
-    const existUser = await findUserByEmail(normalizedEmail);
-    if (existUser) {
-  const err = new Error("Email already exists");
-  err.statusCode = 400;
-  throw err;
-}
-
-    // hash password
-    const hashedPassword = await hashPassword(password);
-
-    // create user
-    const user = await createUser({
-      username: username.trim(),
-      email: normalizedEmail,
-      password: hashedPassword,
-      authProvider: "local"
-    });
-
-    // create token
-    const token = createToken(user);
-
-    // set cookie
-    setAuthCookie(res, token);
-
-    const { password: _, ...safeUser } = user;
-
-    return {
-      message: "User created successfully",
-      user: safeUser,
-      token,
-      success: true
-    };
-
-  } catch (error) {
-    throw error;
+  if (!username || !email || !password) {
+    throw new Error("Username, email and password are required");
   }
-};
 
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const existUser = await findUserByEmail(normalizedEmail);
+  if (existUser) {
+    const err = new Error("Email already exists");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  const user = await createUser({
+    username: username.trim(),
+    email: normalizedEmail,
+    password: hashedPassword,
+    authProvider: "local",
+  });
+
+  return issueAuthSession(user, res);
+};
 
 /* =========================
    SIGNIN LOCAL
 ========================= */
 export const signInUserLocal = async ({ email, password }, res) => {
-  try {
-
-    if (!email || !password) {
-      throw new Error("Email and password are required");
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-
-    const user = await findUserByEmail(normalizedEmail);
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
-
-    if (user.authProvider !== "local") {
-      throw new Error("Use original login method");
-    }
-
-    const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) {
-      throw new Error("Invalid credentials");
-    }
-
-    const token = createToken(user);
-    setAuthCookie(res, token);
-
-    const { password: _, ...safeUser } = user;
-
-    return {
-      message: "Signed in successfully",
-      user: safeUser,
-      token
-    };
-
-  } catch (error) {
-    throw error;
+  if (!email || !password) {
+    throw new Error("Email and password are required");
   }
-};
 
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const user = await findUserByEmail(normalizedEmail);
+  if (!user) {
+    throw new Error("Invalid credentials");
+  }
+
+  if (user.authProvider !== "local") {
+    throw new Error("Use original login method");
+  }
+
+  const isMatch = await comparePassword(password, user.password);
+  if (!isMatch) {
+    throw new Error("Invalid credentials");
+  }
+
+  const sessionUser = await authRepo.findUserSessionById(user.id);
+  return issueAuthSession(sessionUser, res);
+};
 
 /* =========================
    GOOGLE LOGIN
@@ -119,16 +84,19 @@ export const googleLogin = async (googleUser) => {
 
   if (user) {
     if (user.authProvider === "google") {
-      return user;
+      return authRepo.findUserSessionById(user.id);
     }
 
-    // Same email signed up with password/OTP — link Google instead of failing
-    return authRepo.linkGoogleToUser(user.id, { googleId });
+    const err = new Error(
+      "An account with this email already exists. Sign in with your password first."
+    );
+    err.statusCode = 409;
+    throw err;
   }
 
   const existingGoogleUser = await authRepo.findUserByGoogleId(googleId);
   if (existingGoogleUser) {
-    return existingGoogleUser;
+    return authRepo.findUserSessionById(existingGoogleUser.id);
   }
 
   return authRepo.createGoogleUser({
@@ -137,7 +105,6 @@ export const googleLogin = async (googleUser) => {
     googleId,
   });
 };
-
 
 /* =========================
    OTP SERVICES
@@ -148,7 +115,27 @@ export const requestOTPService = async (email) => {
   return await sendOTP(email);
 };
 
-export const verifyOTPService = async (email, otp) => {
+export const verifyOTPService = async (email, otp, res) => {
   if (!email || !otp) throw new Error("Email and OTP required");
-  return await verifyOTP(email, otp);
+
+  const normalizedEmail = email.toLowerCase().trim();
+  await verifyOTP(normalizedEmail, otp);
+
+  let user = await findUserByEmail(normalizedEmail);
+
+  if (!user) {
+    user = await createUser({
+      username: normalizedEmail.split("@")[0],
+      email: normalizedEmail,
+      authProvider: "otp",
+    });
+  } else if (user.authProvider === "local") {
+    const err = new Error("This email uses password login. Sign in with your password.");
+    err.statusCode = 409;
+    throw err;
+  } else {
+    user = await authRepo.findUserSessionById(user.id);
+  }
+
+  return issueAuthSession(user, res);
 };

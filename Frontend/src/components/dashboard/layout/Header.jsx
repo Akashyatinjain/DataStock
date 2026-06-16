@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../../api/auth.api';
-import { apiUrl, authFetch } from '../../../utils/auth';
-import { socket } from "../../../socket";
+import { apiUrl, authFetch, clearAuth } from '../../../utils/auth';
+import { connectSocket, socket } from "../../../socket";
 import { getNotifications } from '../../../api/notification.api';
 import ThemeToggle from '../../ui/ThemeToggle';
 
@@ -35,6 +35,7 @@ const Header = ({
 
   useEffect(() => {
     if (user?.id) {
+      connectSocket();
       socket.emit("join", user.id);
 
       const fetchNotifications = async () => {
@@ -77,12 +78,7 @@ const Header = ({
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await API.post('/auth/logout');
-      navigate('/login');
-    } catch (err) {
-      console.error(err);
-    }
+    await clearAuth();
   };
 
   const getUserInitial = () => {

@@ -7,7 +7,8 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
 import Notifications from './pages/Notifications';
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { bootstrapAuthSession, isAuthenticated as hasValidToken } from './utils/auth';
 import Profile from "./pages/Profile";
 import PublicSharePage from './pages/PublicSharePage';
 import HelpPage from './pages/help';
@@ -17,8 +18,17 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
+    const initAuth = async () => {
+      if (hasValidToken()) {
+        setIsAuthenticated(true);
+        return;
+      }
+
+      const session = await bootstrapAuthSession();
+      setIsAuthenticated(Boolean(session));
+    };
+
+    initAuth();
   }, []);
   return (
     <BrowserRouter>

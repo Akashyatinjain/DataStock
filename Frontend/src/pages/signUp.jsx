@@ -12,7 +12,7 @@ import {
   Github,
   Chrome
 } from 'lucide-react';
-import { apiUrl } from "../utils/auth";
+import { apiUrl, persistAuth, setupAutoLogout } from "../utils/auth";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +55,8 @@ const SignupPage = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(formData.password)) {
+      newErrors.password = 'Password must include uppercase, lowercase, and a number';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -102,10 +104,10 @@ const handleSubmit = async (e) => {
     console.log(data);
 
     if (data.token) {
-      localStorage.setItem("token", data.token);
-    }
-    if (data.user) {
-      localStorage.setItem("user", JSON.stringify(data.user));
+      persistAuth({ token: data.token, user: data.user });
+      setupAutoLogout(data.token);
+    } else if (data.user) {
+      persistAuth({ user: data.user });
     }
 
     // redirect

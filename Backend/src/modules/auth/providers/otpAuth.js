@@ -1,55 +1,55 @@
-import { deleteExistingOTP, findValidOTP, createOTP, deleteOTP } from "../auth.repository.js";
+import { deleteExistingOTP, findValidOTP, createOTP, deleteOTP, incrementOTPAttempts } from "../auth.repository.js";
 import { sendOTPEmail } from "../../../utils/email.util.js";
 import bcrypt from "bcrypt";
 
+const MAX_OTP_ATTEMPTS = 5;
+
 export const OtpGenerator = () => {
-   return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 export const sendOTP = async (email) => {
+  if (!email) {
+    throw new Error("Email is required");
+  }
 
-   if (!email) {
-      throw new Error("Email is required");
-   }
+  const normalizedEmail = email.toLowerCase().trim();
+  const otp = OtpGenerator();
 
-   const otp = OtpGenerator();
+  await deleteExistingOTP(normalizedEmail);
 
-   await deleteExistingOTP(email);
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+  const hashedOTP = await bcrypt.hash(otp, 12);
 
-   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+  await createOTP(normalizedEmail, hashedOTP, expiresAt);
+  await sendOTPEmail(normalizedEmail, otp);
 
-   // console.log("Generated OTP:", otp);
-   console.log("Expiry:", expiresAt);
-
-   // hash OTP
-   const hashedOTP = await bcrypt.hash(otp, 12);
-
-   // store hashed OTP
-   await createOTP(email, hashedOTP, expiresAt);
-
-   // send real OTP to user
-   await sendOTPEmail(email, otp);
-
-   return {
-      message: `OTP sent successfully to ${email}`
-   };
+  return {
+    message: `OTP sent successfully to ${normalizedEmail}`,
+  };
 };
 
 export const verifyOTP = async (email, otp) => {
-
-  const record = await findValidOTP(email);
+  const normalizedEmail = email.toLowerCase().trim();
+  const record = await findValidOTP(normalizedEmail);
 
   if (!record) {
     throw new Error("OTP expired or not found");
   }
 
+  if (record.attempts >= MAX_OTP_ATTEMPTS) {
+    await deleteOTP(normalizedEmail);
+    throw new Error("Too many invalid OTP attempts. Request a new OTP.");
+  }
+
   const isMatch = await bcrypt.compare(otp, record.otp);
 
   if (!isMatch) {
+    await incrementOTPAttempts(record.id, record.attempts + 1);
     throw new Error("Invalid OTP");
   }
 
-  await deleteOTP(email);
+  await deleteOTP(normalizedEmail);
 
   return { message: "OTP verified successfully" };
 };

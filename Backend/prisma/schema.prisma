@@ -14,6 +14,12 @@ model User {
   googleId     String?      @unique
   password     String?
   storageUsed  Int          @default(0)
+
+  storageLimit BigInt       @default(10737418240) // 10GB
+  subscriptionPlan String   @default("BASIC")
+  subscriptionId   String?
+  dodoCustomerId   String?
+
   imageUrl     String?
 
   createdAt    DateTime     @default(now())

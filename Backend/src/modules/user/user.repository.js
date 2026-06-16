@@ -9,6 +9,9 @@ export const findUserById = async (userId) => {
       username: true,
       email: true,
       storageUsed: true,
+      storageLimit: true,
+      subscriptionPlan: true,
+      subscriptionId: true,
       createdAt: true,
       imageUrl:true
     },
@@ -44,6 +47,24 @@ export const updateUserProfileImage = async (userId, imageUrl) => {
     select: {
       id: true,
       imageUrl: true,
+    },
+  });
+};
+
+export const updateUserSubscription = async (userId, { subscriptionPlan, subscriptionId, dodoCustomerId, storageLimit }) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      subscriptionPlan,
+      subscriptionId,
+      dodoCustomerId,
+      storageLimit,
+    },
+    select: {
+      id: true,
+      subscriptionPlan: true,
+      subscriptionId: true,
+      storageLimit: true,
     },
   });
 };

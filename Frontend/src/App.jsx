@@ -11,6 +11,8 @@ import { useState,useEffect } from 'react';
 import Profile from "./pages/Profile";
 import PublicSharePage from './pages/PublicSharePage';
 import HelpPage from './pages/help';
+import Pricing from './pages/Pricing';
+import PaymentSuccess from './pages/PaymentSuccess';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
@@ -26,6 +28,12 @@ function App() {
        <Route path="/signup" element={<SignUp />} />
        <Route path="/profile" element={<Profile />} />
        <Route path="/help" element={<HelpPage />} />
+       <Route path="/pricing" element={<Pricing />} />
+       <Route path="/payment-success" element={
+         <ProtectedRoute>
+           <PaymentSuccess />
+         </ProtectedRoute>
+       } />
        <Route 
           path="/dashboard" 
           element={

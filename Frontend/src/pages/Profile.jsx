@@ -370,6 +370,15 @@ export default function ProfilePage() {
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                   Active
                 </span>
+                {user?.subscriptionPlan && user.subscriptionPlan !== 'BASIC' && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    user.subscriptionPlan === 'PRO'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {user.subscriptionPlan} Plan
+                  </span>
+                )}
               </div>
 
               {/* Username edit row */}
@@ -495,7 +504,7 @@ export default function ProfilePage() {
               <span className="text-gray-600 font-medium">
                 {formatStorage(user?.storageUsed)} used
               </span>
-              <span className="text-gray-400">10 GB Total</span>
+              <span className="text-gray-400">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
             </div>
 
             {((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100 > 85 && (
@@ -532,13 +541,19 @@ export default function ProfilePage() {
 
         {/*  QUICK ACTIONS  */}
         <div className="mt-6 grid md:grid-cols-3 gap-4">
-          <button className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
+          <button 
+            onClick={() => navigate('/pricing')}
+            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
             <div className="p-2 bg-purple-100 rounded-xl">
               <Star size={20} className="text-purple-600" />
             </div>
             <div className="text-left">
-              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">Upgrade to Pro</p>
-              <p className="text-xs text-gray-500">Get 1TB & premium support</p>
+              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">
+                {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
+              </p>
             </div>
             <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
           </button>

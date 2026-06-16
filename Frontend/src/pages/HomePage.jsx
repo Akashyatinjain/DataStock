@@ -22,11 +22,13 @@ import {
   Play
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { createCheckoutSession } from "../api/payment.api";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,6 +44,33 @@ const HomePage = () => {
 
   const handleSignup = () => {
     navigate('/signup');
+  };
+
+  const handlePlanSelect = async (planKey) => {
+    if (planKey === 'Basic') {
+      navigate('/signup');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const plan = planKey.toLowerCase(); // 'pro' or 'family'
+    try {
+      setLoadingPlan(planKey);
+      const result = await createCheckoutSession(plan);
+      if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -430,13 +459,16 @@ const HomePage = () => {
                 </ul>
                 
                 <button 
-                  onClick={plan.name === 'Basic' ? handleSignup : () => {}}
-                  className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg ${
+                  onClick={() => handlePlanSelect(plan.name)}
+                  disabled={loadingPlan === plan.name}
+                  className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
                   plan.popular 
                     ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' 
                     : 'bg-white text-gray-900 hover:bg-gray-100'
                 }`}>
-                  {plan.name === 'Basic' ? 'Get Started' : 'Upgrade to ' + plan.name}
+                  {loadingPlan === plan.name ? (
+                    <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Redirecting...</>
+                  ) : plan.name === 'Basic' ? 'Get Started' : 'Upgrade to ' + plan.name}
                 </button>
               </div>
             ))}

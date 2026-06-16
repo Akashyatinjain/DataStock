@@ -12,7 +12,7 @@ import fileRoutes from "./modules/files/file.routes.js";
 import folderRoutes from "./modules/folders/folder.routes.js";
 import notificationRoutes from "./modules/notifications/notification.routes.js";
 import shareRoutes from "./modules/share/share.routes.js";
-import paymentRoutes from "./modules/payment/Payment.Route.js";
+import paymentRoutes from "./routes/payment.routes.js";
 
 
 const app = express();
@@ -56,6 +56,7 @@ app.use("/api/folders", folderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/share", shareRoutes);
 app.use("/api/payment", paymentRoutes);
+
 app.use(errorHandler);
 
 export default app;

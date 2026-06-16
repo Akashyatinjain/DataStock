@@ -25,11 +25,23 @@ export const logoutUser = asyncHandler(async (req, res) => {
 });
 
 export const getSession = asyncHandler(async (req, res) => {
-  const session = await getSessionFromRequest(req, res);
-  return res.status(200).json({
-    success: true,
-    ...session,
-  });
+  try {
+    const session = await getSessionFromRequest(req, res);
+    return res.status(200).json({
+      success: true,
+      ...session,
+    });
+  } catch (error) {
+    if (error?.statusCode === 401) {
+      return res.status(200).json({
+        success: false,
+        token: null,
+        user: null,
+      });
+    }
+
+    throw error;
+  }
 });
 
 export const refreshSession = asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import SignUp from './pages/signUp';
 import Login from './pages/Login';
@@ -7,29 +7,12 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import NotFound from './pages/NotFound';
 import HomePage from './pages/HomePage';
 import Notifications from './pages/Notifications';
-import { useState, useEffect } from 'react';
-import { bootstrapAuthSession, isAuthenticated as hasValidToken } from './utils/auth';
 import Profile from "./pages/Profile";
 import PublicSharePage from './pages/PublicSharePage';
 import HelpPage from './pages/help';
 import Pricing from './pages/Pricing';
 import PaymentSuccess from './pages/PaymentSuccess';
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-
- useEffect(() => {
-    const initAuth = async () => {
-      if (hasValidToken()) {
-        setIsAuthenticated(true);
-        return;
-      }
-
-      const session = await bootstrapAuthSession();
-      setIsAuthenticated(Boolean(session));
-    };
-
-    initAuth();
-  }, []);
   return (
     <BrowserRouter>
       <Routes>

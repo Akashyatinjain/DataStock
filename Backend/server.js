@@ -1,4 +1,4 @@
-import "../src/config/env.js";
+import "./src/config/env.js";
 import app from "./src/app.js";
 import { PrismaClient } from "@prisma/client";
 import { setIO } from "./src/socket.js";

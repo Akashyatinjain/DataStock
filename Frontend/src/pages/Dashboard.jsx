@@ -98,7 +98,8 @@ const formatFileSize = (bytes) => {
   if (bytes < 1024)             return bytes + ' B';
   if (bytes < 1024 * 1024)      return (bytes / 1024).toFixed(1) + ' KB';
   if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  if (bytes < 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
 
@@ -512,12 +513,15 @@ const Dashboard = () => {
   );
 
   // ── STORAGE (all files: My Drive + every folder) ──
-  const totalStorage = 10 * 1024 * 1024 * 1024;
+  const totalStorage = Number(user?.storageLimit || 10 * 1024 * 1024 * 1024);
   const usedStorage = useMemo(
     () => allFiles.reduce((acc, f) => acc + (f.size || 0), 0),
     [allFiles]
   );
-  const usedGB = (usedStorage / (1024 * 1024 * 1024)).toFixed(3);
+  const usedFormatted = formatFileSize(usedStorage);
+  const totalFormatted = formatFileSize(totalStorage);
+  const usedGB = usedStorage / (1024 * 1024 * 1024);
+  const totalGB = totalStorage / (1024 * 1024 * 1024);
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
   const totalFileCount = allFiles.length;
 
@@ -840,7 +844,14 @@ const Dashboard = () => {
         setSidebarCollapsed={setSidebarCollapsed}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        storageData={{ used: usedGB, total: 10, categories: [] }}
+        storageData={{
+          used: usedGB,
+          total: totalGB,
+          usedLabel: usedFormatted,
+          totalLabel: totalFormatted,
+          plan: user?.subscriptionPlan || 'BASIC',
+          categories: [],
+        }}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         syncFiles
@@ -920,7 +931,7 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between mb-5">
                     <div>
                       <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Storage Usage</h2>
-                      <p className="text-gray-400 text-sm mt-0.5">{usedGB} GB used of 10 GB</p>
+                      <p className="text-gray-400 text-sm mt-0.5">{usedFormatted} used of {totalFormatted}</p>
                     </div>
                     <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
                       <HardDrive className="w-5 h-5 text-green-600" />
@@ -943,7 +954,7 @@ const Dashboard = () => {
                   <div className="flex justify-between mt-2">
                     <span className="text-xs text-gray-400">0 GB</span>
                     <span className="text-xs font-semibold text-gray-500">{storagePercentage.toFixed(1)}%</span>
-                    <span className="text-xs text-gray-400">10 GB</span>
+                    <span className="text-xs text-gray-400">{totalFormatted}</span>
                   </div>
                 </div>
 

@@ -4,6 +4,8 @@ import { getMimeType } from '../../../utils/filters';
 export default function SidebarStorage({ storageData, files }) {
   const imageCount = files.filter((f) => getMimeType(f).startsWith('image')).length;
   const totalFiles = files.length;
+  const plan = storageData.plan || 'BASIC';
+  const isBasic = plan === 'BASIC';
   const usedPercent = Math.min(
     (storageData.used / storageData.total) * 100,
     100
@@ -20,8 +22,8 @@ export default function SidebarStorage({ storageData, files }) {
           <Cloud className="w-4 h-4 text-green-600" />
         </div>
         <div className="mb-2 flex justify-between text-xs">
-          <span className="text-gray-600 dark:text-gray-400">{storageData.used} GB used</span>
-          <span className="text-gray-400 dark:text-gray-500">{storageData.total} GB</span>
+          <span className="text-gray-600 dark:text-gray-400">{storageData.usedLabel || `${storageData.used} GB`} used</span>
+          <span className="text-gray-400 dark:text-gray-500">{storageData.totalLabel || `${storageData.total} GB`}</span>
         </div>
         <div className="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
           <div
@@ -44,12 +46,16 @@ export default function SidebarStorage({ storageData, files }) {
         <div className="mt-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/20 border border-green-100 dark:border-green-900/50 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <Cloud className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-semibold text-green-700 dark:text-green-400">Free Plan</span>
+            <span className="text-sm font-semibold text-green-700 dark:text-green-400">{isBasic ? 'Free Plan' : `${plan} Plan`}</span>
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">Upgrade to Pro for 1TB storage</p>
-          <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 text-sm font-medium transition">
-            Upgrade Now
-          </button>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+            {isBasic ? 'Upgrade to Pro for 2 TB storage' : `${storageData.totalLabel || `${storageData.total} GB`} storage active`}
+          </p>
+          {isBasic && (
+            <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 text-sm font-medium transition">
+              Upgrade Now
+            </button>
+          )}
         </div>
       </div>
     </>

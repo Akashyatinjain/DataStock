@@ -7,11 +7,11 @@ import {
   Settings, Star, Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { authFetch } from "../utils/auth";
+import { apiUrl, authFetch } from "../utils/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL + "/user";
-const FILES_API_URL = import.meta.env.VITE_API_URL + "/files";
-const FOLDERS_API_URL = import.meta.env.VITE_API_URL + "/folders";
+const USER_API_URL = apiUrl("/user");
+const FILES_API_URL = apiUrl("/files");
+const FOLDERS_API_URL = apiUrl("/folders");
 
 const ProfileSkeleton = () => (
   <div className="h-full animate-pulse p-6 max-w-5xl mx-auto space-y-6">
@@ -57,7 +57,7 @@ export default function ProfilePage() {
       setLoading(true);
       setErrorMessage("");
 
-      const response = await authFetch(`${API_BASE_URL}/me`, { method: "GET" });
+      const response = await authFetch(`${USER_API_URL}/me`, { method: "GET" });
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.message || "Failed to fetch profile");
@@ -118,7 +118,7 @@ export default function ProfilePage() {
       setUpdating(true);
       setErrorMessage("");
 
-      const response = await authFetch(`${API_BASE_URL}/update`, {
+      const response = await authFetch(`${USER_API_URL}/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim() }),
@@ -164,7 +164,7 @@ export default function ProfilePage() {
       setUploading(true);
       setErrorMessage("");
 
-      const response = await authFetch(`${API_BASE_URL}/upload-profile`, {
+      const response = await authFetch(`${USER_API_URL}/upload-profile`, {
         method: "POST",
         body: formData,
       });
@@ -193,7 +193,7 @@ export default function ProfilePage() {
 
     try {
       setDeletingImage(true);
-      const response = await authFetch(`${API_BASE_URL}/delete-profile`, {
+      const response = await authFetch(`${USER_API_URL}/delete-profile`, {
         method: "DELETE",
       });
       const data = await response.json();
@@ -493,7 +493,7 @@ export default function ProfilePage() {
                 className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-700 ease-out"
                 style={{
                   width: `${Math.min(
-                    ((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100,
+                    ((user?.storageUsed || 0) / (Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)) * 100,
                     100
                   )}%`,
                 }}
@@ -507,7 +507,7 @@ export default function ProfilePage() {
               <span className="text-gray-400">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
             </div>
 
-            {((user?.storageUsed || 0) / (100 * 1024 * 1024 * 1024)) * 100 > 85 && (
+            {((user?.storageUsed || 0) / (Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)) * 100 > 85 && (
               <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-2">
                 <AlertCircle size={18} className="text-orange-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-orange-700">

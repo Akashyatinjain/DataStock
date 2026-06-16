@@ -12,6 +12,7 @@ import {
   Github,
   Chrome
 } from 'lucide-react';
+import { apiUrl } from "../utils/auth";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -79,7 +80,7 @@ const handleSubmit = async (e) => {
 
   try {
 
-    const res = await fetch(import.meta.env.VITE_API_URL + "/auth/signup", {
+    const res = await fetch(apiUrl("/auth/signup"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -100,6 +101,13 @@ const handleSubmit = async (e) => {
 
     console.log(data);
 
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+    }
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
+
     // redirect
     window.location.href = "/dashboard";
 
@@ -109,7 +117,7 @@ const handleSubmit = async (e) => {
 };
    // Handle Google login
  const handleGoogleLogin = () => {
-  window.location.href = import.meta.env.VITE_API_URL + "/auth/google";
+  window.location.href = apiUrl("/auth/google");
 };
 
 

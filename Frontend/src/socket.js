@@ -1,11 +1,12 @@
 import { io } from "socket.io-client";
+import { BACKEND_BASE_URL } from "./api/axios";
 
 const getSocketUrl = (url) => {
   if (!url) return "";
   return url.endsWith("/api") ? url.slice(0, -4) : url;
 };
 
-const socketUrl = getSocketUrl(import.meta.env.VITE_API_URL);
+const socketUrl = getSocketUrl(BACKEND_BASE_URL);
 console.log("Connecting Socket.io to:", socketUrl);
 
 export const socket = io(

@@ -21,6 +21,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
+import { apiUrl } from '../../../utils/auth';
 
 const FileView = ({ 
   viewMode, 
@@ -47,7 +48,7 @@ const FileView = ({
 
     try {
       // const res = await fetch("http://localhost:5000/api/user/upload-profile", {
-        const res = await fetch(import.meta.env.VITE_API_URL + "/user/upload-profile", {
+        const res = await fetch(apiUrl("/user/upload-profile"), {
         method: "POST",
         credentials: "include",
         body: formData,

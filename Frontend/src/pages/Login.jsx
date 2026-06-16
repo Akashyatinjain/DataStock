@@ -16,7 +16,7 @@ import {
 import { login,sendOtp,verifyOtp } from "../api/auth.api";
 import { useNavigate } from "react-router-dom";
 
-import { setupAutoLogout } from "../utils/auth";
+import { apiUrl, setupAutoLogout } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const logout = () => {
@@ -167,7 +167,7 @@ if (res.data.token) {
 
   // Handle Google login
  const handleGoogleLogin = () => {
-  window.location.href = import.meta.env.VITE_API_URL + "/auth/google";
+  window.location.href = apiUrl("/auth/google");
 };
 
   // Resend OTP

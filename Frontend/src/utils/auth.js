@@ -1,5 +1,11 @@
 // utils/auth.js
 import { jwtDecode } from "jwt-decode";
+import { API_BASE_URL } from "../api/axios";
+
+export const apiUrl = (path = "") => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+};
 
 export const authFetch = (url, options = {}) => {
   const token = localStorage.getItem("token");

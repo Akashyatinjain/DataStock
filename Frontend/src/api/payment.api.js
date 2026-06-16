@@ -1,4 +1,4 @@
-import API from "./auth.api.js";
+import API from "./axios.js";
 
 /**
  * Create a Dodo Payments checkout session.

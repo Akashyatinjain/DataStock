@@ -17,9 +17,9 @@ export const getProfile = async(req, res) => {
 
 export const updateProfile = async (req, res) => {
   const userId = req.user.userId;
-  const { username } = req.body;
+  const { username, name } = req.body;
 
-  const updatedUser = await userService.updateUser(userId, username);
+  const updatedUser = await userService.updateUser(userId, username || name);
 
   res.json({
     message: "Profile updated",
@@ -86,12 +86,12 @@ export const updateUser = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const { username } = req.body;
+    const { username, name } = req.body;
 
     const updatedUser =
       await userService.updateUser(
         userId,
-        username
+        username || name
       );
 
     res.status(200).json({
@@ -103,5 +103,18 @@ export const updateUser = async (req, res) => {
     res.status(500).json({
       error: error.message,
     });
+  }
+};
+
+export const deleteProfileImage = async (req, res) => {
+  try {
+    const user = await userService.deleteUserProfileImage(req.user.userId);
+
+    return res.status(200).json({
+      message: "Profile picture removed",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };

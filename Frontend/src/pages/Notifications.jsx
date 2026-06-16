@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, ArrowLeft, CheckCircle2, Circle, Trash2, Filter } from 'lucide-react';
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
 import { socket } from '../socket';
+import { apiUrl } from '../utils/auth';
 
 export default function Notifications() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function Notifications() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/user/me`,
+        apiUrl('/user/me'),
         {
           headers: { Authorization: `Bearer ${token}` },
         }

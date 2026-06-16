@@ -1,6 +1,25 @@
 import dodoClient from "../../services/dodo.service.js";
 import prisma from "../../config/db.js";
 
+const STORAGE_LIMITS = {
+  BASIC: BigInt(10 * 1024 * 1024 * 1024),
+  PRO: BigInt(2 * 1024 * 1024 * 1024 * 1024),
+  FAMILY: BigInt(5 * 1024 * 1024 * 1024 * 1024),
+};
+
+const PAYMENT_PLANS = {
+  pro: {
+    name: "PRO",
+    productIdEnv: "DODO_PRO_PRODUCT_ID",
+  },
+  family: {
+    name: "FAMILY",
+    productIdEnv: "DODO_FAMILY_PRODUCT_ID",
+  },
+};
+
+const getStorageLimit = (plan) => STORAGE_LIMITS[plan] || STORAGE_LIMITS.BASIC;
+
 // ======================
 // CREATE CHECKOUT SESSION
 // ======================
@@ -19,17 +38,27 @@ export const createCheckout = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    let productId;
-    let planName;
+    const selectedPlan = PAYMENT_PLANS[plan];
 
-    if (plan === "pro") {
-      productId = process.env.DODO_PRO_PRODUCT_ID;
-      planName = "PRO";
-    } else if (plan === "family") {
-      productId = process.env.DODO_FAMILY_PRODUCT_ID;
-      planName = "FAMILY";
-    } else {
+    if (!selectedPlan) {
       return res.status(400).json({ success: false, message: "Invalid plan" });
+    }
+
+    if (!process.env.DODO_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: "Dodo Payments API key is not configured",
+      });
+    }
+
+    const productId = process.env[selectedPlan.productIdEnv];
+    const planName = selectedPlan.name;
+
+    if (!productId) {
+      return res.status(500).json({
+        success: false,
+        message: `${selectedPlan.productIdEnv} is not configured`,
+      });
     }
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -55,10 +84,18 @@ export const createCheckout = async (req, res) => {
     }
 
     const checkout = await dodoClient.checkoutSessions.create(checkoutPayload);
+    const checkoutUrl = checkout.checkout_url || checkout.checkoutUrl;
+
+    if (!checkoutUrl) {
+      return res.status(502).json({
+        success: false,
+        message: "Dodo Payments did not return a checkout URL",
+      });
+    }
 
     return res.json({
       success: true,
-      checkoutUrl: checkout.checkout_url,
+      checkoutUrl,
     });
   } catch (error) {
     console.error("Checkout error:", error);
@@ -91,23 +128,13 @@ export const handleWebhook = async (req, res) => {
           return res.status(200).json({ received: true });
         }
 
-        // Determine storage limit based on plan
-        let storageLimit;
-        if (plan === "PRO") {
-          storageLimit = BigInt(2 * 1024 * 1024 * 1024 * 1024); // 2TB
-        } else if (plan === "FAMILY") {
-          storageLimit = BigInt(5 * 1024 * 1024 * 1024 * 1024); // 5TB
-        } else {
-          storageLimit = BigInt(10 * 1024 * 1024 * 1024); // 10GB default
-        }
-
         await prisma.user.update({
           where: { id: userId },
           data: {
             subscriptionPlan: plan,
             subscriptionId: data.subscription_id || data.id || null,
             dodoCustomerId: data.customer?.customer_id || null,
-            storageLimit: storageLimit,
+            storageLimit: getStorageLimit(plan),
           },
         });
 
@@ -127,7 +154,7 @@ export const handleWebhook = async (req, res) => {
             data: {
               subscriptionPlan: "BASIC",
               subscriptionId: null,
-              storageLimit: BigInt(10 * 1024 * 1024 * 1024), // 10GB
+              storageLimit: STORAGE_LIMITS.BASIC,
             },
           });
 
@@ -145,21 +172,13 @@ export const handleWebhook = async (req, res) => {
         console.log(`[Dodo Webhook] Payment succeeded for user ${userId}, plan ${plan}`);
         
         if (userId && plan) {
-          let storageLimit;
-          if (plan === "PRO") {
-            storageLimit = BigInt(2 * 1024 * 1024 * 1024 * 1024); // 2TB
-          } else if (plan === "FAMILY") {
-            storageLimit = BigInt(5 * 1024 * 1024 * 1024 * 1024); // 5TB
-          } else {
-            storageLimit = BigInt(10 * 1024 * 1024 * 1024); // 10GB default
-          }
-
           await prisma.user.update({
             where: { id: userId },
             data: {
               subscriptionPlan: plan,
+              subscriptionId: data.subscription_id || data.subscription?.subscription_id || null,
               dodoCustomerId: data.customer?.customer_id || null,
-              storageLimit: storageLimit,
+              storageLimit: getStorageLimit(plan),
             },
           });
           console.log(`[Dodo Webhook] User ${userId} upgraded to ${plan} via payment.succeeded`);

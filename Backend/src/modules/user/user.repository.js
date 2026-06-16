@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import prisma from "../../config/db.js";
 
 export const findUserById = async (userId) => {
@@ -27,7 +26,27 @@ export const updateUserById = async (userId, username) => {
       username: true,
       email: true,
       storageUsed: true,
+      storageLimit: true,
+      subscriptionPlan: true,
+      subscriptionId: true,
       imageUrl: true
+    },
+  });
+};
+
+export const deleteUserProfileImage = async (userId) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { imageUrl: null },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      storageUsed: true,
+      storageLimit: true,
+      subscriptionPlan: true,
+      subscriptionId: true,
+      imageUrl: true,
     },
   });
 };

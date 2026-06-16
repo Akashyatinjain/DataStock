@@ -5,6 +5,8 @@ import {
   refreshAuthSession,
   revokeAuthSession,
 } from "../../utils/authSession.utils.js";
+
+export const signUpUser = asyncHandler(async (req, res) => {
   const result = await authService.signUpUserLocal(req.body, res);
   return res.status(201).json(result);
 });

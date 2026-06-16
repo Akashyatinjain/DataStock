@@ -41,8 +41,8 @@ export const createCheckout = async (req, res) => {
           quantity: 1,
         },
       ],
-      payment_link: true,
-      success_url: `${frontendUrl}/payment-success?plan=${planName}`,
+      return_url: `${frontendUrl}/payment-success?plan=${planName}`,
+      cancel_url: `${frontendUrl}/pricing`,
       metadata: {
         userId: userId,
         plan: planName,

@@ -20,6 +20,30 @@ const PAYMENT_PLANS = {
 
 const getStorageLimit = (plan) => STORAGE_LIMITS[plan] || STORAGE_LIMITS.BASIC;
 
+const ACTIVE_RETURN_STATUSES = new Set([
+  "active",
+  "succeeded",
+  "paid",
+  "completed",
+  "complete",
+]);
+
+const normalizePlanName = (plan) => {
+  if (!plan || typeof plan !== "string") {
+    return null;
+  }
+
+  const normalized = plan.trim().toUpperCase();
+  return STORAGE_LIMITS[normalized] ? normalized : null;
+};
+
+const buildSubscriptionPayload = (user) => ({
+  plan: user.subscriptionPlan,
+  subscriptionId: user.subscriptionId,
+  storageLimit: Number(user.storageLimit),
+  storageUsed: user.storageUsed,
+});
+
 // ======================
 // CREATE CHECKOUT SESSION
 // ======================
@@ -199,6 +223,107 @@ export const handleWebhook = async (req, res) => {
 };
 
 // ======================
+// SYNC PAYMENT RETURN
+// ======================
+export const syncPaymentReturn = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { subscriptionId, paymentId, status, plan } = req.body;
+
+    const normalizedStatus = String(status || "").toLowerCase();
+    const requestedPlan = normalizePlanName(plan);
+    const hasReturnProof = Boolean(subscriptionId || paymentId);
+
+    if (!hasReturnProof && !ACTIVE_RETURN_STATUSES.has(normalizedStatus)) {
+      return res.status(409).json({
+        success: false,
+        message: "Payment is not active yet",
+      });
+    }
+
+    let resolvedPlan = requestedPlan;
+    let resolvedSubscriptionId = subscriptionId || null;
+    let resolvedCustomerId = null;
+
+    if (subscriptionId && process.env.DODO_API_KEY) {
+      try {
+        const subscription = await dodoClient.subscriptions.retrieve(subscriptionId);
+        const subscriptionStatus = String(subscription.status || "").toLowerCase();
+
+        if (!["active", "trialing", "renewed"].includes(subscriptionStatus)) {
+          return res.status(409).json({
+            success: false,
+            message: "Subscription is not active yet",
+          });
+        }
+
+        resolvedSubscriptionId = subscription.subscription_id || subscription.id || subscriptionId;
+        resolvedCustomerId =
+          subscription.customer?.customer_id ||
+          subscription.customer_id ||
+          null;
+        resolvedPlan =
+          normalizePlanName(subscription.metadata?.plan) ||
+          requestedPlan;
+      } catch (verifyError) {
+        console.warn("[Payment Sync] Could not verify subscription with Dodo:", verifyError.message);
+
+        if (!ACTIVE_RETURN_STATUSES.has(normalizedStatus)) {
+          return res.status(409).json({
+            success: false,
+            message: "Could not verify subscription yet",
+          });
+        }
+      }
+    } else if (!ACTIVE_RETURN_STATUSES.has(normalizedStatus)) {
+      return res.status(409).json({
+        success: false,
+        message: "Payment is not active yet",
+      });
+    }
+
+    if (!resolvedPlan) {
+      return res.status(400).json({
+        success: false,
+        message: "Could not determine purchased plan",
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        subscriptionPlan: resolvedPlan,
+        subscriptionId: resolvedSubscriptionId,
+        dodoCustomerId: resolvedCustomerId,
+        storageLimit: getStorageLimit(resolvedPlan),
+      },
+      select: {
+        subscriptionPlan: true,
+        subscriptionId: true,
+        storageLimit: true,
+        storageUsed: true,
+      },
+    });
+
+    console.log(
+      `[Payment Sync] User ${userId} synced to ${resolvedPlan}` +
+        (paymentId ? ` via payment ${paymentId}` : "")
+    );
+
+    return res.json({
+      success: true,
+      subscription: buildSubscriptionPayload(updatedUser),
+    });
+  } catch (error) {
+    console.error("Sync payment return error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ======================
 // GET SUBSCRIPTION STATUS
 // ======================
 export const getSubscriptionStatus = async (req, res) => {
@@ -221,12 +346,7 @@ export const getSubscriptionStatus = async (req, res) => {
 
     return res.json({
       success: true,
-      subscription: {
-        plan: user.subscriptionPlan,
-        subscriptionId: user.subscriptionId,
-        storageLimit: Number(user.storageLimit),
-        storageUsed: user.storageUsed,
-      },
+      subscription: buildSubscriptionPayload(user),
     });
   } catch (error) {
     console.error("Get subscription error:", error);

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiUrl, authFetch } from "../utils/auth";
+import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 
 const USER_API_URL = apiUrl("/user");
 const FILES_API_URL = apiUrl("/files");
@@ -103,6 +104,24 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const handleSubscriptionUpdated = () => {
+      fetchProfile();
+    };
+
+    const handleFocus = () => {
+      fetchProfile();
+    };
+
+    window.addEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   

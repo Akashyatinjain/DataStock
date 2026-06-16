@@ -13,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import { createCheckoutSession } from "../api/payment.api";
+import useSubscription from "../hooks/useSubscription";
 
 const PLANS = [
   {
@@ -82,7 +83,18 @@ export default function Pricing() {
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
 
+  const {
+    currentPlanKey,
+    loading: subscriptionLoading,
+    error: subscriptionError,
+    refreshUserAndSubscription,
+  } = useSubscription({ enabled: isLoggedIn });
+
   const handleSelectPlan = async (planKey) => {
+    if (isLoggedIn && currentPlanKey === planKey) {
+      return;
+    }
+
     if (planKey === "basic") {
       if (isLoggedIn) {
         navigate("/dashboard");
@@ -104,9 +116,10 @@ export default function Pricing() {
 
       if (result.success && result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
-      } else {
-        setError("Failed to create checkout session. Please try again.");
+        return;
       }
+
+      setError("Failed to create checkout session. Please try again.");
     } catch (err) {
       console.error("Checkout error:", err);
       setError(
@@ -118,9 +131,10 @@ export default function Pricing() {
     }
   };
 
+  const displayError = error || subscriptionError;
+
   return (
     <div className="min-h-screen bg-slate-900 font-['Inter'] selection:bg-green-200 selection:text-green-900">
-      {/* Navigation */}
       <nav className="bg-slate-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -136,23 +150,35 @@ export default function Pricing() {
               </span>
             </div>
 
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-gray-400 hover:text-white font-medium transition-colors group"
-            >
-              <ArrowLeft
-                size={18}
-                className="group-hover:-translate-x-1 transition-transform"
-              />
-              Go Back
-            </button>
+            <div className="flex items-center gap-3">
+              {isLoggedIn && (
+                <button
+                  onClick={refreshUserAndSubscription}
+                  disabled={subscriptionLoading}
+                  className="hidden sm:inline-flex items-center gap-2 text-gray-400 hover:text-white font-medium transition-colors disabled:opacity-60"
+                >
+                  {subscriptionLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : null}
+                  Refresh plan
+                </button>
+              )}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-gray-400 hover:text-white font-medium transition-colors group"
+              >
+                <ArrowLeft
+                  size={18}
+                  className="group-hover:-translate-x-1 transition-transform"
+                />
+                Go Back
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Glow effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/15 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
@@ -174,29 +200,33 @@ export default function Pricing() {
             </p>
           </div>
 
-          {/* Error message */}
-          {error && (
+          {displayError && (
             <div className="max-w-md mx-auto mb-8 bg-red-900/40 border border-red-700 rounded-xl px-5 py-3 text-red-300 text-sm text-center">
-              {error}
+              {displayError}
             </div>
           )}
 
-          {/* Pricing cards */}
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {PLANS.map((plan) => {
               const PlanIcon = plan.icon;
               const isLoading = loadingPlan === plan.key;
+              const isCurrentPlan = isLoggedIn && currentPlanKey === plan.key;
+              const buttonStyle = isCurrentPlan
+                ? "bg-gray-700 text-gray-300 cursor-default"
+                : plan.buttonStyle;
 
               return (
                 <div
                   key={plan.key}
                   className={`relative bg-gray-800/80 backdrop-blur-md rounded-3xl p-8 border transition-all duration-300 hover:shadow-2xl ${
-                    plan.popular
-                      ? `${plan.cardBorder} shadow-2xl shadow-green-900/30 transform md:-translate-y-4`
-                      : `${plan.cardBorder} hover:border-gray-600`
+                    isCurrentPlan
+                      ? "border-green-400 shadow-xl shadow-green-900/20"
+                      : plan.popular
+                        ? `${plan.cardBorder} shadow-2xl shadow-green-900/30 transform md:-translate-y-4`
+                        : `${plan.cardBorder} hover:border-gray-600`
                   }`}
                 >
-                  {plan.popular && (
+                  {plan.popular && !isCurrentPlan && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
                       <span className="bg-green-500 text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
                         Most Popular
@@ -204,7 +234,14 @@ export default function Pricing() {
                     </div>
                   )}
 
-                  {/* Plan icon */}
+                  {isCurrentPlan && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <span className="bg-white text-gray-900 text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                        Current Plan
+                      </span>
+                    </div>
+                  )}
+
                   <div
                     className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg`}
                   >
@@ -233,8 +270,8 @@ export default function Pricing() {
                   </div>
 
                   <ul className="space-y-4 mb-10">
-                    {plan.features.map((feature, j) => (
-                      <li key={j} className="flex items-start text-gray-300">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start text-gray-300">
                         <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
@@ -243,20 +280,23 @@ export default function Pricing() {
 
                   <button
                     onClick={() => handleSelectPlan(plan.key)}
-                    disabled={isLoading}
-                    className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${plan.buttonStyle}`}
+                    disabled={isLoading || subscriptionLoading || isCurrentPlan}
+                    className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${buttonStyle}`}
                   >
-                    {isLoading ? (
+                    {subscriptionLoading && !loadingPlan ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Checking...
+                      </>
+                    ) : isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
                         Redirecting...
                       </>
+                    ) : isCurrentPlan ? (
+                      "Current Plan"
                     ) : plan.key === "basic" ? (
-                      isLoggedIn ? (
-                        "Current Plan"
-                      ) : (
-                        "Get Started"
-                      )
+                      isLoggedIn ? "Go to Dashboard" : "Get Started"
                     ) : (
                       `Upgrade to ${plan.name}`
                     )}
@@ -266,13 +306,10 @@ export default function Pricing() {
             })}
           </div>
 
-          {/* Trust badges */}
           <div className="mt-16 flex flex-wrap justify-center gap-8 text-gray-500">
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">
-                256-bit AES encryption
-              </span>
+              <span className="text-sm font-medium">256-bit AES encryption</span>
             </div>
             <div className="flex items-center gap-2">
               <HardDrive className="w-5 h-5 text-green-500" />
@@ -290,7 +327,6 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-500 text-sm">

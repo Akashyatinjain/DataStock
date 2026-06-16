@@ -1,7 +1,9 @@
 import { Cloud } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { getMimeType } from '../../../utils/filters';
 
 export default function SidebarStorage({ storageData, files }) {
+  const navigate = useNavigate();
   const imageCount = files.filter((f) => getMimeType(f).startsWith('image')).length;
   const totalFiles = files.length;
   const plan = storageData.plan || 'BASIC';
@@ -52,7 +54,10 @@ export default function SidebarStorage({ storageData, files }) {
             {isBasic ? 'Upgrade to Pro for 2 TB storage' : `${storageData.totalLabel || `${storageData.total} GB`} storage active`}
           </p>
           {isBasic && (
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 text-sm font-medium transition">
+            <button
+              onClick={() => navigate('/pricing')}
+              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 text-sm font-medium transition"
+            >
               Upgrade Now
             </button>
           )}

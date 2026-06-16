@@ -23,12 +23,18 @@ import {
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { createCheckoutSession } from "../api/payment.api";
+import useSubscription from "../hooks/useSubscription";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(null);
+  const [checkoutError, setCheckoutError] = useState("");
+
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
+  const { currentPlanKey } = useSubscription({ enabled: isLoggedIn });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,27 +53,37 @@ const HomePage = () => {
   };
 
   const handlePlanSelect = async (planKey) => {
-    if (planKey === 'Basic') {
-      navigate('/signup');
+    const normalizedKey = planKey.toLowerCase();
+
+    if (normalizedKey === 'basic') {
+      navigate(isLoggedIn ? '/dashboard' : '/signup');
       return;
     }
 
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!isLoggedIn) {
       navigate('/login');
       return;
     }
 
-    const plan = planKey.toLowerCase(); // 'pro' or 'family'
+    if (currentPlanKey === normalizedKey) {
+      navigate('/dashboard');
+      return;
+    }
+
     try {
+      setCheckoutError("");
       setLoadingPlan(planKey);
-      const result = await createCheckoutSession(plan);
+      const result = await createCheckoutSession(normalizedKey);
       if (result.success && result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
+        return;
       }
+      setCheckoutError("Failed to start checkout. Please try again.");
     } catch (err) {
       console.error('Checkout error:', err);
-      alert('Failed to start checkout. Please try again.');
+      setCheckoutError(
+        err.response?.data?.message || 'Failed to start checkout. Please try again.'
+      );
     } finally {
       setLoadingPlan(null);
     }
@@ -397,6 +413,9 @@ const HomePage = () => {
             <p className="text-xl text-gray-400">
               Start for free, upgrade when you need more space.
             </p>
+            {checkoutError && (
+              <p className="mt-4 text-sm text-red-300">{checkoutError}</p>
+            )}
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -426,12 +445,29 @@ const HomePage = () => {
                 description: 'Share with up to 6 members.',
                 features: ['Everything in Pro', 'Private accounts for 6 users', 'Family room folder', 'Centralized billing']
               }
-            ].map((plan, i) => (
-              <div key={i} className={`relative bg-gray-800 rounded-3xl p-8 border ${plan.popular ? 'border-green-500 shadow-2xl shadow-green-900/50 transform md:-translate-y-4' : 'border-gray-700'}`}>
-                {plan.popular && (
+            ].map((plan, i) => {
+              const planKey = plan.name.toLowerCase();
+              const isCurrentPlan = isLoggedIn && currentPlanKey === planKey;
+
+              return (
+              <div key={i} className={`relative bg-gray-800 rounded-3xl p-8 border ${
+                isCurrentPlan
+                  ? 'border-green-400 shadow-xl shadow-green-900/20'
+                  : plan.popular
+                    ? 'border-green-500 shadow-2xl shadow-green-900/50 transform md:-translate-y-4'
+                    : 'border-gray-700'
+              }`}>
+                {plan.popular && !isCurrentPlan && (
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
                     <span className="bg-green-500 text-white text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
                       Most Popular
+                    </span>
+                  </div>
+                )}
+                {isCurrentPlan && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <span className="bg-white text-gray-900 text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                      Current Plan
                     </span>
                   </div>
                 )}
@@ -460,18 +496,27 @@ const HomePage = () => {
                 
                 <button 
                   onClick={() => handlePlanSelect(plan.name)}
-                  disabled={loadingPlan === plan.name}
+                  disabled={loadingPlan === plan.name || isCurrentPlan}
                   className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
-                  plan.popular 
-                    ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' 
-                    : 'bg-white text-gray-900 hover:bg-gray-100'
+                  isCurrentPlan
+                    ? 'bg-gray-700 text-gray-300 cursor-default'
+                    : plan.popular 
+                      ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' 
+                      : 'bg-white text-gray-900 hover:bg-gray-100'
                 }`}>
                   {loadingPlan === plan.name ? (
                     <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Redirecting...</>
-                  ) : plan.name === 'Basic' ? 'Get Started' : 'Upgrade to ' + plan.name}
+                  ) : isCurrentPlan ? (
+                    'Current Plan'
+                  ) : plan.name === 'Basic' ? (
+                    isLoggedIn ? 'Go to Dashboard' : 'Get Started'
+                  ) : (
+                    'Upgrade to ' + plan.name
+                  )}
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

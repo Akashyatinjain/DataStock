@@ -33,6 +33,7 @@ import ShareModal from '../components/dashboard/modals/ShareModal';
 import { getFiles, getAllFiles, uploadFile, deleteFile, toggleStarFile } from '../api/file.api';
 import { getFolders } from '../api/folder.api';
 import { getProfile } from '../api/auth.api';
+import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
 import { getSharedWithMe } from '../api/share.api';
 import {
@@ -429,6 +430,33 @@ const Dashboard = () => {
     };
     init();
   }, [addToast]);
+
+  const reloadProfile = useCallback(async () => {
+    try {
+      const profileRes = await getProfile();
+      setUser(profileRes.data?.user || profileRes.user);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleSubscriptionUpdated = () => {
+      reloadProfile();
+    };
+
+    const handleFocus = () => {
+      reloadProfile();
+    };
+
+    window.addEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [reloadProfile]);
 
   useEffect(() => {
     if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {

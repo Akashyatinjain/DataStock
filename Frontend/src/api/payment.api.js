@@ -18,3 +18,12 @@ export const getSubscriptionStatus = async () => {
   const response = await API.get("/payment/subscription");
   return response.data;
 };
+
+/**
+ * Activate subscription immediately after Dodo redirect.
+ * Uses subscription_id / payment_id + status from the return URL.
+ */
+export const syncPaymentReturn = async (payload) => {
+  const response = await API.post("/payment/sync", payload);
+  return response.data;
+};

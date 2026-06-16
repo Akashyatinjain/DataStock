@@ -14,6 +14,11 @@ import notificationRoutes from "./modules/notifications/notification.routes.js";
 import shareRoutes from "./modules/share/share.routes.js";
 import paymentRoutes from "./modules/payment/Payment.Route.js";
 
+// Fix for Prisma BigInt serialization
+BigInt.prototype.toJSON = function () {
+  return Number(this);
+};
+
 
 const app = express();
 const limiter = rateLimit({

@@ -12,7 +12,7 @@ import fileRoutes from "./modules/files/file.routes.js";
 import folderRoutes from "./modules/folders/folder.routes.js";
 import notificationRoutes from "./modules/notifications/notification.routes.js";
 import shareRoutes from "./modules/share/share.routes.js";
-import paymentRoutes from "./routes/payment.routes.js";
+import paymentRoutes from "./modules/payment/Payment.Route.js";
 
 
 const app = express();

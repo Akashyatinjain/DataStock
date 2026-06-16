@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import {
   bootstrapAuthSession,
   clearStoredAuth,
+  consumeAuthHash,
+  getStoredUser,
   getToken,
   isAuthenticated,
-  persistAuth,
   setupAutoLogout,
 } from "../utils/auth";
 
@@ -17,11 +18,30 @@ const ProtectedRoute = ({ children }) => {
     let cancelled = false;
 
     const verifyAccess = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const authProvider = params.get("auth");
+      // OAuth tokens arrive in the hash — read before touching the URL.
+      const hashSession = consumeAuthHash();
+      if (hashSession?.token) {
+        setupAutoLogout(hashSession.token);
+        if (!getStoredUser()) {
+          await bootstrapAuthSession();
+        }
+        if (window.location.search) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        if (!cancelled) {
+          setAllowed(true);
+          setChecking(false);
+        }
+        return;
+      }
 
-      if (authProvider) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("auth")) {
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
       }
 
       if (isAuthenticated()) {

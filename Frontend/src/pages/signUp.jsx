@@ -104,7 +104,11 @@ const handleSubmit = async (e) => {
     console.log(data);
 
     if (data.token) {
-      persistAuth({ token: data.token, user: data.user });
+      persistAuth({
+        token: data.token,
+        user: data.user,
+        refreshToken: data.refreshToken,
+      });
       setupAutoLogout(data.token);
     } else if (data.user) {
       persistAuth({ user: data.user });

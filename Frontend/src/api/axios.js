@@ -2,6 +2,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api.js";
 import {
   clearStoredAuth,
+  getRefreshToken,
   getToken,
   persistAuth,
   setupAutoLogout,
@@ -58,11 +59,13 @@ API.interceptors.response.use(
 
     try {
       if (!refreshPromise) {
-        refreshPromise = API.post("/auth/refresh")
+        refreshPromise = API.post("/auth/refresh", {
+          refreshToken: getRefreshToken(),
+        })
           .then((response) => {
-            const { token, user, success } = response.data || {};
+            const { token, user, success, refreshToken } = response.data || {};
             if (success && token) {
-              persistAuth({ token, user });
+              persistAuth({ token, user, refreshToken });
               setupAutoLogout(token);
             }
             return token;

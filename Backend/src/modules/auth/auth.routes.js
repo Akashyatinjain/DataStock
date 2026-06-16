@@ -58,8 +58,14 @@ router.get("/google/callback", (req, res, next) => {
 
     try {
       const user = await authService.googleLogin(googleUser);
-      await issueAuthSession(user, res);
-      return res.redirect(`${frontendUrl()}/dashboard?auth=google`);
+      const session = await issueAuthSession(user, res);
+      // Cross-origin SPAs cannot rely on third-party cookies (Vercel → Render).
+      // Pass tokens in the URL hash (never sent to the server) for the frontend to store.
+      const hash = new URLSearchParams({
+        at: session.token,
+        rt: session.refreshToken,
+      }).toString();
+      return res.redirect(`${frontendUrl()}/dashboard?auth=google#${hash}`);
     } catch (error) {
       console.error("Google login error:", error.message);
       const message = encodeURIComponent(error.message || "Google sign-in failed");

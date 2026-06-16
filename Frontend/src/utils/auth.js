@@ -3,6 +3,7 @@ import { API_BASE_URL } from "../config/api.js";
 
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
+const REFRESH_TOKEN_KEY = "refreshToken";
 
 export const apiUrl = (path = "") => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -10,6 +11,8 @@ export const apiUrl = (path = "") => {
 };
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
+
+export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 
 export const getStoredUser = () => {
   try {
@@ -20,18 +23,22 @@ export const getStoredUser = () => {
   }
 };
 
-export const persistAuth = ({ token, user }) => {
+export const persistAuth = ({ token, user, refreshToken }) => {
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
   }
   if (user) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
 };
 
 export const clearStoredAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 export const clearAuth = async () => {
@@ -63,6 +70,32 @@ export const isTokenExpired = (token) => {
 export const isAuthenticated = () => {
   const token = getToken();
   return Boolean(token && !isTokenExpired(token));
+};
+
+/**
+ * OAuth redirect lands with tokens in the URL hash (cross-origin cookies blocked).
+ * Must run before any history.replaceState that strips the hash.
+ */
+export const consumeAuthHash = () => {
+  const rawHash = window.location.hash;
+  if (!rawHash || rawHash.length < 2) {
+    return null;
+  }
+
+  const params = new URLSearchParams(rawHash.slice(1));
+  const token = params.get("at") || params.get("token");
+  const refreshToken = params.get("rt") || params.get("refreshToken");
+
+  if (!token || isTokenExpired(token)) {
+    return null;
+  }
+
+  persistAuth({ token, refreshToken });
+
+  const cleanUrl = window.location.pathname + window.location.search;
+  window.history.replaceState({}, document.title, cleanUrl);
+
+  return { token, refreshToken };
 };
 
 export const authFetch = (url, options = {}) => {
@@ -118,15 +151,14 @@ export const bootstrapAuthSession = async () => {
     }
 
     const data = await response.json();
-    const { token, user, success } = data || {};
+    const { token, user, success, refreshToken } = data || {};
 
     if (success && token && user) {
-      persistAuth({ token, user });
+      persistAuth({ token, user, refreshToken });
       setupAutoLogout(token);
       return { token, user };
     }
 
-    // Session endpoint could not restore; keep a still-valid local token.
     if (isAuthenticated()) {
       setupAutoLogout(getToken());
       return { token: getToken(), user: getStoredUser() };

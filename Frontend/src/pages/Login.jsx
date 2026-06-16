@@ -90,6 +90,7 @@ const handlePasswordLogin = async (e) => {
     persistAuth({
       token: res.data.token,
       user: res.data.user,
+      refreshToken: res.data.refreshToken,
     });
     setupAutoLogout(res.data.token, logout);
 

@@ -72,13 +72,14 @@ export const issueAuthSession = async (user, res) => {
   return {
     message: "Authenticated successfully",
     token: accessToken,
+    refreshToken,
     user: sanitizeUser(sessionUser),
     success: true,
   };
 };
 
 export const refreshAuthSession = async (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
+  const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
   if (!refreshToken) {
     clearAuthCookies(res);
     const error = new Error("Refresh token missing");

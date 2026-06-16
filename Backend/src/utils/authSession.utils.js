@@ -24,12 +24,14 @@ export const sanitizeUser = (user) => {
 };
 
 export const extractAuthToken = (req) => {
-  if (req.cookies?.token) {
-    return req.cookies.token;
-  }
-
+  // Prefer the Authorization header so SPA localStorage tokens win over
+  // stale httpOnly cookies left from an older session.
   if (req.headers.authorization?.startsWith("Bearer ")) {
     return req.headers.authorization.split(" ")[1];
+  }
+
+  if (req.cookies?.token) {
+    return req.cookies.token;
   }
 
   return null;

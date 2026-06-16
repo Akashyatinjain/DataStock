@@ -48,16 +48,22 @@ export const signInUserLocal = async ({ email, password }, res) => {
 
   const user = await findUserByEmail(normalizedEmail);
   if (!user) {
-    throw new Error("Invalid credentials");
+    const err = new Error("Invalid credentials");
+    err.statusCode = 401;
+    throw err;
   }
 
   if (user.authProvider !== "local") {
-    throw new Error("Use original login method");
+    const err = new Error("Use original login method");
+    err.statusCode = 401;
+    throw err;
   }
 
   const isMatch = await comparePassword(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid credentials");
+    const err = new Error("Invalid credentials");
+    err.statusCode = 401;
+    throw err;
   }
 
   const sessionUser = await authRepo.findUserSessionById(user.id);

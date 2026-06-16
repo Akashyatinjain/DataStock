@@ -56,7 +56,9 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!allowed) {
-    clearStoredAuth();
+    if (!isAuthenticated()) {
+      clearStoredAuth();
+    }
     return <Navigate to="/login" replace />;
   }
 

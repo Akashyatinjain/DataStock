@@ -24,6 +24,13 @@ API.interceptors.request.use((config) => {
 
 let refreshPromise = null;
 
+const PUBLIC_PATHS = ["/login", "/signup", "/", "/pricing", "/help"];
+
+const isPublicPath = (pathname) =>
+  PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -53,8 +60,8 @@ API.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = API.post("/auth/refresh")
           .then((response) => {
-            const { token, user } = response.data || {};
-            if (token) {
+            const { token, user, success } = response.data || {};
+            if (success && token) {
               persistAuth({ token, user });
               setupAutoLogout(token);
             }
@@ -75,7 +82,7 @@ API.interceptors.response.use(
     } catch (refreshError) {
       clearStoredAuth();
 
-      if (window.location.pathname !== "/login") {
+      if (!isPublicPath(window.location.pathname)) {
         window.location.href = "/login";
       }
 

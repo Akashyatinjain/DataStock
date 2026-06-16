@@ -1,9 +1,9 @@
-const isProduction = process.env.NODE_ENV === "production";
-
+// SameSite=None + Secure is required for cross-origin SPA auth (e.g. Vercel → Render).
+// Secure cookies are also accepted on http://localhost in modern browsers.
 const baseCookieOptions = {
   httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
+  secure: true,
+  sameSite: "none",
 };
 
 const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;

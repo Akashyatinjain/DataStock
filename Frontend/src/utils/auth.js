@@ -118,14 +118,28 @@ export const bootstrapAuthSession = async () => {
     }
 
     const data = await response.json();
-    const { token, user } = data || {};
+    const { token, user, success } = data || {};
 
-    if (token && user) {
+    if (success && token && user) {
       persistAuth({ token, user });
       setupAutoLogout(token);
       return { token, user };
     }
+
+    // Session endpoint could not restore; keep a still-valid local token.
+    if (isAuthenticated()) {
+      setupAutoLogout(getToken());
+      return { token: getToken(), user: getStoredUser() };
+    }
+
+    clearStoredAuth();
+    return null;
   } catch {
+    if (isAuthenticated()) {
+      setupAutoLogout(getToken());
+      return { token: getToken(), user: getStoredUser() };
+    }
+
     clearStoredAuth();
   }
 

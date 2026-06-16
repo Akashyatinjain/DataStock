@@ -139,9 +139,31 @@ export const handleWebhook = async (req, res) => {
       case "payment.succeeded": {
         const data = event.data;
         const metadata = data.metadata || {};
-        console.log(`[Dodo Webhook] Payment succeeded for user ${metadata.userId}`);
-        // Subscription activation is handled by subscription.active event
-        // This is just for logging/audit
+        const userId = metadata.userId;
+        const plan = metadata.plan;
+        
+        console.log(`[Dodo Webhook] Payment succeeded for user ${userId}, plan ${plan}`);
+        
+        if (userId && plan) {
+          let storageLimit;
+          if (plan === "PRO") {
+            storageLimit = BigInt(2 * 1024 * 1024 * 1024 * 1024); // 2TB
+          } else if (plan === "FAMILY") {
+            storageLimit = BigInt(5 * 1024 * 1024 * 1024 * 1024); // 5TB
+          } else {
+            storageLimit = BigInt(10 * 1024 * 1024 * 1024); // 10GB default
+          }
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              subscriptionPlan: plan,
+              dodoCustomerId: data.customer?.customer_id || null,
+              storageLimit: storageLimit,
+            },
+          });
+          console.log(`[Dodo Webhook] User ${userId} upgraded to ${plan} via payment.succeeded`);
+        }
         break;
       }
 

@@ -10,7 +10,8 @@ import {
   ChevronDown,
   HelpCircle,
   Menu,
-  X
+  X,
+  Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../../api/auth.api';

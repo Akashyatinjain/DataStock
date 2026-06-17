@@ -167,6 +167,22 @@ const Header = ({
             </div>
 
             <div className="flex items-center space-x-1 sm:space-x-2">
+              <button 
+            onClick={() => navigate('/pricing')}
+            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
+            <div className="p-2 bg-purple-100 rounded-xl">
+              <Star size={20} className="text-purple-600" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">
+                {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
+              </p>
+            </div>
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
+          </button>
               <button
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
                 className={`${iconBtnClass} md:hidden`}

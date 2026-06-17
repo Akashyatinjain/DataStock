@@ -90,8 +90,9 @@ const Header = ({
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Fixed nav classes – now always dark glassmorphism
   const navClass =
-    'fixed top-0 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm z-50 border-b border-gray-200 dark:border-gray-800';
+    'fixed top-0 w-full bg-[#0f172a]/80 backdrop-blur-md z-50 border-b border-slate-800/60';
 
   if (isLoading) {
     return (
@@ -99,12 +100,12 @@ const Header = ({
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-              <div className="w-24 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse hidden sm:block" />
+              <div className="w-8 h-8 bg-slate-700 rounded-lg animate-pulse" />
+              <div className="w-24 h-4 bg-slate-700 rounded animate-pulse hidden sm:block" />
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-              <div className="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse hidden lg:block" />
+              <div className="w-8 h-8 bg-slate-700 rounded-full animate-pulse" />
+              <div className="w-20 h-3 bg-slate-700 rounded animate-pulse hidden lg:block" />
             </div>
           </div>
         </div>
@@ -113,7 +114,7 @@ const Header = ({
   }
 
   const iconBtnClass =
-    'p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-green-400 dark:hover:bg-gray-800 rounded-lg transition';
+    'p-2 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors duration-200';
 
   return (
     <>
@@ -129,6 +130,7 @@ const Header = ({
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
 
+            {/* Left section */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -138,27 +140,28 @@ const Header = ({
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <Cloud className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-gray-900 dark:text-white hidden sm:block">DataStock</span>
+                <span className="font-bold text-xl text-white hidden sm:block">DataStock</span>
               </div>
 
+              {/* Desktop search */}
               <div className="hidden md:flex items-center">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search files and folders..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-80 lg:w-96 pl-10 pr-8 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 border-0 rounded-lg focus:ring-2 focus:ring-green-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-80 lg:w-96 pl-10 pr-8 py-2 bg-slate-800/60 text-slate-100 placeholder-slate-400 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-slate-800/80 transition-all"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg leading-none"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-lg leading-none"
                       aria-label="Clear search"
                     >
                       ×
@@ -168,29 +171,25 @@ const Header = ({
               </div>
             </div>
 
+            {/* Right section */}
             <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Upgrade / Manage Plan button – enhanced styling */}
               <button 
-            onClick={() => navigate('/pricing')}
-            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Star size={20} className="text-purple-600" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-gray-800 group-hover:text-green-600 transition">
-                {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
-              </p>
-              <p className="text-xs text-gray-500">
-                {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
-              </p>
-            </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400" />
-          </button>
-              <button
-                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                className={`${iconBtnClass} md:hidden`}
-                aria-label="Toggle search"
+                onClick={() => navigate('/pricing')}
+                className="hidden sm:flex items-center gap-3 bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-200 group shadow-lg shadow-slate-900/30"
               >
-                <Search className="w-5 h-5" />
+                <div className="p-1.5 bg-emerald-500/20 rounded-lg group-hover:bg-emerald-500/30 transition">
+                  <Star size={16} className="text-emerald-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-white group-hover:text-emerald-400 transition">
+                    {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+                  </p>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'}`}
+                  </p>
+                </div>
+                <ArrowLeft size={14} className="ml-1 rotate-180 text-slate-400 group-hover:text-white transition" />
               </button>
 
               <ThemeToggle />
@@ -210,7 +209,7 @@ const Header = ({
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-[#0f172a]" />
                 )}
               </button>
 
@@ -222,13 +221,14 @@ const Header = ({
                 <Settings className="w-5 h-5" />
               </button>
 
+              {/* User menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                  className="flex items-center space-x-2 p-1.5 hover:bg-slate-800/60 rounded-lg transition-colors duration-200"
                   aria-label="User menu"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
                     {user?.imageUrl ? (
                       <img src={user.imageUrl} className="w-8 h-8 rounded-full object-cover" alt="Profile" />
                     ) : (
@@ -236,41 +236,41 @@ const Header = ({
                     )}
                   </div>
                   <div className="hidden lg:block text-left">
-                    <span className="block text-sm font-medium text-gray-900 dark:text-gray-100 leading-tight">{user?.username}</span>
-                    <span className="block text-xs text-gray-500 dark:text-gray-400 leading-tight">{user?.email}</span>
+                    <span className="block text-sm font-medium text-white leading-tight">{user?.username}</span>
+                    <span className="block text-xs text-slate-400 leading-tight">{user?.email}</span>
                   </div>
-                  <ChevronDown className="hidden sm:block w-4 h-4 text-gray-400" />
+                  <ChevronDown className="hidden sm:block w-4 h-4 text-slate-400" />
                 </button>
 
                 {showUserMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-slideDown">
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-64 bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-700/50 py-2 z-50 animate-slideDown">
+                      <div className="px-4 py-3 border-b border-slate-700/50">
+                        <p className="text-sm font-medium text-white">{user?.name}</p>
+                        <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                       </div>
                       <div className="py-1">
                         <button
                           onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                          className="flex items-center w-full px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 transition"
                         >
-                          <User className="w-4 h-4 mr-3 text-gray-400" />
+                          <User className="w-4 h-4 mr-3 text-slate-400" />
                           Your Profile
                         </button>
                         <button
                           onClick={() => { navigate('/settings'); setShowUserMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                          className="flex items-center w-full px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 transition"
                         >
-                          <Settings className="w-4 h-4 mr-3 text-gray-400" />
+                          <Settings className="w-4 h-4 mr-3 text-slate-400" />
                           Account Settings
                         </button>
                       </div>
-                      <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
+                      <div className="border-t border-slate-700/50 my-1" />
                       <div className="py-1">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition"
                         >
                           <LogOut className="w-4 h-4 mr-3" />
                           Sign Out
@@ -280,19 +280,29 @@ const Header = ({
                   </>
                 )}
               </div>
+
+              {/* Mobile search toggle */}
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className={`${iconBtnClass} md:hidden`}
+                aria-label="Toggle search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
+          {/* Mobile search bar */}
           {showMobileSearch && (
             <div className="py-2 pb-3 md:hidden animate-slideDown">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 border-0 rounded-lg focus:ring-2 focus:ring-green-500 focus:bg-white dark:focus:bg-gray-800"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-800/60 text-slate-100 placeholder-slate-400 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   autoFocus
                 />
               </div>

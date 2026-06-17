@@ -22,6 +22,7 @@ BigInt.prototype.toJSON = function () {
 
 
 const app = express();
+app.set("trust proxy", 1);
 const limiter = rateLimit({
     windowMs:60*1000,
     max:100

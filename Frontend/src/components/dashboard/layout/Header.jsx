@@ -11,7 +11,8 @@ import {
   HelpCircle,
   Menu,
   X,
-  Star
+  Star,
+  ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../../api/auth.api';

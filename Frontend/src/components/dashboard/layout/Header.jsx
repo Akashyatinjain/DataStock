@@ -174,7 +174,7 @@ const Header = ({
               </button>
 
               <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <div className="w-8 h-8 bg-gradient-to-br bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <Cloud className="w-5 h-5 text-white" />
                 </div>
                 <span className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'} hidden sm:block`}>

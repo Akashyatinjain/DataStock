@@ -1,19 +1,11 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-/* ─── Production: Nodemailer SMTP (Gmail) ─── */
-let transporter;
+/* ─── Production: Resend API (HTTP 443) ─── */
+let resend;
 if (!isDev) {
-  transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  resend = new Resend(process.env.RESEND_API_KEY);
 }
 
 export const sendOTPEmail = async (email, otp) => {
@@ -28,9 +20,9 @@ export const sendOTPEmail = async (email, otp) => {
     return;
   }
 
-  /* ── Production: send via Nodemailer ── */
-  await transporter.sendMail({
-    from: `"DataStock" <${process.env.EMAIL_USER}>`,
+  /* ── Production: send via Resend ── */
+  await resend.emails.send({
+    from: "onboarding@resend.dev",
     to: email,
     subject: "DataStock OTP Verification Code",
     html: `

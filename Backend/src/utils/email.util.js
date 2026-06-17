@@ -1,17 +1,23 @@
-import SibApiV3Sdk from "sib-api-v3-sdk";
+import nodemailer from "nodemailer";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-/* ─── Production: Brevo transactional email ─── */
-let emailApi;
+/* ─── Production: Nodemailer SMTP (Gmail) ─── */
+let transporter;
 if (!isDev) {
-  const client = SibApiV3Sdk.ApiClient.instance;
-  client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-  emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+  transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 }
 
 export const sendOTPEmail = async (email, otp) => {
-  /* ── Dev mode: just log to console, skip real email ── */
+  /* ── Dev mode: just log to console ── */
   if (isDev) {
     console.log("\n╔══════════════════════════════════════╗");
     console.log("║       📧  DEV MODE — OTP EMAIL       ║");
@@ -22,19 +28,18 @@ export const sendOTPEmail = async (email, otp) => {
     return;
   }
 
-  /* ── Production: send via Brevo ── */
-  await emailApi.sendTransacEmail({
-    sender: {
-      email: process.env.EMAIL_FROM,
-      name: "DataStock",
-    },
-    to: [{ email }],
-    subject: "DataStock OTP Verification",
-    htmlContent: `
-      <h2>Verify Your Account</h2>
-      <p>Your OTP is:</p>
-      <h1>${otp}</h1>
-      <p>This OTP is valid for 10 minutes.</p>
+  /* ── Production: send via Nodemailer ── */
+  await transporter.sendMail({
+    from: `"DataStock" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "DataStock OTP Verification Code",
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333;">
+        <h2>Verify Your Account</h2>
+        <p>Your OTP is:</p>
+        <h1 style="font-size: 32px; color: #4F46E5; letter-spacing: 2px;">${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+      </div>
     `,
   });
 };

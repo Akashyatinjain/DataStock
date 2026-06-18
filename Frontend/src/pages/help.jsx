@@ -382,7 +382,7 @@ const HelpPage = () => {
  const handleContactSubmit = async (formData) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/contact`,
+      `${import.meta.env.VITE_API_URL}/contact`,
       {
         method: "POST",
         headers: {

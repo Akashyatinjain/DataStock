@@ -261,7 +261,7 @@ const ContactModal = ({ onClose, onSubmit }) => {
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 800));
-    onSubmit(form);
+    await onSubmit(form);
     setSubmitting(false);
     onClose();
   };
@@ -379,9 +379,33 @@ const HelpPage = () => {
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=DataStock%20Support%20Request`;
   };
 
-  const handleContactSubmit = () => {
-    showToast('Message sent! Our team will get back to you soon.');
-  };
+ const handleContactSubmit = async (formData) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/contact`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      showToast(
+        "Message sent! Our team will get back to you soon."
+      );
+    } else {
+      showToast("Failed to send message");
+    }
+  } catch (error) {
+    console.error(error);
+    showToast("Something went wrong");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">

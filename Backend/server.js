@@ -7,7 +7,6 @@ import { Server } from "socket.io";
 import cookie from "cookie";
 import { verifyAccessToken } from "./src/utils/token.utils.js";
 import { validateAccessPayload } from "./src/utils/authSession.utils.js";
-
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);

@@ -122,8 +122,8 @@ const Header = ({
     : 'w-80 lg:w-96 pl-10 pr-8 py-2 bg-gray-100 text-gray-800 placeholder-gray-500 border border-transparent rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:border-gray-300 transition-all';
 
   const upgradeBtnClass = isDark
-    ? 'h-10 items-center gap-2.5 rounded-lg border border-slate-700/60 bg-slate-800/50 px-3 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800'
-    : 'h-10 items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50/80 px-3 text-left transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/70';
+    ? 'h-10 items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/50 px-2.5 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800 lg:gap-2.5 lg:px-3'
+    : 'h-10 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 text-left transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/70 lg:gap-2.5 lg:px-3';
 
   const upgradeIconClass = isDark
     ? 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-400 transition-colors duration-200 group-hover:bg-emerald-500/25 group-hover:text-emerald-300'
@@ -186,7 +186,7 @@ const Header = ({
               </button>
 
               <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-                <div className="w-8 h-8 bg-gradient-to-br bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <div className="w-8 h-8 bg-linear-to-br bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <Cloud className="w-5 h-5 text-white" />
                 </div>
                 <span className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'} hidden sm:block`}>
@@ -223,16 +223,21 @@ const Header = ({
               {/* Upgrade / Manage Plan button */}
               <button 
                 onClick={() => navigate('/pricing')}
-                className={`${upgradeBtnClass} group hidden sm:flex`}
+                className={`${upgradeBtnClass} group hidden md:flex max-w-44 lg:max-w-none`}
               >
                 <div className={upgradeIconClass}>
                   <Star size={15} />
                 </div>
-                <div className="text-left">
-                  <p className={upgradeTitleClass}>
-                    {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+                <div className="min-w-0 text-left">
+                  <p className={`${upgradeTitleClass} truncate`}>
+                    <span className="lg:hidden">
+                      {user?.subscriptionPlan === 'BASIC' ? 'Upgrade' : 'Plan'}
+                    </span>
+                    <span className="hidden lg:inline">
+                      {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+                    </span>
                   </p>
-                  <p className={upgradeMetaClass}>
+                  <p className={`${upgradeMetaClass} hidden lg:block`}>
                     {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'}`}
                   </p>
                 </div>
@@ -275,7 +280,7 @@ const Header = ({
                   className={`flex items-center space-x-2 p-1.5 ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-gray-100'} rounded-lg transition-colors duration-200`}
                   aria-label="User menu"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
+                  <div className="w-8 h-8 bg-linear-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
                     {user?.imageUrl ? (
                       <img src={user.imageUrl} className="w-8 h-8 rounded-full object-cover" alt="Profile" />
                     ) : (

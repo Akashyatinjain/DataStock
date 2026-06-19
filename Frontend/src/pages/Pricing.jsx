@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { createCheckoutSession } from "../api/payment.api";
 import useSubscription from "../hooks/useSubscription";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const PLANS = [
   {
@@ -148,32 +149,33 @@ export default function Pricing() {
   ) : "0 GB";
 
   return (
-    <div className="min-h-screen bg-[#0b1120] font-['Inter'] selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] font-['Inter'] selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden transition-colors duration-200">
       {/* Subtle background pattern */}
       <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMjMzNDQiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-20 pointer-events-none" />
 
       {/* NAVBAR */}
-      <nav className="relative z-20 bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800/60">
+      <nav className="relative z-20 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div
               className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => navigate("/")}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-emerald-500/20">
+              <div className="w-10 h-10 bg-linear-to-br from-emerald-400 to-cyan-400 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-emerald-500/20">
                 <Cloud className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-white">
+              <span className="font-bold text-2xl tracking-tight text-slate-900 dark:text-white">
                 DataStock
               </span>
             </div>
 
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               {isLoggedIn && (
                 <button
                   onClick={refreshUserAndSubscription}
                   disabled={subscriptionLoading}
-                  className="hidden sm:inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white font-medium transition-colors disabled:opacity-60"
+                  className="hidden sm:inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-white font-medium transition-colors disabled:opacity-60"
                 >
                   {subscriptionLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -185,7 +187,7 @@ export default function Pricing() {
               )}
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white font-medium transition-colors group"
+                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-white font-medium transition-colors group"
               >
                 <ArrowLeft
                   size={18}
@@ -200,24 +202,24 @@ export default function Pricing() {
 
       {/* MAIN CONTENT */}
       <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-300 h-150 bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center space-x-2 bg-slate-800/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700 shadow-lg mb-6">
-              <Shield className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-400">
+            <div className="inline-flex items-center space-x-2 bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-lg mb-6">
+              <Shield className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 30-day money back guarantee
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
               Simple pricing.{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-400">
                 No surprises.
               </span>
             </h1>
-            <p className="text-xl text-slate-400">
+            <p className="text-xl text-slate-600 dark:text-slate-400">
               Start for free, upgrade when you need more space.
             </p>
           </div>
@@ -231,23 +233,23 @@ export default function Pricing() {
 
           {/* Storage usage widget (if logged in) */}
           {isLoggedIn && currentPlan && (
-            <div className="max-w-3xl mx-auto mb-12 bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 shadow-xl">
+            <div className="max-w-3xl mx-auto mb-12 bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 shadow-xl">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-500/10 rounded-lg">
                     <Database className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Your storage</p>
-                    <p className="font-medium text-white">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Your storage</p>
+                    <p className="font-medium text-slate-900 dark:text-white">
                       {usedStorage} used of {currentPlan.storage}
                     </p>
                   </div>
                 </div>
-                <div className="flex-1 min-w-[200px]">
+                <div className="flex-1 min-w-50">
                   <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-700"
+                      className="h-full bg-linear-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-700"
                       style={{ width: `${Math.min(usagePercentage, 100)}%` }}
                     />
                   </div>
@@ -257,7 +259,7 @@ export default function Pricing() {
                     <span>100%</span>
                   </div>
                 </div>
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-slate-600 dark:text-slate-400">
                   Plan: <span className="text-emerald-400 font-medium">{currentPlan.name}</span>
                 </div>
               </div>
@@ -277,18 +279,18 @@ export default function Pricing() {
               return (
                 <div
                   key={plan.key}
-                  className={`relative group bg-slate-800/60 backdrop-blur-sm rounded-3xl p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
+                  className={`relative group bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm rounded-3xl p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
                     isCurrentPlan
-                      ? "border-emerald-400/60 shadow-emerald-900/30 shadow-xl"
+                      ? "border-emerald-400/60 shadow-emerald-200/30 dark:shadow-emerald-900/30 shadow-xl"
                       : plan.popular
-                      ? `${plan.cardBorder} shadow-lg shadow-emerald-900/20`
-                      : `${plan.cardBorder} hover:border-slate-600`
+                      ? `${plan.cardBorder} shadow-lg shadow-emerald-200/20 dark:shadow-emerald-900/20`
+                      : `${plan.cardBorder} hover:border-slate-300 dark:hover:border-slate-600`
                   }`}
                 >
                   {/* Badges */}
                   {plan.popular && !isCurrentPlan && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <span className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-emerald-500/30 flex items-center gap-1">
+                      <span className="bg-linear-to-r from-emerald-500 to-cyan-500 text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-emerald-500/30 flex items-center gap-1">
                         <Sparkles className="w-4 h-4" />
                         Most Popular
                       </span>
@@ -297,7 +299,7 @@ export default function Pricing() {
 
                   {isCurrentPlan && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <span className="bg-white text-slate-900 text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1">
+                      <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4" />
                         Current Plan
                       </span>
@@ -306,33 +308,33 @@ export default function Pricing() {
 
                   {/* Plan icon */}
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300`}
+                    className={`w-14 h-14 rounded-2xl bg-linear-to-br ${plan.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300`}
                   >
                     <PlanIcon className="w-7 h-7 text-white" />
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mb-1">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">{plan.description}</p>
 
                   <div className="flex items-end mb-6">
-                    <span className="text-5xl font-extrabold text-white tracking-tight">
+                    <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                       {plan.price}
                     </span>
-                    <span className="text-slate-400 ml-2 mb-1">{plan.period}</span>
+                    <span className="text-slate-600 dark:text-slate-400 ml-2 mb-1">{plan.period}</span>
                   </div>
 
-                  <div className="bg-slate-900/60 rounded-xl p-4 mb-8 border border-slate-700/50 flex items-center justify-between">
+                  <div className="bg-slate-100 dark:bg-slate-900/60 rounded-xl p-4 mb-8 border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
                     <span className="text-emerald-400 font-bold text-xl">
                       {plan.storage}
                     </span>
-                    <span className="text-slate-400 text-sm">secure storage</span>
+                    <span className="text-slate-600 dark:text-slate-400 text-sm">secure storage</span>
                   </div>
 
                   <ul className="space-y-4 mb-10">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start text-slate-300">
+                      <li key={feature} className="flex items-start text-slate-700 dark:text-slate-300">
                         <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>

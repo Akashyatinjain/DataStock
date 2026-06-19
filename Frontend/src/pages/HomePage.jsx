@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { createCheckoutSession } from "../api/payment.api";
 import useSubscription from "../hooks/useSubscription";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -90,29 +91,30 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-['Inter'] selection:bg-green-200 selection:text-green-900 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-['Inter'] selection:bg-green-200 selection:text-green-900 dark:selection:bg-emerald-400 dark:selection:text-slate-950 overflow-hidden transition-colors duration-200">
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm' : 'bg-transparent'}`}>
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg border-b border-gray-200 dark:border-slate-800 shadow-sm' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.scrollTo(0, 0)}>
-              <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md">
+              <div className="w-10 h-10 bg-black dark:bg-emerald-500 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md">
                 <Cloud className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-gray-900">DataStock</span>
+              <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">DataStock</span>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-green-600 font-medium transition-colors">Features</a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-green-600 font-medium transition-colors">How it works</a>
-              <a href="#pricing" className="text-gray-600 hover:text-green-600 font-medium transition-colors">Pricing</a>
+              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-green-600 font-medium transition-colors">Features</a>
+              <a href="#how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-green-600 font-medium transition-colors">How it works</a>
+              <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-green-600 font-medium transition-colors">Pricing</a>
               
               <div className="flex items-center space-x-4 ml-4">
+                <ThemeToggle />
                 <button
                   onClick={handleLogin}
-                  className="px-5 py-2.5 text-gray-700 font-semibold hover:text-green-600 transition-colors"
+                  className="px-5 py-2.5 text-gray-700 dark:text-gray-300 font-semibold hover:text-green-600 transition-colors"
                 >
                   Log in
                 </button>
@@ -128,23 +130,23 @@ const HomePage = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              {isMenuOpen ? <X className="w-6 h-6 text-gray-900" /> : <Menu className="w-6 h-6 text-gray-900" />}
+              {isMenuOpen ? <X className="w-6 h-6 text-gray-900 dark:text-white" /> : <Menu className="w-6 h-6 text-gray-900 dark:text-white" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`md:hidden absolute w-full bg-white border-b border-gray-100 shadow-lg transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+        <div className={`md:hidden absolute w-full bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800 shadow-lg transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
           <div className="px-4 py-6 space-y-4 flex flex-col">
-            <a href="#features" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Features</a>
-            <a href="#how-it-works" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>How it works</a>
-            <a href="#pricing" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Pricing</a>
-            <div className="h-px bg-gray-100 my-2"></div>
+            <a href="#features" className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Features</a>
+            <a href="#how-it-works" className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>How it works</a>
+            <a href="#pricing" className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Pricing</a>
+            <div className="h-px bg-gray-100 dark:bg-slate-800 my-2"></div>
             <button
               onClick={handleLogin}
-              className="w-full text-left px-4 py-3 text-gray-900 font-semibold hover:bg-gray-50 rounded-lg"
+              className="w-full text-left px-4 py-3 text-gray-900 dark:text-white font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg"
             >
               Log in
             </button>
@@ -178,7 +180,7 @@ const HomePage = () => {
             
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-8 leading-[1.1]">
               The intelligent home for your <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">digital life.</span>
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-green-600 to-emerald-400">digital life.</span>
             </h1>
             
             <p className="text-xl sm:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -203,7 +205,7 @@ const HomePage = () => {
 
           {/* Interactive UI Preview */}
           <div className="mt-20 relative max-w-5xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50 z-10 bottom-0 h-1/3 mt-auto"></div>
+            <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-50 z-10 bottom-0 h-1/3 mt-auto"></div>
             <div className="bg-white rounded-t-3xl border-t border-x border-gray-200 shadow-2xl overflow-hidden p-2 transform transition-transform hover:scale-[1.01] duration-500">
               <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col md:flex-row gap-6">
                 
@@ -303,7 +305,7 @@ const HomePage = () => {
                   { icon: Zap, title: 'Lightning Fast', desc: 'Experience incredibly fast upload and download speeds, powered by our global server network.' }
                 ].map((item, i) => (
                   <div key={i} className="flex space-x-4">
-                    <div className="flex-shrink-0 mt-1">
+                    <div className="shrink-0 mt-1">
                       <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
                         <item.icon className="w-5 h-5 text-green-600" />
                       </div>
@@ -323,7 +325,7 @@ const HomePage = () => {
               <img 
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000" 
                 alt="Person using cloud storage on laptop" 
-                className="rounded-3xl shadow-2xl relative z-10 object-cover h-[600px] w-full"
+                className="rounded-3xl shadow-2xl relative z-10 object-cover h-150 w-full"
               />
               
               {/* Floating card */}
@@ -403,7 +405,7 @@ const HomePage = () => {
       {/* Pricing */}
       <section id="pricing" className="py-24 bg-slate-900 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Glow effect */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-125 bg-green-500/20 rounded-full blur-[120px] pointer-events-none"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16">

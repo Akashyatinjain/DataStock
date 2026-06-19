@@ -16,6 +16,7 @@ import {
   plansMatch,
   refreshCachedUser,
 } from "../utils/subscription";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const PLAN_DETAILS = {
   PRO: {
@@ -158,14 +159,17 @@ export default function PaymentSuccess() {
   }, [planKey, returnParams]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative transition-colors duration-200">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-[120px] animate-pulse" />
         <div
           className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse"
           style={{ animationDelay: "1s" }}
         />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-green-400/5 rounded-full blur-[150px]" />
       </div>
 
       {[...Array(20)].map((_, i) => (
@@ -194,34 +198,34 @@ export default function PaymentSuccess() {
               style={{ animationDuration: "2s" }}
             />
             <div className="absolute w-20 h-20 bg-green-500/30 rounded-full animate-pulse" />
-            <div className="relative w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
+            <div className="relative w-16 h-16 bg-linear-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
               <CheckCircle2 className="w-8 h-8 text-white" />
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
             Payment Successful!
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
             Welcome to DataStock{" "}
-            <span className="text-white font-semibold">{plan.name}</span>
+            <span className="text-slate-900 dark:text-white font-semibold">{plan.name}</span>
           </p>
         </div>
 
         <div
-          className={`bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-700/50 p-8 shadow-2xl transition-all duration-700 delay-200 ${
+          className={`bg-white/90 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-gray-700/50 p-8 shadow-2xl transition-all duration-700 delay-200 ${
             showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-700/50">
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700/50">
             <div
-              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center shadow-lg`}
+              className={`w-14 h-14 rounded-2xl bg-linear-to-br ${plan.color} flex items-center justify-center shadow-lg`}
             >
               <PlanIcon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">{plan.name} Plan</h2>
-              <p className="text-green-400 font-semibold">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name} Plan</h2>
+              <p className="text-green-600 dark:text-green-400 font-semibold">
                 {plan.storage} of secure storage
               </p>
             </div>
@@ -236,10 +240,10 @@ export default function PaymentSuccess() {
                 }`}
                 style={{ transitionDelay: `${i * 100 + 600}ms` }}
               >
-                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-green-400" />
                 </div>
-                <span className="text-gray-300 font-medium">{feature}</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
               </div>
             ))}
           </div>
@@ -274,7 +278,7 @@ export default function PaymentSuccess() {
           <div className="space-y-3">
             <button
               onClick={() => navigate("/dashboard")}
-              className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg shadow-green-500/25 flex items-center justify-center gap-2 group active:scale-[0.98]"
+              className="w-full py-4 bg-linear-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg shadow-green-500/25 flex items-center justify-center gap-2 group active:scale-[0.98]"
             >
               Go to Dashboard
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -13,6 +13,7 @@ import {
   Chrome
 } from 'lucide-react';
 import { apiUrl, persistAuth, setupAutoLogout } from "../utils/auth";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -128,24 +129,27 @@ const handleSubmit = async (e) => {
 
 
   return (
-    <div className="min-h-screen bg-white font-['Inter']">
+    <div className="min-h-screen bg-white dark:bg-gray-950 font-['Inter'] transition-colors duration-200">
       {/* Simple Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+      <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-black dark:bg-green-600 rounded-lg flex items-center justify-center">
                 <Cloud className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-black">DataStock</span>
+              <span className="font-bold text-xl text-black dark:text-white">DataStock</span>
             </div>
-            <a 
-              href="/login" 
-              className="text-gray-600 hover:text-black transition flex items-center space-x-1"
-            >
-              <span>Already have an account?</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <a 
+                href="/login" 
+                className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition flex items-center space-x-1 text-sm"
+              >
+                <span className="hidden sm:inline">Already have an account?</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </nav>
@@ -158,12 +162,12 @@ const handleSubmit = async (e) => {
             {/* Left Side - Benefits */}
             <div className="hidden lg:block">
               <div className="sticky top-24">
-                <div className="inline-flex items-center bg-green-50 px-4 py-2 rounded-full mb-6">
+                <div className="inline-flex items-center bg-green-50 dark:bg-green-500/10 px-4 py-2 rounded-full mb-6">
                   <Cloud className="w-4 h-4 text-green-600 mr-2" />
                   <span className="text-sm font-medium text-green-600">Join 50,000+ users</span>
                 </div>
 
-                <h1 className="text-4xl font-bold text-black mb-6">
+                <h1 className="text-4xl font-bold text-black dark:text-white mb-6">
                   Start your free 
                   <br />
                   <span className="text-green-600">cloud storage</span>
@@ -171,7 +175,7 @@ const handleSubmit = async (e) => {
                   journey today
                 </h1>
 
-                <p className="text-lg text-gray-600 mb-8">
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
                   Get 10 GB free storage when you sign up. No credit card required.
                 </p>
 
@@ -185,29 +189,29 @@ const handleSubmit = async (e) => {
                     '24/7 customer support'
                   ].map((benefit, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                         <Check className="w-3 h-3 text-green-600" />
                       </div>
-                      <span className="text-gray-700">{benefit}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Testimonial */}
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
                   <div className="flex items-center space-x-1 mb-3">
                     {[1,2,3,4,5].map((star) => (
                       <Star key={star} className="w-4 h-4 fill-current text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-4">
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">
                     "DataStock has completely changed how I manage my files. So simple and secure!"
                   </p>
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                    <div className="w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
                     <div>
-                      <p className="font-medium text-black">Sarah Johnson</p>
-                      <p className="text-sm text-gray-600">Product Designer</p>
+                      <p className="font-medium text-black dark:text-white">Sarah Johnson</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Product Designer</p>
                     </div>
                   </div>
                 </div>
@@ -216,15 +220,15 @@ const handleSubmit = async (e) => {
 
             {/* Right Side - Signup Form */}
             <div className="lg:max-w-md lg:mx-auto w-full">
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xl">
-                <h2 className="text-2xl font-bold text-black mb-2">Create your account</h2>
-                <p className="text-gray-600 mb-6">Get started with your free 10 GB storage</p>
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-xl">
+                <h2 className="text-2xl font-bold text-black dark:text-white mb-2">Create your account</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Get started with your free 10 GB storage</p>
 
                 {/* Google Sign In Button */}
                 {/* Google Sign In Button */}
 <button
   onClick={handleGoogleLogin}
-  className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-xl py-3 px-4 mb-6 hover:border-green-600 hover:text-green-600 transition font-medium"
+  className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 rounded-xl py-3 px-4 mb-6 hover:border-green-600 hover:text-green-600 dark:text-gray-200 transition font-medium"
 >
   {/* Google Icon */}
   <svg width="18" height="18" viewBox="0 0 48 48">
@@ -239,17 +243,17 @@ const handleSubmit = async (e) => {
 
                 <div className="relative mb-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
+                    <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500">or sign up with email</span>
+                    <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">or sign up with email</span>
                   </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Full Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Full Name
                     </label>
                     <div className="relative">
@@ -259,7 +263,7 @@ const handleSubmit = async (e) => {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                        className={`w-full pl-10 pr-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
                         placeholder="John Doe"
                       />
                     </div>
@@ -270,7 +274,7 @@ const handleSubmit = async (e) => {
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Email Address
                     </label>
                     <div className="relative">
@@ -280,7 +284,7 @@ const handleSubmit = async (e) => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                        className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
                         placeholder="you@example.com"
                       />
                     </div>
@@ -291,7 +295,7 @@ const handleSubmit = async (e) => {
 
                   {/* Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Password
                     </label>
                     <div className="relative">
@@ -301,7 +305,7 @@ const handleSubmit = async (e) => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-12 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                        className={`w-full pl-10 pr-12 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
                         placeholder="••••••••"
                       />
                       <button
@@ -310,23 +314,23 @@ const handleSubmit = async (e) => {
                         className="absolute right-3 top-1/2 transform -translate-y-1/2"
                       >
                         {showPassword ? (
-                          <EyeOff className="w-5 h-5 text-gray-400" />
+                          <EyeOff className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         ) : (
-                          <Eye className="w-5 h-5 text-gray-400" />
+                          <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         )}
                       </button>
                     </div>
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-500">{errors.password}</p>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Must be at least 8 characters
                     </p>
                   </div>
 
                   {/* Confirm Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -336,7 +340,7 @@ const handleSubmit = async (e) => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-12 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-xl focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                        className={`w-full pl-10 pr-12 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
                         placeholder="••••••••"
                       />
                       <button
@@ -345,9 +349,9 @@ const handleSubmit = async (e) => {
                         className="absolute right-3 top-1/2 transform -translate-y-1/2"
                       >
                         {showConfirmPassword ? (
-                          <EyeOff className="w-5 h-5 text-gray-400" />
+                          <EyeOff className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         ) : (
-                          <Eye className="w-5 h-5 text-gray-400" />
+                          <Eye className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         )}
                       </button>
                     </div>
@@ -363,9 +367,9 @@ const handleSubmit = async (e) => {
                       name="agreeTerms"
                       checked={formData.agreeTerms}
                       onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-600"
+                      className="mt-1 w-4 h-4 text-green-600 border-gray-300 dark:border-gray-700 rounded focus:ring-green-600"
                     />
-                    <label className="ml-2 text-sm text-gray-600">
+                    <label className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                       I agree to the{' '}
                       <a href="#" className="text-green-600 hover:underline">Terms of Service</a>
                       {' '}and{' '}
@@ -379,7 +383,7 @@ const handleSubmit = async (e) => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-black text-white py-3 rounded-xl hover:bg-green-600 transition flex items-center justify-center space-x-2 font-medium"
+                    className="w-full bg-black dark:bg-green-600 text-white py-3 rounded-xl hover:bg-green-600 dark:hover:bg-green-500 transition flex items-center justify-center space-x-2 font-medium"
                   >
                     <span>Create account</span>
                     <ArrowRight className="w-4 h-4" />
@@ -387,7 +391,7 @@ const handleSubmit = async (e) => {
                 </form>
 
                 {/* Free Storage Note */}
-                <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
+                <div className="mt-6 p-4 bg-green-50 dark:bg-green-500/10 rounded-xl border border-green-100 dark:border-green-500/20">
                   <p className="text-sm text-green-800 text-center">
                     🎉 <span className="font-medium">10 GB free storage</span> on signup. 
                     No credit card needed!
@@ -395,7 +399,7 @@ const handleSubmit = async (e) => {
                 </div>
 
                 {/* Login Link for Mobile */}
-                <p className="mt-6 text-center text-sm text-gray-600 lg:hidden">
+                <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400 lg:hidden">
                   Already have an account?{' '}
                   <a href="/login" className="text-green-600 font-medium hover:underline">
                     Sign in

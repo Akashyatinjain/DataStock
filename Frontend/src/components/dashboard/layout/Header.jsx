@@ -122,8 +122,20 @@ const Header = ({
     : 'w-80 lg:w-96 pl-10 pr-8 py-2 bg-gray-100 text-gray-800 placeholder-gray-500 border border-transparent rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:border-gray-300 transition-all';
 
   const upgradeBtnClass = isDark
-    ? 'flex items-center gap-3 bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-200 group shadow-lg shadow-slate-900/30'
-    : 'flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-gray-200/60 hover:bg-gray-50/80 transition-all duration-200 group shadow-md shadow-gray-200/50';
+    ? 'h-10 items-center gap-2.5 rounded-lg border border-slate-700/60 bg-slate-800/50 px-3 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800'
+    : 'h-10 items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50/80 px-3 text-left transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/70';
+
+  const upgradeIconClass = isDark
+    ? 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-400 transition-colors duration-200 group-hover:bg-emerald-500/25 group-hover:text-emerald-300'
+    : 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 transition-colors duration-200 group-hover:bg-emerald-200 group-hover:text-emerald-700';
+
+  const upgradeTitleClass = isDark
+    ? 'text-sm font-semibold leading-none text-slate-100 transition-colors duration-200 group-hover:text-emerald-300'
+    : 'text-sm font-semibold leading-none text-gray-900 transition-colors duration-200 group-hover:text-emerald-700';
+
+  const upgradeMetaClass = isDark
+    ? 'mt-1 text-[10px] font-medium leading-none text-slate-400'
+    : 'mt-1 text-[10px] font-medium leading-none text-gray-500';
 
   const dropdownClass = isDark
     ? 'absolute right-0 mt-2 w-64 bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-700/50 py-2 z-50 animate-slideDown'
@@ -211,20 +223,20 @@ const Header = ({
               {/* Upgrade / Manage Plan button */}
               <button 
                 onClick={() => navigate('/pricing')}
-                className={`${upgradeBtnClass} hidden sm:flex`}
+                className={`${upgradeBtnClass} group hidden sm:flex`}
               >
-                <div className={`p-1.5 ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-100'} rounded-lg group-hover:${isDark ? 'bg-emerald-500/30' : 'bg-emerald-200'} transition`}>
-                  <Star size={16} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+                <div className={upgradeIconClass}>
+                  <Star size={15} />
                 </div>
                 <div className="text-left">
-                  <p className={`text-sm font-semibold ${isDark ? 'text-white group-hover:text-emerald-400' : 'text-gray-800 group-hover:text-emerald-600'} transition`}>
+                  <p className={upgradeTitleClass}>
                     {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
                   </p>
-                  <p className={`text-[10px] leading-tight ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <p className={upgradeMetaClass}>
                     {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'}`}
                   </p>
                 </div>
-                <ArrowLeft size={14} className={`ml-1 rotate-180 ${isDark ? 'text-slate-400 group-hover:text-white' : 'text-gray-400 group-hover:text-gray-700'} transition`} />
+                <ArrowLeft size={14} className={`ml-0.5 rotate-180 transition-colors duration-200 ${isDark ? 'text-slate-500 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-700'}`} />
               </button>
 
               <ThemeToggle />

@@ -312,7 +312,7 @@ export default function ProfilePage() {
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back to Dashboard</span>
             </button>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">My Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white dark:text-white">My Profile</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account settings and preferences</p>
           </div>
           <ThemeToggle />
@@ -389,7 +389,7 @@ export default function ProfilePage() {
             {/* ---------- Profile Info ---------- */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Profile Information</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">Profile Information</h2>
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                   Active
                 </span>
@@ -406,7 +406,7 @@ export default function ProfilePage() {
 
               {/* Username edit row */}
               <div className="mb-6">
-                <label className="text-sm text-gray-500 font-medium block mb-2">
+                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium block mb-2">
                   Username
                 </label>
                 <div className="flex gap-3">
@@ -419,7 +419,7 @@ export default function ProfilePage() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full h-12 rounded-xl border border-gray-200 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
+                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-slate-700 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white dark:bg-slate-800 dark:text-white"
                       placeholder="Enter username"
                     />
                   </div>
@@ -443,14 +443,14 @@ export default function ProfilePage() {
               {/* Info cards */}
               <div className="grid md:grid-cols-3 gap-5">
                 {/* Email */}
-                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition relative group/card">
+                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition relative group/card">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-blue-100 p-2 rounded-lg">
                       <Mail className="text-blue-600" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm break-all">
+                  <p className="font-semibold text-gray-800 dark:text-white text-sm break-all">
                     {user?.email}
                   </p>
                   <button
@@ -463,27 +463,27 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Storage */}
-                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-green-100 p-2 rounded-lg">
                       <HardDrive className="text-green-600" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Storage Used</p>
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">
+                  <p className="font-semibold text-gray-800 dark:text-white text-sm">
                     {formatStorage(user?.storageUsed)}
                   </p>
                 </div>
 
                 {/* Member Since */}
-                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-purple-100 p-2 rounded-lg">
                       <Calendar className="text-purple-600" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
                   </div>
-                  <p className="font-semibold text-gray-800 text-sm">
+                  <p className="font-semibold text-gray-800 dark:text-white text-sm">
                     {user?.createdAt
                       ? new Date(user.createdAt).toLocaleDateString("en-US", {
                           month: "long",
@@ -502,7 +502,7 @@ export default function ProfilePage() {
           {/* Storage Overview */}
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white dark:text-white flex items-center gap-2">
                 <BarChart3 size={20} className="text-green-600" />
                 Storage Overview
               </h3>
@@ -542,20 +542,20 @@ export default function ProfilePage() {
 
           {/* Quick Stats (requires optional backend route) */}
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-6 transition-colors duration-200">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2 mb-4">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white dark:text-white flex items-center gap-2 mb-4">
               <Folder size={20} className="text-green-600" />
               Quick Stats
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-slate-800 dark:bg-slate-800 rounded-xl p-4 text-center">
                 <FileText size={24} className="mx-auto text-blue-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.files}</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">{stats.files}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Files</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-slate-800 dark:bg-slate-800 rounded-xl p-4 text-center">
                 <Folder size={24} className="mx-auto text-yellow-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.folders}</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">{stats.folders}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Folders</p>
               </div>
             </div>
@@ -571,7 +571,7 @@ export default function ProfilePage() {
               <Star size={20} className="text-purple-600" />
             </div>
             <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 transition">
+              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">
                 {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -586,7 +586,7 @@ export default function ProfilePage() {
               <Gift size={20} className="text-pink-600" />
             </div>
             <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 transition">Refer a Friend</p>
+              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">Refer a Friend</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Earn extra storage</p>
             </div>
             <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500" />
@@ -600,7 +600,7 @@ export default function ProfilePage() {
               <Settings size={20} className="text-gray-700" />
             </div>
             <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 transition">Account Settings</p>
+              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">Account Settings</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Privacy, security & more</p>
             </div>
             <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500" />

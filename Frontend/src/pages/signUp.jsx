@@ -189,7 +189,7 @@ const handleSubmit = async (e) => {
                     '24/7 customer support'
                   ].map((benefit, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                      <div className="w-5 h-5 bg-green-100 dark:bg-green-950/50 rounded-full flex items-center justify-center shrink-0">
                         <Check className="w-3 h-3 text-green-600" />
                       </div>
                       <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
@@ -392,7 +392,7 @@ const handleSubmit = async (e) => {
 
                 {/* Free Storage Note */}
                 <div className="mt-6 p-4 bg-green-50 dark:bg-green-500/10 rounded-xl border border-green-100 dark:border-green-500/20">
-                  <p className="text-sm text-green-800 text-center">
+                  <p className="text-sm text-green-800 dark:text-green-300 text-center">
                     🎉 <span className="font-medium">10 GB free storage</span> on signup. 
                     No credit card needed!
                   </p>

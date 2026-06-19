@@ -226,7 +226,7 @@ export default function Pricing() {
 
           {/* Error message */}
           {displayError && (
-            <div className="max-w-md mx-auto mb-8 bg-red-900/30 backdrop-blur-sm border border-red-700/50 rounded-xl px-6 py-4 text-red-300 text-sm text-center shadow-lg">
+            <div className="max-w-md mx-auto mb-8 bg-red-50 dark:bg-red-900/30 backdrop-blur-sm border border-red-200 dark:border-red-700/50 rounded-xl px-6 py-4 text-red-700 dark:text-red-300 text-sm text-center shadow-lg">
               {displayError}
             </div>
           )}
@@ -247,7 +247,7 @@ export default function Pricing() {
                   </div>
                 </div>
                 <div className="flex-1 min-w-50">
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-linear-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-700"
                       style={{ width: `${Math.min(usagePercentage, 100)}%` }}
@@ -374,20 +374,20 @@ export default function Pricing() {
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-20 flex flex-wrap justify-center gap-8 text-slate-500">
-            <div className="flex items-center gap-2 bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/30">
+          <div className="mt-20 flex flex-wrap justify-center gap-8 text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
               <Shield className="w-5 h-5 text-emerald-400" />
               <span className="text-sm font-medium">256-bit AES encryption</span>
             </div>
-            <div className="flex items-center gap-2 bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/30">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
               <HardDrive className="w-5 h-5 text-emerald-400" />
               <span className="text-sm font-medium">99.9% uptime SLA</span>
             </div>
-            <div className="flex items-center gap-2 bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/30">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
               <Clock className="w-5 h-5 text-emerald-400" />
               <span className="text-sm font-medium">Cancel anytime</span>
             </div>
-            <div className="flex items-center gap-2 bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/30">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
               <Users className="w-5 h-5 text-emerald-400" />
               <span className="text-sm font-medium">24/7 support</span>
             </div>
@@ -396,9 +396,9 @@ export default function Pricing() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 bg-[#0f172a]/80 backdrop-blur-md border-t border-slate-800/60 py-8">
+      <footer className="relative z-10 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800/60 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             © {new Date().getFullYear()} DataStock Inc. All rights reserved.
           </p>
         </div>

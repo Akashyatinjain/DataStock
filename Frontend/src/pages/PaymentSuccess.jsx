@@ -251,10 +251,10 @@ export default function PaymentSuccess() {
           <div
             className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
               activationState === "active"
-                ? "border-green-500/30 bg-green-500/10 text-green-200"
+                ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-200"
                 : activationState === "pending"
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-100"
-                  : "border-sky-500/30 bg-sky-500/10 text-sky-100"
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-100"
+                  : "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-100"
             }`}
           >
             <div className="flex items-start gap-3">
@@ -285,7 +285,7 @@ export default function PaymentSuccess() {
             </button>
             <button
               onClick={() => navigate("/pricing")}
-              className="w-full py-3 bg-gray-700/50 text-gray-300 rounded-2xl font-semibold hover:bg-gray-700 transition-all duration-200 border border-gray-600/50"
+              className="w-full py-3 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-600/50"
             >
               View Pricing
             </button>
@@ -293,7 +293,7 @@ export default function PaymentSuccess() {
         </div>
 
         <p
-          className={`text-center text-sm text-gray-500 mt-6 transition-all duration-700 delay-500 ${
+          className={`text-center text-sm text-gray-500 dark:text-gray-400 mt-6 transition-all duration-700 delay-500 ${
             showContent ? "opacity-100" : "opacity-0"
           }`}
         >

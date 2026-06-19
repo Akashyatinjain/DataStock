@@ -235,14 +235,23 @@ const handleOtpVerification = async (e) => {
                   <Shield className="w-4 h-4 text-green-600 mr-2" />
                   <span className="text-sm font-medium text-green-600">Secure Login</span>
                 </div>
-                <h2 className="text-2xl font-bold text-black mb-2">
+                {/* <h2 className="text-2xl font-bold text-black  mb-2">
                   {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
                 </h2>
                 <p className="text-gray-600">
                   {step === 'otp-verification' 
                     ? `We've sent a 6-digit code to ${email}`
                     : 'Choose your preferred login method'}
-                </p>
+                </p> */}
+                <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
+  {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
+</h2>
+
+<p className="text-gray-600 dark:text-gray-400">
+  {step === 'otp-verification'
+    ? `We've sent a 6-digit code to ${email}`
+    : 'Choose your preferred login method'}
+</p>
               </div>
 
               {/* OTP Verification Step */}

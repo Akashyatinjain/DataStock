@@ -29,6 +29,7 @@ import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
+import FileView from '../components/FileView';
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {
@@ -173,7 +174,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
           <span className="text-[11px] text-gray-400">
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+<div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             <button
               onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
               disabled={isStarring}

@@ -29,7 +29,6 @@ import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
-import FileView from '../components/FileView';
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {

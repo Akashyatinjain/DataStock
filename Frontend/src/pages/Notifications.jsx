@@ -1,98 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Bell, ArrowLeft, CheckCircle2, Circle, Trash2, Filter } from 'lucide-react';
-import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
+import {
+  fetchNotifications,
+  readNotification,
+  readAllNotifications,
+  addNotification,
+} from '../store/slices/notificationsSlice';
+import { fetchProfile } from '../store/slices/authSlice';
 import { connectSocket, socket } from '../socket';
-import { authFetch, apiUrl } from '../utils/auth';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
 export default function Notifications() {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, unread, read
-  const [user, setUser] = useState(null);
+  const dispatch = useDispatch();
+  const notifications = useSelector((state) => state.notifications.notifications);
+  const loading = useSelector((state) => state.notifications.loading);
+  const user = useSelector((state) => state.auth.user);
+  const [filter, setFilter] = useState('all');
+  const [deletedIds, setDeletedIds] = useState([]);
 
   useEffect(() => {
-    fetchUser();
-    fetchNotifications();
-  }, []);
+    dispatch(fetchProfile());
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   useEffect(() => {
     if (user?.id) {
       connectSocket();
       socket.emit('join', user.id);
       const handleNewNotification = (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
+        dispatch(addNotification(notification));
       };
       socket.on('notification', handleNewNotification);
       return () => {
         socket.off('notification', handleNewNotification);
       };
     }
-  }, [user]);
+  }, [user, dispatch]);
 
-  const fetchUser = async () => {
-    try {
-      const response = await authFetch(apiUrl('/user/me'));
-      const data = await response.json();
-      setUser(data.user);
-    } catch (err) {
-      console.error('Error fetching user:', err);
-    }
+  const handleMarkAsRead = (notificationId) => {
+    dispatch(readNotification(notificationId));
   };
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const res = await getNotifications();
-      if (res.success) {
-        setNotifications(res.notifications || []);
-      }
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await markAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((notif) =>
-          notif.id === notificationId
-            ? { ...notif, isRead: true }
-            : notif
-        )
-      );
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-    }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch (err) {
-      console.error('Error marking all as read:', err);
-    }
+  const handleMarkAllAsRead = () => {
+    dispatch(readAllNotifications());
   };
 
   const handleDelete = (notificationId) => {
-    setNotifications((prev) =>
-      prev.filter((notif) => notif.id !== notificationId)
-    );
+    setDeletedIds((prev) => [...prev, notificationId]);
   };
 
-  const filteredNotifications = notifications.filter((notif) => {
-    if (filter === 'unread') return !notif.isRead;
-    if (filter === 'read') return notif.isRead;
+  const visibleNotifications = notifications.filter(
+    (notif) => !deletedIds.includes(notif.id)
+  );
+
+  const filteredNotifications = visibleNotifications.filter((notif) => {
+    const isRead = notif.isRead || notif.read;
+    if (filter === 'unread') return !isRead;
+    if (filter === 'read') return isRead;
     return true;
   });
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = visibleNotifications.filter((n) => !n.isRead && !n.read).length;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -116,7 +87,6 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-slate-900 transition-colors duration-200">
-      {/* Header */}
       <div className="fixed top-0 w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-sm z-40 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -155,9 +125,7 @@ export default function Notifications() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-        {/* Filters */}
         <div className="flex items-center space-x-2 mb-6">
           <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           <div className="flex space-x-2">
@@ -177,7 +145,6 @@ export default function Notifications() {
           </div>
         </div>
 
-        {/* Notifications List */}
         <div className="space-y-3">
           {loading ? (
             <div className="text-center py-12">
@@ -199,69 +166,70 @@ export default function Notifications() {
               </p>
             </div>
           ) : (
-            filteredNotifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`rounded-xl border transition-all hover:shadow-md ${
-                  !notif.isRead
-                    ? 'border-green-200 dark:border-green-900/60 bg-green-50/70 dark:bg-green-950/20'
-                    : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700'
-                }`}
-              >
-                <div className="p-4">
-                  <div className="flex items-start space-x-4">
-                    {/* Status Indicator */}
-                    <button
-                      onClick={() => handleMarkAsRead(notif.id)}
-                      className="mt-1 focus:outline-none transition"
-                      aria-label={notif.isRead ? 'Notification already read' : 'Mark notification as read'}
-                    >
-                      {notif.isRead ? (
-                        <CheckCircle2 className="w-5 h-5 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-green-600 dark:text-green-400 hover:text-gray-400 dark:hover:text-gray-500" />
-                      )}
-                    </button>
+            filteredNotifications.map((notif) => {
+              const isRead = notif.isRead || notif.read;
+              return (
+                <div
+                  key={notif.id}
+                  className={`rounded-xl border transition-all hover:shadow-md ${
+                    !isRead
+                      ? 'border-green-200 dark:border-green-900/60 bg-green-50/70 dark:bg-green-950/20'
+                      : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700'
+                  }`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start space-x-4">
+                      <button
+                        onClick={() => handleMarkAsRead(notif.id)}
+                        className="mt-1 focus:outline-none transition"
+                        aria-label={isRead ? 'Notification already read' : 'Mark notification as read'}
+                      >
+                        {isRead ? (
+                          <CheckCircle2 className="w-5 h-5 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-green-600 dark:text-green-400 hover:text-gray-400 dark:hover:text-gray-500" />
+                        )}
+                      </button>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {notif.title || 'Notification'}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                            {notif.message}
-                          </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              {notif.title || 'Notification'}
+                            </p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                              {notif.message}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(notif.id)}
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                            aria-label="Delete notification"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleDelete(notif.id)}
-                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
-                          aria-label="Delete notification"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
 
-                      <div className="flex items-center justify-between mt-3">
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
-                          {formatDate(notif.createdAt)}
-                        </p>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            !notif.isRead
-                              ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                          }`}
-                        >
-                          {notif.isRead ? 'Read' : 'Unread'}
-                        </span>
+                        <div className="flex items-center justify-between mt-3">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            {formatDate(notif.createdAt)}
+                          </p>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              !isRead
+                                ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            {isRead ? 'Read' : 'Unread'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

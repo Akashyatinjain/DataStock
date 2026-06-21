@@ -13,24 +13,29 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { login,sendOtp,verifyOtp } from "../api/auth.api";
 import { useNavigate } from "react-router-dom";
-
-import { apiUrl, clearAuth, persistAuth, setupAutoLogout } from "../utils/auth";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  loginUser,
+  sendLoginOtp,
+  verifyLoginOtp,
+  logoutUser,
+} from "../store/slices/authSlice";
+import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
-
-const logout = clearAuth;
-
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const authLoading = useSelector((state) => state.auth.authLoading);
+  const otpLoading = useSelector((state) => state.auth.otpLoading);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [step, setStep] = useState('login'); // 'login', 'otp-verification', 'success'
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = authLoading || otpLoading;
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
@@ -51,22 +56,11 @@ const LoginPage = () => {
 const handleOtpRequest = async (e) => {
   e.preventDefault();
 
-  try {
-
-    setIsLoading(true);
-
-    await sendOtp(email);
-
+  const result = await dispatch(sendLoginOtp(email));
+  if (sendLoginOtp.fulfilled.match(result)) {
     setStep("otp-verification");
-
-  } catch (err) {
-
-    setErrors({
-      email: err.response?.data?.message || "OTP failed"
-    });
-
-  } finally {
-    setIsLoading(false);
+  } else {
+    setErrors({ email: result.payload || "OTP failed" });
   }
 };
 
@@ -82,30 +76,16 @@ const handleOtpRequest = async (e) => {
 const handlePasswordLogin = async (e) => {
   e.preventDefault();
 
-  try {
-    setIsLoading(true);
-
-    const res = await login({ email, password });
-
-    persistAuth({
-      token: res.data.token,
-      user: res.data.user,
-      refreshToken: res.data.refreshToken,
-    });
-    setupAutoLogout(res.data.token, logout);
-
+  const result = await dispatch(loginUser({ email, password }));
+  if (loginUser.fulfilled.match(result)) {
+    const token = result.payload.token || getToken();
+    setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
+      window.location.href = "/login";
+    }));
     setStep("success");
-
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1500);
-
-  } catch (err) {
-    setErrors({
-      password: err.response?.data?.message || "Login failed"
-    });
-  } finally {
-    setIsLoading(false);
+    setTimeout(() => navigate("/dashboard"), 1500);
+  } else {
+    setErrors({ password: result.payload || "Login failed" });
   }
 };
 const handleOtpChange = (index, value) => {
@@ -125,34 +105,19 @@ const handleOtpVerification = async (e) => {
   e.preventDefault();
 
   const otpValue = otp.join("");
+  const result = await dispatch(verifyLoginOtp({ email, otp: otpValue }));
 
-  try {
-    setIsLoading(true);
-
-    const res = await verifyOtp(email, otpValue);
-
-    if (res.data.token) {
-      persistAuth({
-        token: res.data.token,
-        user: res.data.user,
-      });
-      setupAutoLogout(res.data.token, logout);
+  if (verifyLoginOtp.fulfilled.match(result)) {
+    const token = result.payload.token || getToken();
+    if (token) {
+      setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
+        window.location.href = "/login";
+      }));
     }
-
     setStep("success");
-
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1500);
-
-  } catch (err) {
-
-    setErrors({
-      otp: err.response?.data?.message || "Invalid OTP"
-    });
-
-  } finally {
-    setIsLoading(false);
+    setTimeout(() => navigate("/dashboard"), 1500);
+  } else {
+    setErrors({ otp: result.payload || "Invalid OTP" });
   }
 };
   // Handle OTP verification
@@ -165,16 +130,11 @@ const handleOtpVerification = async (e) => {
 
   // Resend OTP
   const handleResendOtp = async () => {
-    try {
-      setIsLoading(true);
-      await sendOtp(email);
+    const result = await dispatch(sendLoginOtp(email));
+    if (sendLoginOtp.fulfilled.match(result)) {
       setErrors({ otp: "A new OTP has been sent to your email." });
-    } catch (err) {
-      setErrors({
-        otp: err.response?.data?.message || "Failed to resend OTP",
-      });
-    } finally {
-      setIsLoading(false);
+    } else {
+      setErrors({ otp: result.payload || "Failed to resend OTP" });
     }
   };
 

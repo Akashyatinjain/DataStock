@@ -16,17 +16,16 @@ import {
   UserX,
   AlertCircle,
 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  shareFile,
-  getFileShares,
-  removeShare,
-  generatePublicLink,
-  revokePublicLink,
-} from '../../../api/share.api';
+  fetchFileShares,
+  shareFileWithUser,
+  removeFileShare,
+  createPublicLink,
+  deletePublicLink,
+  clearShareModalState,
+} from '../../../store/slices/shareSlice';
 
-/* ─────────────────────────────────────────────────────── */
-/*  Permission badge                                        */
-/* ─────────────────────────────────────────────────────── */
 const PermBadge = ({ permission }) => (
   <span
     className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
@@ -44,9 +43,6 @@ const PermBadge = ({ permission }) => (
   </span>
 );
 
-/* ─────────────────────────────────────────────────────── */
-/*  Avatar                                                  */
-/* ─────────────────────────────────────────────────────── */
 const Avatar = ({ user, size = 8 }) => (
   <div
     className={`w-${size} h-${size} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
@@ -61,120 +57,84 @@ const Avatar = ({ user, size = 8 }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────────────── */
-/*  Main ShareModal component                              */
-/* ─────────────────────────────────────────────────────── */
 const ShareModal = ({ file, isOpen, onClose, onToast }) => {
-  const [tab, setTab] = useState('people'); // 'people' | 'link'
+  const dispatch = useDispatch();
+  const {
+    fileShares: shares,
+    fileSharesLoading: sharesLoading,
+    sharing,
+    removingId,
+    publicLink,
+    linkLoading,
+    revoking,
+    error: shareError,
+  } = useSelector((state) => state.share);
 
-  // People tab state
+  const [tab, setTab] = useState('people');
   const [email, setEmail] = useState('');
   const [permission, setPermission] = useState('VIEW');
-  const [sharing, setSharing] = useState(false);
-  const [shares, setShares] = useState([]);
-  const [sharesLoading, setSharesLoading] = useState(false);
-  const [removingId, setRemovingId] = useState(null);
-  const [shareError, setShareError] = useState('');
-
-  // Link tab state
-  const [publicLink, setPublicLink] = useState('');
-  const [linkLoading, setLinkLoading] = useState(false);
-  const [revoking, setRevoking] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  /* ── Load current shares when modal opens ── */
-  const loadShares = useCallback(async () => {
-    if (!file?.id) return;
-    try {
-      setSharesLoading(true);
-      const res = await getFileShares(file.id);
-      setShares(res.shares || []);
-    } catch {
-      // silent
-    } finally {
-      setSharesLoading(false);
+  const loadShares = useCallback(() => {
+    if (file?.id) {
+      dispatch(fetchFileShares(file.id));
     }
-  }, [file?.id]);
+  }, [dispatch, file?.id]);
 
   useEffect(() => {
     if (isOpen && file?.id) {
       setTab('people');
       setEmail('');
       setPermission('VIEW');
-      setShareError('');
-      setPublicLink('');
+      dispatch(clearShareModalState());
       loadShares();
     }
-  }, [isOpen, file?.id, loadShares]);
+  }, [isOpen, file?.id, loadShares, dispatch]);
 
   if (!isOpen || !file) return null;
 
-  /* ── Share with user ── */
   const handleShare = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
-    try {
-      setSharing(true);
-      setShareError('');
-      const res = await shareFile(file.id, email.trim(), permission);
-      setShares((prev) => [...prev, res.share]);
+    const result = await dispatch(
+      shareFileWithUser({ fileId: file.id, email: email.trim(), permission })
+    );
+    if (shareFileWithUser.fulfilled.match(result)) {
       setEmail('');
       onToast?.(`Shared with ${email.trim()}`, 'success');
-    } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Failed to share';
-      setShareError(msg);
-    } finally {
-      setSharing(false);
     }
   };
 
-  /* ── Remove user access ── */
   const handleRemove = async (shareId, username) => {
-    try {
-      setRemovingId(shareId);
-      await removeShare(shareId);
-      setShares((prev) => prev.filter((s) => s.id !== shareId));
+    const result = await dispatch(removeFileShare(shareId));
+    if (removeFileShare.fulfilled.match(result)) {
       onToast?.(`Removed access for ${username}`, 'success');
-    } catch {
+    } else {
       onToast?.('Failed to remove access', 'error');
-    } finally {
-      setRemovingId(null);
     }
   };
 
-  /* ── Generate public link ── */
   const handleGenerateLink = async () => {
-    try {
-      setLinkLoading(true);
-      const res = await generatePublicLink(file.id);
-      setPublicLink(res.url || `${window.location.origin}/share/${res.token}`);
+    const result = await dispatch(createPublicLink(file.id));
+    if (createPublicLink.fulfilled.match(result)) {
       onToast?.('Public link generated!', 'success');
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Failed to generate link';
-      onToast?.(msg, 'error');
-    } finally {
-      setLinkLoading(false);
+    } else {
+      onToast?.(result.payload || 'Failed to generate link', 'error');
     }
   };
 
-  /* ── Revoke public link ── */
   const handleRevoke = async () => {
     if (!publicLink) return;
     const token = publicLink.split('/share/')[1];
     if (!token) return;
-    try {
-      setRevoking(true);
-      await revokePublicLink(token);
-      setPublicLink('');
+    const result = await dispatch(deletePublicLink(token));
+    if (deletePublicLink.fulfilled.match(result)) {
       onToast?.('Public link revoked', 'success');
-    } catch {
+    } else {
       onToast?.('Failed to revoke link', 'error');
-    } finally {
-      setRevoking(false);
     }
   };
 
-  /* ── Copy to clipboard ── */
   const handleCopy = () => {
     navigator.clipboard.writeText(publicLink).then(() => {
       setCopied(true);
@@ -187,13 +147,9 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
       <div className="relative bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-fade-in">
-
-        {/* ── Header ── */}
         <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
@@ -212,7 +168,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
           </button>
         </div>
 
-        {/* ── Tabs ── */}
         <div className="flex border-b border-gray-100 px-6">
           <button
             onClick={() => setTab('people')}
@@ -238,13 +193,9 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
           </button>
         </div>
 
-        {/* ── Tab Content ── */}
         <div className="p-6">
-
-          {/* ═══ PEOPLE TAB ═══ */}
           {tab === 'people' && (
             <div className="space-y-5">
-              {/* Share form */}
               <form onSubmit={handleShare}>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Share with someone
@@ -255,7 +206,7 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => { setEmail(e.target.value); setShareError(''); }}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter email address…"
                       className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
                       disabled={sharing}
@@ -284,7 +235,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
                   </button>
                 </div>
 
-                {/* Error message */}
                 {shareError && (
                   <div className="mt-2 flex items-center gap-2 text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2 border border-red-100">
                     <AlertCircle className="w-4 h-4 shrink-0" />
@@ -293,7 +243,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
                 )}
               </form>
 
-              {/* People with access */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   People with access
@@ -345,7 +294,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
             </div>
           )}
 
-          {/* ═══ LINK TAB ═══ */}
           {tab === 'link' && (
             <div className="space-y-5">
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">
@@ -372,7 +320,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    {/* Link input */}
                     <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-2">
                       <input
                         type="text"
@@ -396,7 +343,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
                       </button>
                     </div>
 
-                    {/* Revoke button */}
                     <button
                       onClick={handleRevoke}
                       disabled={revoking}
@@ -414,7 +360,6 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
               </div>
             </div>
           )}
-
         </div>
       </div>
 

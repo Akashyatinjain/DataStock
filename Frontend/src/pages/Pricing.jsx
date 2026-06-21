@@ -14,7 +14,8 @@ import {
   Database,
   Sparkles,
 } from "lucide-react";
-import { createCheckoutSession } from "../api/payment.api";
+import { useDispatch, useSelector } from "react-redux";
+import { startCheckout } from "../store/slices/paymentSlice";
 import useSubscription from "../hooks/useSubscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
@@ -83,7 +84,9 @@ const PLANS = [
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const [loadingPlan, setLoadingPlan] = useState(null);
+  const dispatch = useDispatch();
+  const checkoutLoading = useSelector((state) => state.payment.checkoutLoading);
+  const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
@@ -116,24 +119,18 @@ export default function Pricing() {
     }
 
     try {
-      setLoadingPlan(planKey);
       setError("");
-      const result = await createCheckoutSession(planKey);
+      const result = await dispatch(startCheckout(planKey));
 
-      if (result.success && result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+      if (startCheckout.fulfilled.match(result) && result.payload.success && result.payload.checkoutUrl) {
+        window.location.href = result.payload.checkoutUrl;
         return;
       }
 
-      setError("Failed to create checkout session. Please try again.");
+      setError(result.payload || "Failed to create checkout session. Please try again.");
     } catch (err) {
       console.error("Checkout error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoadingPlan(null);
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -270,7 +267,7 @@ export default function Pricing() {
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {PLANS.map((plan) => {
               const PlanIcon = plan.icon;
-              const isLoading = loadingPlan === plan.key;
+              const isLoading = checkoutLoading && checkoutPlan === plan.key;
               const isCurrentPlan = isLoggedIn && currentPlanKey === plan.key;
               const buttonStyle = isCurrentPlan
                 ? "bg-slate-700 text-slate-300 cursor-default hover:bg-slate-700"
@@ -350,7 +347,7 @@ export default function Pricing() {
                         : ""
                     }`}
                   >
-                    {subscriptionLoading && !loadingPlan ? (
+                    {subscriptionLoading && !checkoutLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
                         Checking...

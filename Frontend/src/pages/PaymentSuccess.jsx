@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   AlertCircle,
   ArrowRight,
@@ -8,13 +9,15 @@ import {
   Sparkles,
   Crown,
 } from "lucide-react";
-import { getSubscriptionStatus, syncPaymentReturn } from "../api/payment.api";
-import { getProfile } from "../api/auth.api";
+import {
+  fetchSubscriptionStatus,
+  syncPaymentReturnStatus,
+} from "../store/slices/paymentSlice";
+import { fetchProfile } from "../store/slices/authSlice";
 import {
   normalizePlan,
   notifySubscriptionUpdated,
   plansMatch,
-  refreshCachedUser,
 } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
@@ -47,6 +50,7 @@ const PLAN_DETAILS = {
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
 
   const planKey = normalizePlan(searchParams.get("plan") || "PRO");
@@ -89,7 +93,7 @@ export default function PaymentSuccess() {
       if (cancelled) return;
       setActivationState("active");
       notifySubscriptionUpdated(subscription);
-      await refreshCachedUser(getProfile);
+      await dispatch(fetchProfile());
     };
 
     const trySyncFromReturnUrl = async () => {
@@ -97,14 +101,14 @@ export default function PaymentSuccess() {
         return false;
       }
 
-      try {
-        const syncResult = await syncPaymentReturn(returnParams);
-        if (syncResult.success && plansMatch(syncResult.subscription?.plan, planKey)) {
-          await markActive(syncResult.subscription);
-          return true;
-        }
-      } catch (err) {
-        console.warn("Payment return sync failed:", err.response?.data?.message || err.message);
+      const syncResult = await dispatch(syncPaymentReturnStatus(returnParams));
+      if (
+        syncPaymentReturnStatus.fulfilled.match(syncResult) &&
+        syncResult.payload.success &&
+        plansMatch(syncResult.payload.subscription?.plan, planKey)
+      ) {
+        await markActive(syncResult.payload.subscription);
+        return true;
       }
 
       return false;
@@ -121,13 +125,19 @@ export default function PaymentSuccess() {
           }
         }
 
-        const result = await getSubscriptionStatus();
-        const backendPlan = result.subscription?.plan;
+        const result = await dispatch(fetchSubscriptionStatus());
+        const backendPlan = fetchSubscriptionStatus.fulfilled.match(result)
+          ? result.payload.subscription?.plan
+          : null;
 
         if (cancelled) return;
 
-        if (result.success && plansMatch(backendPlan, planKey)) {
-          await markActive(result.subscription);
+        if (
+          fetchSubscriptionStatus.fulfilled.match(result) &&
+          result.payload.success &&
+          plansMatch(backendPlan, planKey)
+        ) {
+          await markActive(result.payload.subscription);
           return;
         }
 
@@ -156,7 +166,7 @@ export default function PaymentSuccess() {
         clearTimeout(retryTimer);
       }
     };
-  }, [planKey, returnParams]);
+  }, [planKey, returnParams, dispatch]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative transition-colors duration-200">

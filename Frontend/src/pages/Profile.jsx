@@ -1,5 +1,5 @@
 // src/pages/Profile.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Camera, Mail, Calendar, HardDrive, Pencil, Save, Loader2,
   User, CheckCircle, AlertCircle, Clock, Folder, Image as ImageIcon,
@@ -7,13 +7,14 @@ import {
   Settings, Star, Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { apiUrl, authFetch } from "../utils/auth";
 import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
-const USER_API_URL = apiUrl("/user");
-const FILES_API_URL = apiUrl("/files");
-const FOLDERS_API_URL = apiUrl("/folders");
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProfile, updateUserProfile, uploadProfileImage, deleteProfileImage } from "../store/slices/authSlice";
+import { fetchAllFiles } from "../store/slices/filesSlice";
+import { fetchFolders } from "../store/slices/foldersSlice";
 
 const ProfileSkeleton = () => (
   <div className="h-full animate-pulse p-6 max-w-5xl mx-auto space-y-6">
@@ -37,83 +38,59 @@ const ProfileSkeleton = () => (
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const dispatch = useDispatch();
+
+  const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
+  const updating = useSelector((state) => state.auth.updating);
+  const uploading = useSelector((state) => state.auth.uploading);
+  const deletingImage = useSelector((state) => state.auth.deletingImage);
+  const allFiles = useSelector((state) => state.files.allFiles);
+  const folders = useSelector((state) => state.folders.folders);
+
   const [username, setUsername] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [deletingImage, setDeletingImage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Quick stats (derived from existing backend routes)
-  const [stats, setStats] = useState({ files: 0, folders: 0 });
-
   const fileInputRef = useRef(null);
 
-  
-  
-  
-  const fetchProfile = async () => {
+  const fetchProfileData = useCallback(async () => {
     try {
-      setLoading(true);
       setErrorMessage("");
-
-      const response = await authFetch(`${USER_API_URL}/me`, { method: "GET" });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || "Failed to fetch profile");
-
-      setUser(data.user);
-      setUsername(data.user.username);
+      const resultAction = await dispatch(fetchProfile());
+      if (fetchProfile.fulfilled.match(resultAction)) {
+        const u = resultAction.payload.user || resultAction.payload.data?.user || resultAction.payload;
+        if (u) {
+          setUsername(u.username || "");
+        }
+      } else {
+        setErrorMessage(resultAction.payload || "Failed to fetch profile");
+      }
     } catch (error) {
       console.error("Fetch profile error:", error.message);
       setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  
-  
-  const fetchStats = async () => {
-    try {
-      const [filesRes, foldersRes] = await Promise.all([
-        authFetch(FILES_API_URL),
-        authFetch(FOLDERS_API_URL),
-      ]);
+  const fetchStats = useCallback(() => {
+    dispatch(fetchAllFiles());
+    dispatch(fetchFolders());
+  }, [dispatch]);
 
-      const filesData = filesRes.ok ? await filesRes.json() : null;
-      const foldersData = foldersRes.ok ? await foldersRes.json() : null;
-
-      const files = Array.isArray(filesData)
-        ? filesData
-        : filesData?.files || [];
-      const folders = Array.isArray(foldersData)
-        ? foldersData
-        : foldersData?.folders || [];
-
-      setStats({
-        files: files.length,
-        folders: folders.length,
-      });
-    } catch {
-      // Keep profile page working even if stats fail.
-    }
-  };
+  const stats = { files: allFiles.length, folders: folders.length };
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfileData();
     fetchStats();
-  }, []);
+  }, [fetchProfileData, fetchStats]);
 
   useEffect(() => {
     const handleSubscriptionUpdated = () => {
-      fetchProfile();
+      fetchProfileData();
     };
 
     const handleFocus = () => {
-      fetchProfile();
+      fetchProfileData();
     };
 
     window.addEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
@@ -123,10 +100,8 @@ export default function ProfilePage() {
       window.removeEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
       window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [fetchProfileData]);
 
-  
-  
   const handleUpdateProfile = async () => {
     if (!username.trim()) {
       setErrorMessage("Username cannot be empty");
@@ -135,32 +110,22 @@ export default function ProfilePage() {
     }
 
     try {
-      setUpdating(true);
       setErrorMessage("");
-
-      const response = await authFetch(`${USER_API_URL}/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || "Update failed");
-
-      setUser(data.user);
-      setSuccessMessage("Username updated successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      const resultAction = await dispatch(updateUserProfile({ username: username.trim() }));
+      if (updateUserProfile.fulfilled.match(resultAction)) {
+        setSuccessMessage("Username updated successfully!");
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        setErrorMessage(resultAction.payload || "Update failed");
+        setTimeout(() => setErrorMessage(""), 3000);
+      }
     } catch (error) {
       console.error("Update error:", error.message);
       setErrorMessage(error.message);
       setTimeout(() => setErrorMessage(""), 3000);
-    } finally {
-      setUpdating(false);
     }
   };
 
-  
-  
   const handleImageUpload = async (e) => {
     try {
       const file = e.target.files[0];
@@ -181,58 +146,43 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      setUploading(true);
       setErrorMessage("");
-
-      const response = await authFetch(`${USER_API_URL}/upload-profile`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || "Upload failed");
-
-      setUser((prev) => ({ ...prev, imageUrl: data.imageUrl }));
-      setSuccessMessage("Profile picture updated successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      const resultAction = await dispatch(uploadProfileImage(formData));
+      if (uploadProfileImage.fulfilled.match(resultAction)) {
+        setSuccessMessage("Profile picture updated successfully!");
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        setErrorMessage(resultAction.payload || "Upload failed");
+        setTimeout(() => setErrorMessage(""), 3000);
+      }
     } catch (error) {
       console.error("Upload error:", error.message);
       setErrorMessage(error.message);
       setTimeout(() => setErrorMessage(""), 3000);
     } finally {
-      setUploading(false);
-      // Reset the file input so the same file can be re‑selected
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  
-  
   const handleDeleteImage = async () => {
     if (!user?.imageUrl) return;
 
     try {
-      setDeletingImage(true);
-      const response = await authFetch(`${USER_API_URL}/delete-profile`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || "Deletion failed");
-
-      setUser((prev) => ({ ...prev, imageUrl: null }));
-      setSuccessMessage("Profile picture removed.");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setErrorMessage("");
+      const resultAction = await dispatch(deleteProfileImage());
+      if (deleteProfileImage.fulfilled.match(resultAction)) {
+        setSuccessMessage("Profile picture removed.");
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        setErrorMessage(resultAction.payload || "Deletion failed");
+        setTimeout(() => setErrorMessage(""), 3000);
+      }
     } catch (error) {
       setErrorMessage(error.message);
       setTimeout(() => setErrorMessage(""), 3000);
-    } finally {
-      setDeletingImage(false);
     }
   };
 
-  
-  
   const copyEmail = () => {
     if (!user?.email) return;
     navigator.clipboard.writeText(user.email).then(() => {

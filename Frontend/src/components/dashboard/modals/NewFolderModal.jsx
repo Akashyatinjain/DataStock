@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { createFolder } from '../../../api/folder.api';
+import { useDispatch, useSelector } from 'react-redux';
+import { createNewFolder } from '../../../store/slices/foldersSlice';
 
 export default function NewFolderModal({ onClose, onCreated, toast }) {
+  const dispatch = useDispatch();
+  const creating = useSelector((state) => state.folders.creating);
   const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -13,16 +15,13 @@ export default function NewFolderModal({ onClose, onCreated, toast }) {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
-    setLoading(true);
-    try {
-      const data = await createFolder({ name: name.trim() });
+    const result = await dispatch(createNewFolder({ name: name.trim() }));
+    if (createNewFolder.fulfilled.match(result)) {
       toast('success', `Folder "${name.trim()}" created`);
-      onCreated(data.folder || data);
+      onCreated(result.payload);
       onClose();
-    } catch {
-      toast('error', 'Failed to create folder');
-    } finally {
-      setLoading(false);
+    } else {
+      toast('error', result.payload || 'Failed to create folder');
     }
   };
 
@@ -52,10 +51,10 @@ export default function NewFolderModal({ onClose, onCreated, toast }) {
           </button>
           <button
             onClick={handleCreate}
-            disabled={!name.trim() || loading}
+            disabled={!name.trim() || creating}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {creating && <Loader2 className="w-4 h-4 animate-spin" />}
             Create
           </button>
         </div>

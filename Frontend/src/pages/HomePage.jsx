@@ -22,15 +22,18 @@ import {
   Play
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { createCheckoutSession } from "../api/payment.api";
+import { useDispatch, useSelector } from "react-redux";
+import { startCheckout } from "../store/slices/paymentSlice";
 import useSubscription from "../hooks/useSubscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const checkoutLoading = useSelector((state) => state.payment.checkoutLoading);
+  const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState(null);
   const [checkoutError, setCheckoutError] = useState("");
 
   const token = localStorage.getItem("token");
@@ -73,20 +76,15 @@ const HomePage = () => {
 
     try {
       setCheckoutError("");
-      setLoadingPlan(planKey);
-      const result = await createCheckoutSession(normalizedKey);
-      if (result.success && result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+      const result = await dispatch(startCheckout(normalizedKey));
+      if (startCheckout.fulfilled.match(result) && result.payload.success && result.payload.checkoutUrl) {
+        window.location.href = result.payload.checkoutUrl;
         return;
       }
-      setCheckoutError("Failed to start checkout. Please try again.");
+      setCheckoutError(result.payload || "Failed to start checkout. Please try again.");
     } catch (err) {
       console.error('Checkout error:', err);
-      setCheckoutError(
-        err.response?.data?.message || 'Failed to start checkout. Please try again.'
-      );
-    } finally {
-      setLoadingPlan(null);
+      setCheckoutError('Failed to start checkout. Please try again.');
     }
   };
 
@@ -498,7 +496,7 @@ const HomePage = () => {
                 
                 <button 
                   onClick={() => handlePlanSelect(plan.name)}
-                  disabled={loadingPlan === plan.name || isCurrentPlan}
+                  disabled={(checkoutLoading && checkoutPlan === plan.name.toLowerCase()) || isCurrentPlan}
                   className={`w-full py-4 rounded-xl font-bold transition-all duration-200 text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${
                   isCurrentPlan
                     ? 'bg-gray-700 text-gray-300 cursor-default'
@@ -506,7 +504,7 @@ const HomePage = () => {
                       ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' 
                       : 'bg-white text-gray-900 hover:bg-gray-100'
                 }`}>
-                  {loadingPlan === plan.name ? (
+                  {(checkoutLoading && checkoutPlan === plan.name.toLowerCase()) ? (
                     <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Redirecting...</>
                   ) : isCurrentPlan ? (
                     'Current Plan'

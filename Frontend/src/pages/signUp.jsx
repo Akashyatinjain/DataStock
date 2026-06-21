@@ -12,10 +12,16 @@ import {
   Github,
   Chrome
 } from 'lucide-react';
-import { apiUrl, persistAuth, setupAutoLogout } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { signupUser, logoutUser } from "../store/slices/authSlice";
+import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const SignupPage = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const authLoading = useSelector((state) => state.auth.authLoading);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -81,45 +87,24 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  try {
+  const result = await dispatch(
+    signupUser({
+      username: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+    })
+  );
 
-    const res = await fetch(apiUrl("/auth/signup"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        username: formData.fullName,   // 🔥 IMPORTANT FIX
-        email: formData.email,
-        password: formData.password
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Signup failed");
+  if (signupUser.fulfilled.match(result)) {
+    const token = result.payload.token || getToken();
+    if (token) {
+      setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
+        window.location.href = "/login";
+      }));
     }
-
-    console.log(data);
-
-    if (data.token) {
-      persistAuth({
-        token: data.token,
-        user: data.user,
-        refreshToken: data.refreshToken,
-      });
-      setupAutoLogout(data.token);
-    } else if (data.user) {
-      persistAuth({ user: data.user });
-    }
-
-    // redirect
-    window.location.href = "/dashboard";
-
-  } catch (err) {
-    setErrors({ email: err.message });
+    navigate("/dashboard");
+  } else {
+    setErrors({ email: result.payload || "Signup failed" });
   }
 };
    // Handle Google login
@@ -383,10 +368,11 @@ const handleSubmit = async (e) => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-black dark:bg-green-600 text-white py-3 rounded-xl hover:bg-green-600 dark:hover:bg-green-500 transition flex items-center justify-center space-x-2 font-medium"
+                    disabled={authLoading}
+                    className="w-full bg-black dark:bg-green-600 text-white py-3 rounded-xl hover:bg-green-600 dark:hover:bg-green-500 transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50"
                   >
-                    <span>Create account</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span>{authLoading ? "Creating account..." : "Create account"}</span>
+                    {!authLoading && <ArrowRight className="w-4 h-4" />}
                   </button>
                 </form>
 

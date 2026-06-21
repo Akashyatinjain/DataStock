@@ -1,68 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { getSubscriptionStatus } from "../api/payment.api";
-import { getProfile } from "../api/auth.api";
+import { applySubscription, fetchSubscriptionStatus } from "../store/slices/paymentSlice";
+import { fetchProfile } from "../store/slices/authSlice";
 import {
-  normalizePlan,
   notifySubscriptionUpdated,
-  refreshCachedUser,
   SUBSCRIPTION_UPDATED_EVENT,
 } from "../utils/subscription";
 
 export default function useSubscription({ enabled = true } = {}) {
+  const dispatch = useDispatch();
   const location = useLocation();
-  const [currentPlan, setCurrentPlan] = useState("BASIC");
-  const [subscription, setSubscription] = useState(null);
-  const [loading, setLoading] = useState(Boolean(enabled));
-  const [error, setError] = useState("");
-
-  const applySubscription = useCallback((nextSubscription) => {
-    const plan = normalizePlan(nextSubscription?.plan || "BASIC");
-    setCurrentPlan(plan);
-    setSubscription(nextSubscription ? { ...nextSubscription, plan } : null);
-  }, []);
+  const { currentPlan, subscription, loading, error } = useSelector(
+    (state) => state.payment
+  );
 
   const refreshSubscription = useCallback(async () => {
     if (!enabled) {
-      setCurrentPlan("BASIC");
-      setSubscription(null);
-      setLoading(false);
       return null;
     }
 
-    try {
-      setLoading(true);
-      setError("");
-      const result = await getSubscriptionStatus();
-
-      if (result.success) {
-        applySubscription(result.subscription);
-        notifySubscriptionUpdated(result.subscription);
-        return result.subscription;
-      }
-
-      setError(result.message || "Could not load subscription status.");
-      return null;
-    } catch (err) {
-      console.error("Subscription status error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Could not load subscription status. Please refresh."
-      );
-      return null;
-    } finally {
-      setLoading(false);
+    const result = await dispatch(fetchSubscriptionStatus());
+    if (fetchSubscriptionStatus.fulfilled.match(result) && result.payload.success) {
+      notifySubscriptionUpdated(result.payload.subscription);
+      return result.payload.subscription;
     }
-  }, [applySubscription, enabled]);
+    return null;
+  }, [dispatch, enabled]);
 
   const refreshUserAndSubscription = useCallback(async () => {
-    await refreshCachedUser(getProfile);
+    await dispatch(fetchProfile());
     return refreshSubscription();
-  }, [refreshSubscription]);
+  }, [dispatch, refreshSubscription]);
 
   useEffect(() => {
-    refreshSubscription();
-  }, [refreshSubscription, location.pathname]);
+    if (enabled) {
+      refreshSubscription();
+    }
+  }, [refreshSubscription, location.pathname, enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -74,7 +49,7 @@ export default function useSubscription({ enabled = true } = {}) {
     };
 
     const handleSubscriptionUpdated = (event) => {
-      applySubscription(event.detail);
+      dispatch(applySubscription(event.detail));
     };
 
     window.addEventListener("focus", handleFocus);
@@ -87,17 +62,15 @@ export default function useSubscription({ enabled = true } = {}) {
         handleSubscriptionUpdated
       );
     };
-  }, [applySubscription, enabled, refreshSubscription]);
+  }, [dispatch, enabled, refreshSubscription]);
 
   return {
     currentPlan,
     currentPlanKey: currentPlan.toLowerCase(),
     subscription,
-    loading,
-    error,
+    loading: enabled ? loading : false,
+    error: enabled ? error : "",
     refreshSubscription,
     refreshUserAndSubscription,
-    setCurrentPlan,
-    applySubscription,
   };
 }

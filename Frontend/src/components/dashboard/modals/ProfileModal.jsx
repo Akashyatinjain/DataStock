@@ -1,25 +1,22 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import API from '../../../api/auth.api';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateUserProfile } from '../../../store/slices/authSlice';
 
 export default function ProfileModal({ profile, onClose, onUpdated, toast }) {
-  const [form, setForm] = useState({
-    name: profile?.name || '',
-    email: profile?.email || '',
-  });
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const updating = useSelector((state) => state.auth.updating);
+  const [username, setUsername] = useState(profile?.username || profile?.name || '');
 
   const handleSave = async () => {
-    setLoading(true);
-    try {
-      const { data } = await API.put('/user/profile', form);
+    const result = await dispatch(updateUserProfile({ username: username.trim() }));
+    if (updateUserProfile.fulfilled.match(result)) {
       toast('success', 'Profile updated');
-      onUpdated(data.user || data);
+      const user = result.payload.user || result.payload.data?.user || result.payload;
+      onUpdated(user);
       onClose();
-    } catch {
-      toast('error', 'Failed to update profile');
-    } finally {
-      setLoading(false);
+    } else {
+      toast('error', result.payload || 'Failed to update profile');
     }
   };
 
@@ -35,19 +32,19 @@ export default function ProfileModal({ profile, onClose, onUpdated, toast }) {
 
         <div className="space-y-3 mb-5">
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1 block">Name</label>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">Username</label>
             <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">Email</label>
             <input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={profile?.email || ''}
+              readOnly
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-500"
             />
           </div>
         </div>
@@ -61,10 +58,10 @@ export default function ProfileModal({ profile, onClose, onUpdated, toast }) {
           </button>
           <button
             onClick={handleSave}
-            disabled={loading}
+            disabled={updating || !username.trim()}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {updating && <Loader2 className="w-4 h-4 animate-spin" />}
             Save
           </button>
         </div>

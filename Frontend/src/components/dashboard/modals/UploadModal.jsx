@@ -1,28 +1,28 @@
 import { useState, useRef } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
-import { uploadFile } from '../../../api/file.api';
+import { useDispatch, useSelector } from 'react-redux';
+import { uploadNewFile } from '../../../store/slices/filesSlice';
 
 export default function UploadModal({ onClose, onUploaded, toast, folderId = null }) {
+  const dispatch = useDispatch();
+  const uploading = useSelector((state) => state.files.uploading);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
   const handleUpload = async () => {
     if (!file) return;
-    setLoading(true);
-    try {
-      const form = new FormData();
-      form.append('file', file);
-      if (folderId) form.append('folderId', folderId);
-      const data = await uploadFile(form);
+    const form = new FormData();
+    form.append('file', file);
+    if (folderId) form.append('folderId', folderId);
+
+    const result = await dispatch(uploadNewFile(form));
+    if (uploadNewFile.fulfilled.match(result)) {
       toast('success', `"${file.name}" uploaded`);
-      onUploaded?.(data.file || data);
+      onUploaded?.(result.payload);
       onClose();
-    } catch {
-      toast('error', 'Upload failed');
-    } finally {
-      setLoading(false);
+    } else {
+      toast('error', result.payload || 'Upload failed');
     }
   };
 
@@ -81,10 +81,10 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
           </button>
           <button
             onClick={handleUpload}
-            disabled={!file || loading}
+            disabled={!file || uploading}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
             Upload
           </button>
         </div>

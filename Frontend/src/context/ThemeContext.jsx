@@ -1,28 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleTheme, setTheme, THEME_KEY, getStoredTheme, applyTheme } from '../store/slices/themeSlice';
 
-const THEME_KEY = 'datastock-theme';
-
-export function getStoredTheme() {
-  if (typeof window === 'undefined') return 'light';
-  const stored = localStorage.getItem(THEME_KEY);
-  if (stored === 'dark' || stored === 'light') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-export function applyTheme(theme) {
-  const root = document.documentElement;
-  if (theme === 'dark') {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-  }
-  localStorage.setItem(THEME_KEY, theme);
-}
-
-const ThemeContext = createContext(null);
+export { getStoredTheme, applyTheme };
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getStoredTheme);
+  const dispatch = useDispatch();
+  const theme = useSelector((state) => state.theme.theme);
 
   useEffect(() => {
     applyTheme(theme);
@@ -33,38 +17,26 @@ export function ThemeProvider({ children }) {
     const handleChange = (e) => {
       const stored = localStorage.getItem(THEME_KEY);
       if (!stored) {
-        setTheme(e.matches ? 'dark' : 'light');
+        dispatch(setTheme(e.matches ? 'dark' : 'light'));
       }
     };
     media.addEventListener('change', handleChange);
     return () => media.removeEventListener('change', handleChange);
-  }, []);
+  }, [dispatch]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
-
-  const setLightTheme = useCallback(() => setTheme('light'), []);
-  const setDarkTheme = useCallback(() => setTheme('dark'), []);
-
-  const value = useMemo(
-    () => ({
-      theme,
-      isDark: theme === 'dark',
-      toggleTheme,
-      setLightTheme,
-      setDarkTheme,
-    }),
-    [theme, toggleTheme, setLightTheme, setDarkTheme]
-  );
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return children;
 }
 
 export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error('useTheme must be used within ThemeProvider');
-  }
-  return ctx;
+  const dispatch = useDispatch();
+  const theme = useSelector((state) => state.theme.theme);
+
+  return {
+    theme,
+    isDark: theme === 'dark',
+    toggleTheme: () => dispatch(toggleTheme()),
+    setLightTheme: () => dispatch(setTheme('light')),
+    setDarkTheme: () => dispatch(setTheme('dark')),
+  };
 }
+

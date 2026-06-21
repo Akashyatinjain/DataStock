@@ -30,12 +30,7 @@ import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
 
-import { getFiles, getAllFiles, uploadFile, deleteFile, toggleStarFile } from '../api/file.api';
-import { getFolders } from '../api/folder.api';
-import { getProfile } from '../api/auth.api';
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
-import { getNotifications, markAsRead, markAllAsRead } from '../api/notification.api';
-import { getSharedWithMe } from '../api/share.api';
 import {
   normalizeList,
   normalizeFile,
@@ -46,13 +41,35 @@ import { QUICK_FILTERS } from '../utils/filters';
 
 import { connectSocket, socket } from "../socket";
 
+// Redux Integration
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProfile } from '../store/slices/authSlice';
+import {
+  fetchFiles,
+  fetchAllFiles,
+  uploadNewFile,
+  deleteExistingFile,
+  toggleStar,
+  addUploadedFile,
+} from '../store/slices/filesSlice';
+import {
+  fetchFolders,
+  deleteExistingFolder,
+} from '../store/slices/foldersSlice';
+import {
+  fetchNotifications,
+  readNotification,
+  readAllNotifications,
+  addNotification,
+} from '../store/slices/notificationsSlice';
+import { fetchSharedWithMe } from '../store/slices/shareSlice';
+
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
   if (type === 'error')   return <XCircle      className="w-5 h-5 text-red-400    shrink-0" />;
   return                         <AlertCircle  className="w-5 h-5 text-amber-400  shrink-0" />;
 };
 
-  
 const Toast = ({ toast, onRemove }) => (
   <div
     className={`
@@ -78,7 +95,6 @@ const ToastContainer = ({ toasts, onRemove }) => (
   </div>
 );
 
-
 const FILE_TYPES = {
   image:   { icon: ImageIcon, color: 'text-sky-500',     bg: 'bg-sky-50',     label: 'Image'    },
   video:   { icon: Video,     color: 'text-violet-500',  bg: 'bg-violet-50',  label: 'Video'    },
@@ -103,8 +119,6 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
-
-
 const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
@@ -123,7 +137,6 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
       `}
       onClick={() => !isDeleting && onPreview(file)}
     >
-      {/* Deleting overlay */}
       {isDeleting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
@@ -131,7 +144,6 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
         </div>
       )}
 
-      {/* Image preview strip */}
       {file.mimeType?.includes('image') ? (
         <div className="h-40 overflow-hidden bg-gray-50 dark:bg-gray-800">
           <img src={file.url} alt={file.originalName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -143,7 +155,6 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
       )}
 
       <div className="p-4">
-        {/* Type badge */}
         <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 ${type.bg} ${type.color}`}>
           {type.label}
         </span>
@@ -206,7 +217,6 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
     </div>
   );
 };
-
 
 const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
   const type = getFileType(file.mimeType);
@@ -292,8 +302,6 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
   );
 };
 
-
-
 const UploadButton = ({ uploading, onChange }) => (
   <label className="cursor-pointer inline-flex max-w-full">
     <input type="file" className="hidden" onChange={onChange} />
@@ -311,9 +319,28 @@ const UploadButton = ({ uploading, onChange }) => (
   </label>
 );
 
-
-
 const Dashboard = () => {
+  const dispatch = useDispatch();
+
+  // State from Redux
+  const user = useSelector((state) => state.auth.user);
+  const files = useSelector((state) => state.files.files);
+  const allFiles = useSelector((state) => state.files.allFiles);
+  const loading = useSelector((state) => state.files.loading);
+  const uploading = useSelector((state) => state.files.uploading);
+  const deletingId = useSelector((state) => state.files.deletingId);
+  const starringId = useSelector((state) => state.files.starringId);
+
+  const folders = useSelector((state) => state.folders.folders);
+  const foldersLoading = useSelector((state) => state.folders.loading);
+
+  const sharedWithMe = useSelector((state) => state.share.sharedWithMe);
+  const sharedLoading = useSelector((state) => state.share.loading);
+
+  const notifications = useSelector((state) => state.notifications.notifications);
+  const notificationsLoading = useSelector((state) => state.notifications.loading);
+
+  // Local UI States
   const [previewFile, setPreviewFile]       = useState(null);
   const [isPreviewOpen, setIsPreviewOpen]   = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -321,22 +348,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab]           = useState('my-drive');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [files, setFiles]         = useState([]);
-  const [allFiles, setAllFiles]   = useState([]);
-  const [folders, setFolders]         = useState([]);
-  const [foldersLoading, setFoldersLoading] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const [starringId, setStarringId] = useState(null);
-
   // Share modal state
   const [shareModalFile, setShareModalFile] = useState(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
-
-  // Shared-with-me state
-  const [sharedWithMe, setSharedWithMe] = useState([]);
-  const [sharedLoading, setSharedLoading] = useState(false);
 
   const handleShare = useCallback((file) => {
     setShareModalFile(file);
@@ -344,11 +358,6 @@ const Dashboard = () => {
   }, []);
 
   const [viewMode, setViewMode] = useState('grid');
-  const [user, setUser] = useState(null);
-
-  // Notifications state
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   // Toast state
   const [toasts, setToasts] = useState([]);
@@ -374,62 +383,24 @@ const Dashboard = () => {
     [folders, selectedFolderId]
   );
 
-  const loadFiles = useCallback(async (folderId = null) => {
-    try {
-      setLoading(true);
-      const fileRes = await getFiles(folderId);
-      setFiles((fileRes.files || []).map(normalizeFile));
-    } catch (error) {
-      console.log(error);
-      addToast('Failed to load files', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [addToast]);
+  const loadFiles = useCallback((folderId = null) => {
+    dispatch(fetchFiles(folderId));
+  }, [dispatch]);
 
-  const refreshAllFiles = useCallback(async () => {
-    try {
-      const [fileRes, profileRes] = await Promise.all([
-        getAllFiles(),
-        getProfile(),
-      ]);
-      setAllFiles((fileRes.files || []).map(normalizeFile));
-      setUser(profileRes.data?.user || profileRes.user);
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
+  const refreshAllFiles = useCallback(() => {
+    dispatch(fetchAllFiles());
+    dispatch(fetchProfile());
+  }, [dispatch]);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        setFoldersLoading(true);
-        const [folderRes, profileRes, allFilesRes] = await Promise.all([
-          getFolders(),
-          getProfile(),
-          getAllFiles(),
-        ]);
-        setFolders(normalizeList(folderRes, 'folders'));
-        setUser(profileRes.data?.user || profileRes.user);
-        setAllFiles((allFilesRes.files || []).map(normalizeFile));
-      } catch (error) {
-        console.log(error);
-        addToast('Failed to load dashboard', 'error');
-      } finally {
-        setFoldersLoading(false);
-      }
-    };
-    init();
-  }, [addToast]);
+    dispatch(fetchFolders());
+    dispatch(fetchProfile());
+    dispatch(fetchAllFiles());
+  }, [dispatch]);
 
-  const reloadProfile = useCallback(async () => {
-    try {
-      const profileRes = await getProfile();
-      setUser(profileRes.data?.user || profileRes.user);
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
+  const reloadProfile = useCallback(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     const handleSubscriptionUpdated = () => {
@@ -455,46 +426,17 @@ const Dashboard = () => {
     }
   }, [activeTab, selectedFolderId, loadFiles]);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      setNotificationsLoading(true);
-      const res = await getNotifications();
-      if (res.success) {
-        setNotifications(res.notifications || []);
-      }
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load notifications', 'error');
-    } finally {
-      setNotificationsLoading(false);
-    }
-  }, [addToast]);
-
   useEffect(() => {
     if (activeTab === 'notifications' && user?.id) {
-      fetchNotifications();
+      dispatch(fetchNotifications());
     }
-  }, [activeTab, user, fetchNotifications]);
-
-  // Load shared-with-me when that tab is active
-  const loadSharedWithMe = useCallback(async () => {
-    try {
-      setSharedLoading(true);
-      const res = await getSharedWithMe();
-      setSharedWithMe(res.shares || []);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load shared files', 'error');
-    } finally {
-      setSharedLoading(false);
-    }
-  }, [addToast]);
+  }, [activeTab, user, dispatch]);
 
   useEffect(() => {
     if (activeTab === 'shared') {
-      loadSharedWithMe();
+      dispatch(fetchSharedWithMe());
     }
-  }, [activeTab, loadSharedWithMe]);
+  }, [activeTab, dispatch]);
 
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
@@ -503,11 +445,8 @@ const Dashboard = () => {
       socket.emit("join", user.id);
 
       const handleNewNotification = (notification) => {
-        // Show real-time visual toast
         addToast(notification.message, 'success');
-        
-        // Update notifications list if user is on notifications page
-        setNotifications((prev) => [notification, ...prev]);
+        dispatch(addNotification(notification));
       };
 
       socket.on('notification', handleNewNotification);
@@ -516,23 +455,7 @@ const Dashboard = () => {
         socket.off('notification', handleNewNotification);
       };
     }
-  }, [user, addToast]);
-
-  const addUploadedFile = useCallback(
-    (file) => {
-      const normalized = normalizeFile(file);
-      const fileFolderId = normalized.folderId || null;
-      const inCurrentView =
-        (selectedFolderId == null && !fileFolderId) ||
-        fileFolderId === selectedFolderId;
-
-      if (inCurrentView) {
-        setFiles((prev) => [normalized, ...prev]);
-      }
-      setAllFiles((prev) => [normalized, ...prev]);
-    },
-    [selectedFolderId]
-  );
+  }, [user, addToast, dispatch]);
 
   // ── STORAGE (all files: My Drive + every folder) ──
   const totalStorage = Number(user?.storageLimit || 10 * 1024 * 1024 * 1024);
@@ -570,7 +493,6 @@ const Dashboard = () => {
     }
 
     if (activeTab === 'shared') {
-      // Return shared-with-me files (from API), normalized
       return sharedWithMe.map(share => ({
         ...share.file,
         _sharedBy: share.sharedBy,
@@ -588,7 +510,7 @@ const Dashboard = () => {
     }
 
     return files;
-  }, [activeTab, files, allFiles]);
+  }, [activeTab, files, allFiles, sharedWithMe]);
 
   const { pageTitle, pageSubtitle } = useMemo(() => {
     if (selectedFolder) {
@@ -597,159 +519,37 @@ const Dashboard = () => {
         pageSubtitle: `Files inside "${selectedFolder.name}"`,
       };
     }
-
-    if (activeTab === 'my-drive') {
-      return {
-        pageTitle: 'My Drive',
-        pageSubtitle: 'Files not in any folder',
-      };
-    }
-
+    if (activeTab === 'my-drive') return { pageTitle: 'My Drive', pageSubtitle: 'Files not in any folder' };
     if (activeTab?.startsWith('filter-')) {
       const filterName = activeTab.replace('filter-', '');
       const title = filterName.charAt(0).toUpperCase() + filterName.slice(1);
-      return {
-        pageTitle: title,
-        pageSubtitle: `All ${title.toLowerCase()} files`,
-      };
+      return { pageTitle: title, pageSubtitle: `All ${title.toLowerCase()} files` };
     }
-
-    if (activeTab === 'recent') {
-      return {
-        pageTitle: 'Recent',
-        pageSubtitle: 'Recently accessed and uploaded files',
-      };
-    }
-
-    if (activeTab === 'starred') {
-      return {
-        pageTitle: 'Starred',
-        pageSubtitle: 'Files you have starred',
-      };
-    }
-
-    if (activeTab === 'shared') {
-      return {
-        pageTitle: 'Shared',
-        pageSubtitle: 'Files shared with you',
-      };
-    }
-
-    if (activeTab === 'trash') {
-      return {
-        pageTitle: 'Trash',
-        pageSubtitle: 'Deleted files',
-      };
-    }
-
-    if (activeTab === 'archive') {
-      return {
-        pageTitle: 'Archive',
-        pageSubtitle: 'Archived files',
-      };
-    }
-
-    if (activeTab === 'notifications') {
-      return {
-        pageTitle: 'Notifications',
-        pageSubtitle: 'Latest system and file activities',
-      };
-    }
-
-    return {
-      pageTitle: 'My Drive',
-      pageSubtitle: 'Files not in any folder',
-    };
+    if (activeTab === 'recent') return { pageTitle: 'Recent', pageSubtitle: 'Recently accessed and uploaded files' };
+    if (activeTab === 'starred') return { pageTitle: 'Starred', pageSubtitle: 'Files you have starred' };
+    if (activeTab === 'shared') return { pageTitle: 'Shared', pageSubtitle: 'Files shared with you' };
+    if (activeTab === 'trash') return { pageTitle: 'Trash', pageSubtitle: 'Deleted files' };
+    if (activeTab === 'archive') return { pageTitle: 'Archive', pageSubtitle: 'Archived files' };
+    if (activeTab === 'notifications') return { pageTitle: 'Notifications', pageSubtitle: 'Latest system and file activities' };
+    return { pageTitle: 'My Drive', pageSubtitle: 'Files not in any folder' };
   }, [activeTab, selectedFolder]);
 
   const emptyState = useMemo(() => {
-    if (searchQuery) {
-      return {
-        title: 'No files match your search',
-        desc: 'Try a different keyword',
-        showUpload: false,
-      };
-    }
-
-    if (selectedFolder) {
-      return {
-        title: 'This folder is empty',
-        desc: 'Upload a file to add it to this folder',
-        showUpload: true,
-      };
-    }
-
-    if (activeTab === 'my-drive') {
-      return {
-        title: 'No files in My Drive yet',
-        desc: 'Upload your first file to get started with DataStock',
-        showUpload: true,
-      };
-    }
-
+    if (searchQuery) return { title: 'No files match your search', desc: 'Try a different keyword', showUpload: false };
+    if (selectedFolder) return { title: 'This folder is empty', desc: 'Upload a file to add it to this folder', showUpload: true };
+    if (activeTab === 'my-drive') return { title: 'No files in My Drive yet', desc: 'Upload your first file to get started with DataStock', showUpload: true };
     if (activeTab?.startsWith('filter-')) {
       const filterName = activeTab.replace('filter-', '');
       const title = filterName.charAt(0).toUpperCase() + filterName.slice(1);
-      return {
-        title: `No ${title} found`,
-        desc: `You haven't uploaded any ${title.toLowerCase()} files yet`,
-        showUpload: true,
-      };
+      return { title: `No ${title} found`, desc: `You haven't uploaded any ${title.toLowerCase()} files yet`, showUpload: true };
     }
-
-    if (activeTab === 'recent') {
-      return {
-        title: 'No recent files',
-        desc: 'Your recently uploaded files will appear here',
-        showUpload: false,
-      };
-    }
-
-    if (activeTab === 'starred') {
-      return {
-        title: 'No starred files',
-        desc: 'Star files to easily find them later',
-        showUpload: false,
-      };
-    }
-
-    if (activeTab === 'shared') {
-      return {
-        title: 'No shared files',
-        desc: 'Files shared with you by others will appear here',
-        showUpload: false,
-      };
-    }
-
-    if (activeTab === 'trash') {
-      return {
-        title: 'Trash is empty',
-        desc: 'Deleted files will appear here',
-        showUpload: false,
-      };
-    }
-
-    if (activeTab === 'archive') {
-      return {
-        title: 'Archive is empty',
-        desc: 'Archived files will appear here',
-        showUpload: false,
-      };
-    }
-
-    if (activeTab === 'notifications') {
-      return {
-        title: 'All caught up!',
-        desc: 'No new notifications to display',
-        showUpload: false,
-      };
-    }
-
-    return {
-      title: 'No files found',
-      desc: 'Get started by uploading a file',
-      showUpload: true,
-    };
+    if (activeTab === 'recent') return { title: 'No recent files', desc: 'Your recently uploaded files will appear here', showUpload: false };
+    if (activeTab === 'starred') return { title: 'No starred files', desc: 'Star files to easily find them later', showUpload: false };
+    if (activeTab === 'shared') return { title: 'No shared files', desc: 'Files shared with you by others will appear here', showUpload: false };
+    if (activeTab === 'trash') return { title: 'Trash is empty', desc: 'Deleted files will appear here', showUpload: false };
+    if (activeTab === 'archive') return { title: 'Archive is empty', desc: 'Archived files will appear here', showUpload: false };
+    if (activeTab === 'notifications') return { title: 'All caught up!', desc: 'No new notifications to display', showUpload: false };
+    return { title: 'No files found', desc: 'Get started by uploading a file', showUpload: true };
   }, [activeTab, searchQuery, selectedFolder]);
 
   const filteredFiles = useMemo(() =>
@@ -761,70 +561,58 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      setUploading(true);
       addToast(`Uploading "${file.name}"…`, 'info');
       const formData = new FormData();
       formData.append('file', file);
       if (selectedFolderId) formData.append('folderId', selectedFolderId);
-      const response = await uploadFile(formData);
-      addUploadedFile(response.file || response);
-      await refreshAllFiles();
-      addToast(`"${file.name}" uploaded successfully!`, 'success');
+      const resultAction = await dispatch(uploadNewFile(formData));
+      if (uploadNewFile.fulfilled.match(resultAction)) {
+        loadFiles(selectedFolderId);
+        dispatch(fetchProfile());
+        addToast(`"${file.name}" uploaded successfully!`, 'success');
+      } else {
+        addToast(resultAction.payload || 'Upload failed. Please try again.', 'error');
+      }
     } catch (error) {
       console.log(error);
       addToast('Upload failed. Please try again.', 'error');
     } finally {
-      setUploading(false);
       e.target.value = '';
     }
   };
 
-  const updateFileInState = useCallback((fileId, updater) => {
-    setFiles(prev => prev.map(f => (f.id === fileId ? updater(f) : f)));
-    setAllFiles(prev => prev.map(f => (f.id === fileId ? updater(f) : f)));
-  }, []);
-
   const handleToggleStar = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
     try {
-      setStarringId(fileId);
-      const response = await toggleStarFile(fileId);
-      const updated = normalizeFile(response.file);
-      updateFileInState(fileId, () => updated);
-      addToast(
-        updated.starred
-          ? `"${file?.originalName}" added to starred`
-          : `"${file?.originalName}" removed from starred`,
-        'success'
-      );
+      const resultAction = await dispatch(toggleStar(fileId));
+      if (toggleStar.fulfilled.match(resultAction)) {
+        addToast(
+          resultAction.payload.starred
+            ? `"${file?.originalName}" added to starred`
+            : `"${file?.originalName}" removed from starred`,
+          'success'
+        );
+      } else {
+        addToast(resultAction.payload || 'Failed to update starred status', 'error');
+      }
     } catch (error) {
       console.log(error);
       addToast('Failed to update starred status', 'error');
-    } finally {
-      setStarringId(null);
     }
   };
 
   const handleDelete = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
     try {
-      setDeletingId(fileId);
       addToast(`Deleting "${file?.originalName}"…`, 'info');
-      await deleteFile(fileId);
-      // short delay so user sees the "deleting" animation
-      await new Promise(r => setTimeout(r, 600));
-      setFiles(prev => prev.filter(f => f.id !== fileId));
-      setAllFiles(prev => prev.filter(f => f.id !== fileId));
+      await dispatch(deleteExistingFile(fileId));
       addToast(`"${file?.originalName}" was deleted.`, 'success');
+      dispatch(fetchProfile());
     } catch (error) {
       console.log(error);
       addToast('Delete failed. Please try again.', 'error');
-    } finally {
-      setDeletingId(null);
     }
   };
-
- 
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">
@@ -879,14 +667,17 @@ const Dashboard = () => {
         syncFiles
         files={files}
         allFiles={allFiles}
-        onFileUploaded={addUploadedFile}
+        onFileUploaded={(file) => {
+          dispatch(addUploadedFile(normalizeFile(file)));
+          refreshAllFiles();
+        }}
         onFilesChanged={refreshAllFiles}
         syncFolders
         folders={folders}
         foldersLoading={foldersLoading}
-        onFolderCreated={(folder) => setFolders((prev) => [...prev, folder])}
+        onFolderCreated={() => dispatch(fetchFolders())}
         onFolderDeleted={(folderId) => {
-          setFolders((prev) => prev.filter((f) => getFolderId(f) !== folderId));
+          dispatch(fetchFolders());
           refreshAllFiles();
           if (selectedFolderId === folderId) loadFiles(null);
         }}
@@ -1100,8 +891,7 @@ const Dashboard = () => {
                     <button
                       onClick={async () => {
                         try {
-                          await markAllAsRead();
-                          setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                          await dispatch(readAllNotifications());
                           addToast("All notifications marked as read", "success");
                         } catch (err) {
                           addToast("Failed to mark all read", "error");
@@ -1164,10 +954,7 @@ const Dashboard = () => {
                           <button
                             onClick={async () => {
                               try {
-                                await markAsRead(notif.id);
-                                setNotifications(prev =>
-                                  prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
-                                );
+                                await dispatch(readNotification(notif.id));
                                 addToast("Notification marked as read", "success");
                               } catch (err) {
                                 addToast("Failed to update notification", "error");

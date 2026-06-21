@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Cloud,
   Download,
@@ -15,7 +16,7 @@ import {
   Clock,
   HardDrive,
 } from 'lucide-react';
-import { getPublicFile } from '../api/share.api';
+import { fetchPublicFile, clearPublicFile } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
 /* ─── helpers ─── */
@@ -105,25 +106,19 @@ const FilePreview = ({ file }) => {
 /* ─── Main Page ─── */
 const PublicSharePage = () => {
   const { token } = useParams();
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const file = useSelector((state) => state.share.publicFile);
+  const loading = useSelector((state) => state.share.publicFileLoading);
+  const error = useSelector((state) => state.share.error);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await getPublicFile(token);
-        setFile(res.file);
-      } catch (err) {
-        const msg = err?.response?.data?.message || err.message || 'Failed to load file';
-        setError(msg);
-      } finally {
-        setLoading(false);
-      }
+    if (token) {
+      dispatch(fetchPublicFile(token));
+    }
+    return () => {
+      dispatch(clearPublicFile());
     };
-    if (token) load();
-  }, [token]);
+  }, [token, dispatch]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#f0fdf4] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">

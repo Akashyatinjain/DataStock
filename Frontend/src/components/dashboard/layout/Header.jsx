@@ -15,9 +15,10 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { apiUrl, authFetch, clearAuth } from '../../../utils/auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '../../../store/slices/authSlice';
+import { addNotification } from '../../../store/slices/notificationsSlice';
 import { connectSocket, socket } from "../../../socket";
-import { getNotifications } from '../../../api/notification.api';
 import ThemeToggle from '../../ui/ThemeToggle';
 
 const Header = ({
@@ -26,16 +27,17 @@ const Header = ({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
 }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDark, setIsDark] = useState(false);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const authLoading = useSelector((state) => state.auth.loading);
+  const notifications = useSelector((state) => state.notifications.notifications);
+  const currentPlan = useSelector((state) => state.payment.currentPlan);
 
+  const [isDark, setIsDark] = useState(false);
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [notifications, setNotifications] = useState([]);
 
-  // Detect theme changes from <html class="dark">
   useEffect(() => {
     const checkTheme = () => {
       setIsDark(document.documentElement.classList.contains('dark'));
@@ -51,26 +53,13 @@ const Header = ({
     return () => observer.disconnect();
   }, []);
 
-  // Socket & notifications
   useEffect(() => {
     if (user?.id) {
       connectSocket();
       socket.emit("join", user.id);
 
-      const fetchNotifications = async () => {
-        try {
-          const res = await getNotifications();
-          if (res.success) {
-            setNotifications(res.notifications || []);
-          }
-        } catch (err) {
-          console.error("Failed to fetch notifications:", err);
-        }
-      };
-      fetchNotifications();
-
       const handleNewNotification = (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
+        dispatch(addNotification(notification));
       };
 
       socket.on("notification", handleNewNotification);
@@ -79,36 +68,26 @@ const Header = ({
         socket.off("notification", handleNewNotification);
       };
     }
-  }, [user]);
-
-  // Fetch user
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await authFetch(apiUrl('/user/me'));
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+  }, [user, dispatch]);
 
   const handleLogout = async () => {
-    await clearAuth();
+    await dispatch(logoutUser());
+    window.location.href = '/login';
   };
 
   const getUserInitial = () => {
-    if (user?.name && user.name.trim().length > 0) return user.name.trim().charAt(0).toUpperCase();
+    if (user?.username && user.username.trim().length > 0) {
+      return user.username.trim().charAt(0).toUpperCase();
+    }
+    if (user?.name && user.name.trim().length > 0) {
+      return user.name.trim().charAt(0).toUpperCase();
+    }
     return 'U';
   };
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead && !n.read).length;
+  const subscriptionPlan = user?.subscriptionPlan || currentPlan || 'BASIC';
 
-  // Dynamic classes based on theme
   const navClass = isDark
     ? 'fixed top-0 w-full bg-[#0f172a]/80 backdrop-blur-md z-50 border-b border-slate-800/60'
     : 'fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-200/60';
@@ -141,7 +120,7 @@ const Header = ({
     ? 'absolute right-0 mt-2 w-64 bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-700/50 py-2 z-50 animate-slideDown'
     : 'absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 py-2 z-50 animate-slideDown';
 
-  if (isLoading) {
+  if (authLoading && !user) {
     const skeletonBg = isDark ? 'bg-slate-700' : 'bg-gray-200';
     return (
       <nav className={navClass}>
@@ -175,7 +154,6 @@ const Header = ({
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
 
-            {/* Left section */}
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -194,7 +172,6 @@ const Header = ({
                 </span>
               </div>
 
-              {/* Desktop search */}
               <div className="hidden md:flex items-center">
                 <div className="relative">
                   <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
@@ -218,9 +195,7 @@ const Header = ({
               </div>
             </div>
 
-            {/* Right section */}
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Upgrade / Manage Plan button */}
               <button 
                 onClick={() => navigate('/pricing')}
                 className={`${upgradeBtnClass} group hidden md:flex max-w-44 lg:max-w-none`}
@@ -231,14 +206,14 @@ const Header = ({
                 <div className="min-w-0 text-left">
                   <p className={`${upgradeTitleClass} truncate`}>
                     <span className="lg:hidden">
-                      {user?.subscriptionPlan === 'BASIC' ? 'Upgrade' : 'Plan'}
+                      {subscriptionPlan === 'BASIC' ? 'Upgrade' : 'Plan'}
                     </span>
                     <span className="hidden lg:inline">
-                      {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
+                      {subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
                     </span>
                   </p>
                   <p className={`${upgradeMetaClass} hidden lg:block`}>
-                    {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'}`}
+                    {subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${subscriptionPlan}`}
                   </p>
                 </div>
                 <ArrowLeft size={14} className={`ml-0.5 rotate-180 transition-colors duration-200 ${isDark ? 'text-slate-500 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-700'}`} />
@@ -273,7 +248,6 @@ const Header = ({
                 <Settings className="w-5 h-5" />
               </button>
 
-              {/* User menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
@@ -303,7 +277,7 @@ const Header = ({
                     <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                     <div className={dropdownClass}>
                       <div className={`px-4 py-3 border-b ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}>
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{user?.name}</p>
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{user?.username || user?.name}</p>
                         <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} truncate`}>{user?.email}</p>
                       </div>
                       <div className="py-1">
@@ -337,7 +311,6 @@ const Header = ({
                 )}
               </div>
 
-              {/* Mobile search toggle */}
               <button
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
                 className={`${iconBtnClass} md:hidden`}
@@ -348,7 +321,6 @@ const Header = ({
             </div>
           </div>
 
-          {/* Mobile search bar */}
           {showMobileSearch && (
             <div className="py-2 pb-3 md:hidden animate-slideDown">
               <div className="relative">

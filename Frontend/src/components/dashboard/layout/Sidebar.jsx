@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-
-import { getFolders, deleteFolder } from '../../../api/folder.api';
-import { getFiles } from '../../../api/file.api';
-import { getProfile } from '../../../api/auth.api';
-import { clearAuth } from '../../../utils/auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '../../../store/slices/authSlice';
+import { fetchFiles } from '../../../store/slices/filesSlice';
+import { fetchFolders, deleteExistingFolder } from '../../../store/slices/foldersSlice';
 import { DEFAULT_STORAGE } from '../../../utils/constants';
 import {
-  normalizeList,
   computeUsedGB,
   normalizeFile,
   getActiveFolderId,
@@ -50,20 +48,22 @@ const Sidebar = ({
   onFolderCreated,
   onFolderDeleted,
 }) => {
+  const dispatch = useDispatch();
+  const profile = useSelector((state) => state.auth.user);
+  const reduxFolders = useSelector((state) => state.folders.folders);
+  const reduxFiles = useSelector((state) => state.files.files);
+  const reduxFoldersLoading = useSelector((state) => state.folders.loading);
+
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768
   );
-  const [localFolders, setLocalFolders] = useState([]);
-  const folders = syncFolders ? (foldersFromParent ?? []) : localFolders;
+  const folders = syncFolders ? (foldersFromParent ?? []) : reduxFolders;
   const selectedFolderId = getActiveFolderId(activeTab);
-  const [localFiles, setLocalFiles] = useState([]);
-  const files = syncFiles ? filesFromParent : localFiles;
+  const files = syncFiles ? filesFromParent : reduxFiles;
   const statsFiles = allFilesFromParent ?? files;
-  const [profile, setProfile] = useState(null);
   const [storageData, setStorageData] = useState(storageDataProp || DEFAULT_STORAGE);
 
-  const [loadingFolders, setLoadingFolders] = useState(!syncFolders);
-  const showFoldersLoading = syncFolders ? foldersLoadingFromParent : loadingFolders;
+  const showFoldersLoading = syncFolders ? foldersLoadingFromParent : reduxFoldersLoading;
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -93,14 +93,18 @@ const Sidebar = ({
   }, [storageDataProp]);
 
   useEffect(() => {
-    if (syncFolders) {
-      setLoadingFolders(false);
-    } else {
-      fetchFolders();
+    if (!syncFolders) {
+      dispatch(fetchFolders());
     }
-    fetchProfile();
-    if (!syncFiles) fetchFiles();
-  }, [syncFiles, syncFolders]);
+    if (!syncFiles) {
+      dispatch(fetchFiles()).then((result) => {
+        if (fetchFiles.fulfilled.match(result)) {
+          const usedGB = computeUsedGB(result.payload);
+          if (usedGB > 0) setStorageData((p) => ({ ...p, used: usedGB }));
+        }
+      });
+    }
+  }, [dispatch, syncFiles, syncFolders]);
 
   useEffect(() => {
     if (!showNewMenu) return;
@@ -111,60 +115,24 @@ const Sidebar = ({
     return () => document.removeEventListener('mousedown', handler);
   }, [showNewMenu]);
 
-  const fetchFolders = async () => {
-    setLoadingFolders(true);
-    try {
-      const data = await getFolders();
-      setLocalFolders(normalizeList(data, 'folders'));
-    } catch {
-      toast('error', 'Could not load folders');
-    } finally {
-      setLoadingFolders(false);
-    }
-  };
-
-  const fetchFiles = async () => {
-    try {
-      const data = await getFiles();
-      const list = normalizeList(data, 'files').map(normalizeFile);
-      setLocalFiles(list);
-      const usedGB = computeUsedGB(list);
-      if (usedGB > 0) setStorageData((p) => ({ ...p, used: usedGB }));
-    } catch {
-      // non-critical for sidebar
-    }
-  };
-
-  const fetchProfile = async () => {
-    try {
-      const { data } = await getProfile();
-      setProfile(data.user || data);
-    } catch {
-      // non-critical for sidebar
-    }
-  };
-
   const handleDeleteFolder = async (e, folderId) => {
     e.stopPropagation();
     if (!window.confirm('Delete this folder?')) return;
     setDeletingFolderId(folderId);
-    try {
-      await deleteFolder(folderId);
-      if (!syncFolders) {
-        setLocalFolders((p) => p.filter((f) => (f._id || f.id) !== folderId));
-      }
+    const result = await dispatch(deleteExistingFolder(folderId));
+    if (deleteExistingFolder.fulfilled.match(result)) {
       onFolderDeleted?.(folderId);
       if (activeTab === `folder-${folderId}`) setActiveTab('my-drive');
       toast('success', 'Folder deleted');
-    } catch {
-      toast('error', 'Failed to delete folder');
-    } finally {
-      setDeletingFolderId(null);
+    } else {
+      toast('error', result.payload || 'Failed to delete folder');
     }
+    setDeletingFolderId(null);
   };
 
   const handleLogout = async () => {
-    await clearAuth();
+    await dispatch(logoutUser());
+    window.location.href = '/login';
   };
 
   const sidebarBody = (
@@ -217,14 +185,6 @@ const Sidebar = ({
           <SidebarMore activeTab={activeTab} setActiveTab={setActiveTab} />
         )}
       </div>
-
-      {/* {expanded && (
-        <SidebarProfile
-          profile={profile}
-          onEditProfile={() => setShowProfile(true)}
-          onLogout={handleLogout}
-        />
-      )} */}
     </div>
   );
 
@@ -234,7 +194,6 @@ const Sidebar = ({
         <NewFolderModal
           onClose={() => setShowNewFolder(false)}
           onCreated={(f) => {
-            if (!syncFolders) setLocalFolders((p) => [...p, f]);
             onFolderCreated?.(f);
           }}
           toast={toast}
@@ -249,8 +208,6 @@ const Sidebar = ({
             if (onFileUploaded) {
               onFileUploaded(file);
               onFilesChanged?.();
-            } else {
-              setLocalFiles((p) => [file, ...p]);
             }
           }}
           toast={toast}
@@ -260,7 +217,7 @@ const Sidebar = ({
         <ProfileModal
           profile={profile}
           onClose={() => setShowProfile(false)}
-          onUpdated={(p) => setProfile(p)}
+          onUpdated={() => {}}
           toast={toast}
         />
       )}

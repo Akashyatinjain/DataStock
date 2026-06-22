@@ -1,4 +1,4 @@
-import { findUserById } from "./user.repository.js";
+import prisma from "../../config/db.js";
 import {
   updateUserProfileImage as updateUserProfileImageRepo,
   deleteUserProfileImage as deleteUserProfileImageRepo,
@@ -67,4 +67,38 @@ export const updateUser = async (
     userId,
     username
   );
+};
+
+// ======================
+// GET STORAGE ACTIVITY
+// ======================
+
+export const getStorageActivity = async (userId) => {
+  // Fetch basic user storage info
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Calculate active storage used from non‑trash files
+  const activeFiles = await prisma.file.findMany({
+    where: { ownerId: userId, isTrash: false },
+    select: { size: true },
+  });
+  const activeUsed = activeFiles.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
+
+  // Calculate trash storage used
+  const trashFiles = await prisma.file.findMany({
+    where: { ownerId: userId, isTrash: true },
+    select: { size: true },
+  });
+  const trashUsed = trashFiles.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
+
+  return {
+    storageUsed: Number(user.storageUsed),
+    storageLimit: Number(user.storageLimit),
+    activeUsed,
+    trashUsed,
+    subscriptionPlan: user.subscriptionPlan,
+  };
 };

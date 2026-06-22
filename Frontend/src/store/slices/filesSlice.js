@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getStorageActivity } from '../../api/user.api';
 import {
   getFiles,
   getAllFiles,
@@ -11,6 +12,15 @@ import {
   emptyTrash,
 } from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
+
+export const fetchStorageActivity = createAsyncThunk('files/fetchStorageActivity', async (_, thunkAPI) => {
+  try {
+    const data = await getStorageActivity();
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load storage activity');
+  }
+});
 
 export const fetchFiles = createAsyncThunk('files/fetchFiles', async (folderId = null, thunkAPI) => {
   try {
@@ -221,7 +231,9 @@ const filesSlice = createSlice({
     files: [],
     allFiles: [],
     trashFiles: [],
-    analytics: null,
+    storageActivity: null,
+    activityLoading: false,
+
     loading: false,
     trashLoading: false,
     analyticsLoading: false,
@@ -375,21 +387,34 @@ const filesSlice = createSlice({
         state.emptyingTrash = false;
         state.error = action.payload;
       })
-      // fetchStorageAnalytics
-      .addCase(fetchStorageAnalytics.pending, (state) => {
-        state.analyticsLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchStorageAnalytics.fulfilled, (state, action) => {
-        state.analyticsLoading = false;
-        state.analytics = action.payload.analytics;
-        state.allFiles = action.payload.files;
-        state.trashFiles = action.payload.trashFiles;
-      })
-      .addCase(fetchStorageAnalytics.rejected, (state, action) => {
-        state.analyticsLoading = false;
-        state.error = action.payload;
-      });
+        // fetchStorageActivity
+        .addCase(fetchStorageActivity.pending, (state) => {
+          state.activityLoading = true;
+          state.error = null;
+        })
+        .addCase(fetchStorageActivity.fulfilled, (state, action) => {
+          state.activityLoading = false;
+          state.storageActivity = action.payload;
+        })
+        .addCase(fetchStorageActivity.rejected, (state, action) => {
+          state.activityLoading = false;
+          state.error = action.payload;
+        })
+        // fetchStorageAnalytics
+        .addCase(fetchStorageAnalytics.pending, (state) => {
+          state.analyticsLoading = true;
+          state.error = null;
+        })
+        .addCase(fetchStorageAnalytics.fulfilled, (state, action) => {
+          state.analyticsLoading = false;
+          state.analytics = action.payload.analytics;
+          state.allFiles = action.payload.files;
+          state.trashFiles = action.payload.trashFiles;
+        })
+        .addCase(fetchStorageAnalytics.rejected, (state, action) => {
+          state.analyticsLoading = false;
+          state.error = action.payload;
+        });
   },
 });
 

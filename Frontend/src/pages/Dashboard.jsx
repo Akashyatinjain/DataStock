@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Folder,
@@ -24,6 +25,9 @@ import {
   Star,
   Share2,
   RotateCcw,
+  BarChart2,
+  TrendingUp,
+  PieChart,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -57,6 +61,7 @@ import {
   moveFileToTrash,
   restoreFileFromTrash,
   emptyAllTrash,
+  fetchStorageAnalytics,
 } from '../store/slices/filesSlice';
 import {
   fetchFolders,
@@ -115,6 +120,324 @@ const getFileType = (mimeType) => {
   if (mimeType?.includes('pdf'))   return FILE_TYPES.pdf;
   if (mimeType?.includes('zip'))   return FILE_TYPES.zip;
   return FILE_TYPES.default;
+};
+
+const ANALYTICS_CATEGORIES = [
+  {
+    key: 'images',
+    label: 'Images',
+    icon: ImageIcon,
+    text: 'text-sky-600 dark:text-sky-400',
+    bg: 'bg-sky-50 dark:bg-sky-950/30',
+    bar: 'bg-sky-500',
+  },
+  {
+    key: 'videos',
+    label: 'Videos',
+    icon: Video,
+    text: 'text-violet-600 dark:text-violet-400',
+    bg: 'bg-violet-50 dark:bg-violet-950/30',
+    bar: 'bg-violet-500',
+  },
+  {
+    key: 'documents',
+    label: 'Documents',
+    icon: FileText,
+    text: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-50 dark:bg-rose-950/30',
+    bar: 'bg-rose-500',
+  },
+  {
+    key: 'archives',
+    label: 'Archives',
+    icon: Archive,
+    text: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-50 dark:bg-amber-950/30',
+    bar: 'bg-amber-500',
+  },
+  {
+    key: 'others',
+    label: 'Others',
+    icon: Folder,
+    text: 'text-slate-600 dark:text-slate-400',
+    bg: 'bg-slate-50 dark:bg-slate-900',
+    bar: 'bg-slate-500',
+  },
+];
+
+const getPercent = (value, total) => {
+  const safeValue = Number(value) || 0;
+  const safeTotal = Number(total) || 0;
+  if (safeTotal <= 0) return 0;
+  return Math.min((safeValue / safeTotal) * 100, 100);
+};
+
+const StorageAnalyticsView = ({
+  analytics,
+  analyticsLoading,
+  analyticsCategories,
+  analyticsUsed,
+  analyticsLimit,
+  analyticsPercent,
+  analyticsRemaining,
+  analyticsActiveSize,
+  analyticsFileCount,
+  analyticsTrash,
+  uploadTrend,
+  uploadTrendMax,
+  weeklyUploadCount,
+  weeklyUploadSize,
+  largestCategory,
+  storageStatus,
+  onEmptyTrash,
+  onUpgrade,
+}) => {
+  if (analyticsLoading) {
+    return (
+      <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+          <Loader2 className="w-10 h-10 animate-spin text-green-500" />
+          <p className="text-sm text-gray-400 font-medium">Loading storage analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
+        <div className="text-center py-20 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Failed to load analytics</h3>
+          <p className="text-sm text-gray-400 mt-1">Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
+      <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div
+              className="w-40 h-40 rounded-full mx-auto lg:mx-0 shrink-0 p-3"
+              style={{
+                background: `conic-gradient(${analyticsPercent >= 85 ? '#ef4444' : '#16a34a'} ${analyticsPercent * 3.6}deg, ${analyticsPercent >= 85 ? '#fee2e2' : '#dcfce7'} 0deg)`,
+              }}
+            >
+              <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border border-white/80 dark:border-gray-800 flex flex-col items-center justify-center shadow-inner">
+                <span className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tabular-nums">
+                  {analyticsPercent.toFixed(0)}%
+                </span>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Used</span>
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400">
+                  <HardDrive className="w-3.5 h-3.5" />
+                  {analytics.subscriptionPlan || 'BASIC'} Plan
+                </span>
+                <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  analyticsPercent >= 90
+                    ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400'
+                    : analyticsPercent >= 75
+                      ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400'
+                      : 'bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400'
+                }`}>
+                  {storageStatus}
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">
+                Storage Analytics
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {formatFileSize(analyticsUsed)} used of {formatFileSize(analyticsLimit)} across {analyticsFileCount} active files.
+              </p>
+
+              <div className="mt-6">
+                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${analyticsPercent}%`,
+                      background: analyticsPercent >= 85
+                        ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
+                        : 'linear-gradient(90deg, #0ea5e9, #22c55e)',
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2 text-xs text-gray-400">
+                  <span>{formatFileSize(analyticsUsed)}</span>
+                  <span className="font-semibold text-gray-600 dark:text-gray-300">{analyticsPercent.toFixed(1)}%</span>
+                  <span>{formatFileSize(analyticsLimit)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+            <div className="w-10 h-10 bg-sky-50 dark:bg-sky-950/30 rounded-xl flex items-center justify-center mb-5">
+              <PieChart className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Largest Type</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{largestCategory?.label || 'Files'}</p>
+            <p className="text-xs text-gray-400 mt-1">{formatFileSize(largestCategory?.size || 0)}</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl flex items-center justify-center mb-5">
+              <HardDrive className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Remaining</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{formatFileSize(analyticsRemaining)}</p>
+            <p className="text-xs text-gray-400 mt-1">Available now</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+            <div className="w-10 h-10 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center mb-5">
+              <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Trash</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{formatFileSize(analyticsTrash.size)}</p>
+            <p className="text-xs text-gray-400 mt-1">{analyticsTrash.count} files</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+            <div className="w-10 h-10 bg-violet-50 dark:bg-violet-950/30 rounded-xl flex items-center justify-center mb-5">
+              <TrendingUp className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">7 Days</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{weeklyUploadCount}</p>
+            <p className="text-xs text-gray-400 mt-1">{formatFileSize(weeklyUploadSize)} uploaded</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">Storage Mix</h3>
+              <p className="text-xs text-gray-400 mt-1">{formatFileSize(analyticsActiveSize)} active storage</p>
+            </div>
+            <BarChart2 className="w-5 h-5 text-gray-400" />
+          </div>
+
+          <div className="flex h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 mb-6">
+            {analyticsCategories.map((category) => {
+              const width = getPercent(category.size, analyticsActiveSize);
+              return (
+                <div
+                  key={category.key}
+                  className={`${category.bar} transition-all duration-700`}
+                  style={{ width: `${width}%` }}
+                  title={`${category.label}: ${formatFileSize(category.size)}`}
+                />
+              );
+            })}
+          </div>
+
+          <div className="space-y-4">
+            {analyticsCategories.map((category) => {
+              const Icon = category.icon;
+              const percent = getPercent(category.size, analyticsActiveSize);
+              return (
+                <div key={category.key} className="flex items-center gap-4">
+                  <div className={`w-10 h-10 ${category.bg} rounded-xl flex items-center justify-center shrink-0`}>
+                    <Icon className={`w-5 h-5 ${category.text}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{category.label}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100 tabular-nums">{formatFileSize(category.size)}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 flex-1 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                        <div className={`h-full rounded-full ${category.bar}`} style={{ width: `${percent}%` }} />
+                      </div>
+                      <span className="w-12 text-right text-xs text-gray-400 tabular-nums">{percent.toFixed(0)}%</span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400 w-14 text-right">{category.count} files</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">Upload Activity</h3>
+              <p className="text-xs text-gray-400 mt-1">Last 7 days by count and size</p>
+            </div>
+            <button
+              type="button"
+              onClick={onUpgrade}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
+            >
+              <Upload className="w-4 h-4" />
+              Upgrade Storage
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-end gap-3 min-h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
+            {uploadTrend.map((day) => {
+              const count = Number(day.count) || 0;
+              const size = Number(day.size) || 0;
+              const heightPct = Math.min((count / uploadTrendMax) * 100, 100);
+              return (
+                <div key={day.date} className="flex-1 flex flex-col items-center group relative gap-2">
+                  <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none whitespace-nowrap shadow-xl z-10 flex flex-col gap-0.5 items-center">
+                    <span className="font-bold">{count} uploads</span>
+                    <span className="text-gray-400">{formatFileSize(size)}</span>
+                  </div>
+                  <div
+                    className="w-full max-w-12 rounded-t-xl bg-green-100 dark:bg-green-950/40 group-hover:bg-green-500 transition-all duration-300 relative overflow-hidden flex items-end"
+                    style={{ height: `${Math.max(heightPct, count > 0 ? 12 : 4)}%` }}
+                  >
+                    {count > 0 && <div className="w-full h-1.5 bg-green-600 rounded-t-xl" />}
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-400 truncate w-full text-center">{day.date}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">Trash Storage</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {formatFileSize(analyticsTrash.size)} in {analyticsTrash.count} trashed files.
+              </p>
+            </div>
+            {analyticsTrash.count > 0 ? (
+              <button
+                type="button"
+                onClick={onEmptyTrash}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-bold transition"
+              >
+                <Trash2 className="w-4 h-4" />
+                Empty Trash
+              </button>
+            ) : (
+              <span className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-400">
+                Trash Empty
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 };
 
 const formatFileSize = (bytes) => {
@@ -381,6 +704,7 @@ const UploadButton = ({ uploading, onChange }) => (
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // State from Redux
   const user = useSelector((state) => state.auth.user);
@@ -394,6 +718,8 @@ const Dashboard = () => {
   const starringId = useSelector((state) => state.files.starringId);
   const restoringId = useSelector((state) => state.files.restoringId);
   const emptyingTrash = useSelector((state) => state.files.emptyingTrash);
+  const analytics = useSelector((state) => state.files.analytics);
+  const analyticsLoading = useSelector((state) => state.files.analyticsLoading);
 
   const folders = useSelector((state) => state.folders.folders);
   const foldersLoading = useSelector((state) => state.folders.loading);
@@ -519,6 +845,12 @@ const Dashboard = () => {
     }
   }, [activeTab, dispatch]);
 
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      dispatch(fetchStorageAnalytics());
+    }
+  }, [activeTab, dispatch]);
+
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
@@ -550,6 +882,58 @@ const Dashboard = () => {
   const totalGB = totalStorage / (1024 * 1024 * 1024);
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
   const totalFileCount = allFiles.length;
+
+  const analyticsCategories = useMemo(() => {
+    const categories = analytics?.categories || {};
+
+    return ANALYTICS_CATEGORIES.map((category) => {
+      const data = categories[category.key] || {};
+      return {
+        ...category,
+        size: Number(data.size) || 0,
+        count: Number(data.count) || 0,
+      };
+    });
+  }, [analytics]);
+
+  const analyticsUsed = Number(analytics?.storageUsed) || 0;
+  const analyticsLimit = Number(analytics?.storageLimit) || 0;
+  const analyticsPercent = getPercent(analyticsUsed, analyticsLimit);
+  const analyticsRemaining = Math.max(analyticsLimit - analyticsUsed, 0);
+  const analyticsActiveSize = analyticsCategories.reduce(
+    (total, category) => total + category.size,
+    0
+  );
+  const analyticsFileCount = analyticsCategories.reduce(
+    (total, category) => total + category.count,
+    0
+  );
+  const analyticsTrash = {
+    size: Number(analytics?.trash?.size) || 0,
+    count: Number(analytics?.trash?.count) || 0,
+  };
+  const uploadTrend = Array.isArray(analytics?.uploadTrend)
+    ? analytics.uploadTrend
+    : [];
+  const uploadTrendMax = Math.max(...uploadTrend.map((day) => Number(day.count) || 0), 1);
+  const weeklyUploadCount = uploadTrend.reduce(
+    (total, day) => total + (Number(day.count) || 0),
+    0
+  );
+  const weeklyUploadSize = uploadTrend.reduce(
+    (total, day) => total + (Number(day.size) || 0),
+    0
+  );
+  const largestCategory = analyticsCategories.reduce(
+    (largest, category) => (category.size > largest.size ? category : largest),
+    analyticsCategories[0]
+  );
+  const storageStatus =
+    analyticsPercent >= 90
+      ? 'Critical'
+      : analyticsPercent >= 75
+        ? 'Needs attention'
+        : 'Healthy';
 
   // ── CURRENT VIEW SELECTION ──
   const displayFiles = useMemo(() => {
@@ -612,6 +996,7 @@ const Dashboard = () => {
     if (activeTab === 'trash') return { pageTitle: 'Trash', pageSubtitle: 'Files you\'ve deleted — restore or permanently remove them' };
     if (activeTab === 'archive') return { pageTitle: 'Archive', pageSubtitle: 'Archived files' };
     if (activeTab === 'notifications') return { pageTitle: 'Notifications', pageSubtitle: 'Latest system and file activities' };
+    if (activeTab === 'analytics') return { pageTitle: 'Storage Analytics', pageSubtitle: 'Visualize and inspect your workspace storage' };
     return { pageTitle: 'My Drive', pageSubtitle: 'Files not in any folder' };
   }, [activeTab, selectedFolder]);
 
@@ -872,7 +1257,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {activeTab !== 'notifications' && (
+              {activeTab !== 'notifications' && activeTab !== 'analytics' && (
                 <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
                   {/* Empty Trash button */}
                   {isTrashView && trashFiles.length > 0 && (
@@ -912,7 +1297,7 @@ const Dashboard = () => {
             </div>
 
             {/* ── STATS ROW ── */}
-            {activeTab !== 'notifications' && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 
                 {/* Storage card */}
@@ -964,7 +1349,7 @@ const Dashboard = () => {
             )}
 
             {/* ── SECTION HEADER ── */}
-            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                   {searchQuery
@@ -976,7 +1361,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LOADING ── */}
-            {activeTab !== 'notifications' && (activeTab === 'trash' ? trashLoading : activeTab === 'shared' ? sharedLoading : loading) && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? trashLoading : activeTab === 'shared' ? sharedLoading : loading) && (
               <div className="flex flex-col items-center justify-center py-32 gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center">
@@ -990,7 +1375,7 @@ const Dashboard = () => {
             )}
 
             {/* ── EMPTY STATE ── */}
-            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
               <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-gray-700">
                   {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-gray-600" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />}
@@ -1014,7 +1399,7 @@ const Dashboard = () => {
             )}
 
             {/* ── GRID VIEW ── */}
-            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
                 {filteredFiles.map(file => (
                   <FileCard
@@ -1035,7 +1420,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LIST VIEW ── */}
-            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
@@ -1155,6 +1540,31 @@ const Dashboard = () => {
               </div>
             )}
 
+            {/* ── STORAGE ANALYTICS VIEW ── */}
+            {activeTab === 'analytics' && (
+              <StorageAnalyticsView
+                analytics={analytics}
+                analyticsLoading={analyticsLoading}
+                analyticsCategories={analyticsCategories}
+                analyticsUsed={analyticsUsed}
+                analyticsLimit={analyticsLimit}
+                analyticsPercent={analyticsPercent}
+                analyticsRemaining={analyticsRemaining}
+                analyticsActiveSize={analyticsActiveSize}
+                analyticsFileCount={analyticsFileCount}
+                analyticsTrash={analyticsTrash}
+                uploadTrend={uploadTrend}
+                uploadTrendMax={uploadTrendMax}
+                weeklyUploadCount={weeklyUploadCount}
+                weeklyUploadSize={weeklyUploadSize}
+                largestCategory={largestCategory}
+                storageStatus={storageStatus}
+                onEmptyTrash={handleEmptyTrash}
+                onUpgrade={() => navigate('/pricing')}
+              />
+            )}
+
+
           </div>
       </main>
 
@@ -1185,7 +1595,7 @@ const Dashboard = () => {
         message={confirmConfig.message}
         confirmText={confirmConfig.confirmText}
         type={confirmConfig.type}
-        loading={confirmConfig.loading}
+        loading={confirmConfig.loading}/>
       />
     </div>
   );

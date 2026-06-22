@@ -1,10 +1,10 @@
 import prisma from "../../config/db.js";
 import {
+  findUserById,
   updateUserProfileImage as updateUserProfileImageRepo,
   deleteUserProfileImage as deleteUserProfileImageRepo,
+  updateUserById,
 } from "./user.repository.js";
-
-import { updateUserById } from "./user.repository.js";
 
 // ======================
 // GET USER PROFILE
@@ -101,4 +101,13 @@ export const getStorageActivity = async (userId) => {
     trashUsed,
     subscriptionPlan: user.subscriptionPlan,
   };
+};
+
+export const deleteUser = async (userId) => {
+  if (!userId) {
+    throw new Error("UserId is required");
+  }
+  return await prisma.user.delete({
+    where: { id: userId },
+  });
 };

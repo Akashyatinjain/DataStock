@@ -62,6 +62,7 @@ import {
   restoreFileFromTrash,
   emptyAllTrash,
   fetchStorageAnalytics,
+  fetchStorageActivity,
 } from '../store/slices/filesSlice';
 import {
   fetchFolders,
@@ -191,6 +192,8 @@ const StorageAnalyticsView = ({
   storageStatus,
   onEmptyTrash,
   onUpgrade,
+  storageActivity,
+  activityLoading,
 }) => {
   if (analyticsLoading) {
     return (
@@ -318,6 +321,71 @@ const StorageAnalyticsView = ({
           </div>
         </div>
       </section>
+
+      {/* Real-time Storage Activity Card */}
+      {storageActivity && (
+        <section className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-600 animate-pulse" />
+            Storage Space Activity
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div className="md:col-span-2">
+              <div className="flex justify-between items-center mb-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>Active vs Trash Storage</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                  {((storageActivity.storageUsed / storageActivity.storageLimit) * 100).toFixed(1)}% Limit Used
+                </span>
+              </div>
+              
+              {/* Stacked Progress Bar */}
+              <div className="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-1000"
+                  style={{ width: `${(storageActivity.activeUsed / storageActivity.storageLimit) * 100}%` }}
+                  title={`Active Files: ${formatFileSize(storageActivity.activeUsed)}`}
+                />
+                <div 
+                  className="h-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000"
+                  style={{ width: `${(storageActivity.trashUsed / storageActivity.storageLimit) * 100}%` }}
+                  title={`Trash Files: ${formatFileSize(storageActivity.trashUsed)}`}
+                />
+              </div>
+              
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-400">
+                <span>0 B</span>
+                <div className="flex gap-4">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block shadow-sm"></span>
+                    Active ({((storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block shadow-sm"></span>
+                    Trash ({((storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                  </span>
+                </div>
+                <span>{formatFileSize(storageActivity.storageLimit)}</span>
+              </div>
+            </div>
+            
+            <div className="border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 pt-4 md:pt-0 md:pl-6 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Active Files Size:</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatFileSize(storageActivity.activeUsed)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Trash Size:</span>
+                <span className="font-semibold text-red-600 dark:text-red-400">{formatFileSize(storageActivity.trashUsed)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Total Database Used:</span>
+                <span className="font-bold text-gray-900 dark:text-gray-100">{formatFileSize(storageActivity.storageUsed)}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
@@ -720,6 +788,8 @@ const Dashboard = () => {
   const emptyingTrash = useSelector((state) => state.files.emptyingTrash);
   const analytics = useSelector((state) => state.files.analytics);
   const analyticsLoading = useSelector((state) => state.files.analyticsLoading);
+  const storageActivity = useSelector((state) => state.files.storageActivity);
+  const activityLoading = useSelector((state) => state.files.activityLoading);
 
   const folders = useSelector((state) => state.folders.folders);
   const foldersLoading = useSelector((state) => state.folders.loading);
@@ -791,12 +861,14 @@ const Dashboard = () => {
   const refreshAllFiles = useCallback(() => {
     dispatch(fetchAllFiles());
     dispatch(fetchProfile());
+    dispatch(fetchStorageActivity());
   }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchFolders());
     dispatch(fetchProfile());
     dispatch(fetchAllFiles());
+    dispatch(fetchStorageActivity());
   }, [dispatch]);
 
   const reloadProfile = useCallback(() => {
@@ -848,6 +920,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (activeTab === 'analytics') {
       dispatch(fetchStorageAnalytics());
+      dispatch(fetchStorageActivity());
     }
   }, [activeTab, dispatch]);
 
@@ -1561,6 +1634,8 @@ const Dashboard = () => {
                 storageStatus={storageStatus}
                 onEmptyTrash={handleEmptyTrash}
                 onUpgrade={() => navigate('/pricing')}
+                storageActivity={storageActivity}
+                activityLoading={activityLoading}
               />
             )}
 

@@ -50,3 +50,23 @@ export const toggleStarFile = async (fileId) => {
   const response = await API.patch(`/files/${fileId}/star`);
   return response.data;
 };
+
+export const moveToTrash = async (fileId) => {
+  const response = await API.patch(`/files/${fileId}/trash`);
+  return response.data;
+};
+
+export const restoreFromTrash = async (fileId) => {
+  const response = await API.patch(`/files/${fileId}/restore`);
+  return response.data;
+};
+
+export const getTrashFiles = async () => {
+  const response = await API.get('/files/trash');
+  return response.data;
+};
+
+export const emptyTrash = async () => {
+  const response = await API.delete('/files/trash');
+  return response.data;
+};

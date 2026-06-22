@@ -1,5 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getFiles, getAllFiles, uploadFile, deleteFile, toggleStarFile } from '../../api/file.api';
+import {
+  getFiles,
+  getAllFiles,
+  uploadFile,
+  deleteFile,
+  toggleStarFile,
+  moveToTrash,
+  restoreFromTrash,
+  getTrashFiles,
+  emptyTrash,
+} from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
 
 export const fetchFiles = createAsyncThunk('files/fetchFiles', async (folderId = null, thunkAPI) => {
@@ -47,15 +57,57 @@ export const toggleStar = createAsyncThunk('files/toggleStar', async (fileId, th
   }
 });
 
+// ── Trash thunks ──
+
+export const fetchTrashFiles = createAsyncThunk('files/fetchTrashFiles', async (_, thunkAPI) => {
+  try {
+    const data = await getTrashFiles();
+    return (data.files || []).map(normalizeFile);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load trash');
+  }
+});
+
+export const moveFileToTrash = createAsyncThunk('files/moveFileToTrash', async (fileId, thunkAPI) => {
+  try {
+    const data = await moveToTrash(fileId);
+    return { fileId, file: normalizeFile(data.file) };
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to move to trash');
+  }
+});
+
+export const restoreFileFromTrash = createAsyncThunk('files/restoreFileFromTrash', async (fileId, thunkAPI) => {
+  try {
+    const data = await restoreFromTrash(fileId);
+    return { fileId, file: normalizeFile(data.file) };
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to restore file');
+  }
+});
+
+export const emptyAllTrash = createAsyncThunk('files/emptyAllTrash', async (_, thunkAPI) => {
+  try {
+    const data = await emptyTrash();
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to empty trash');
+  }
+});
+
 const filesSlice = createSlice({
   name: 'files',
   initialState: {
     files: [],
     allFiles: [],
+    trashFiles: [],
     loading: false,
+    trashLoading: false,
     uploading: false,
     deletingId: null,
     starringId: null,
+    restoringId: null,
+    emptyingTrash: false,
     error: null,
   },
   reducers: {
@@ -110,7 +162,7 @@ const filesSlice = createSlice({
         state.uploading = false;
         state.error = action.payload;
       })
-      // deleteExistingFile
+      // deleteExistingFile (permanent delete)
       .addCase(deleteExistingFile.pending, (state, action) => {
         state.deletingId = action.meta.arg;
         state.error = null;
@@ -120,6 +172,7 @@ const filesSlice = createSlice({
         const fileId = action.payload;
         state.files = state.files.filter(f => f.id !== fileId);
         state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+        state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
       })
       .addCase(deleteExistingFile.rejected, (state, action) => {
         state.deletingId = null;
@@ -138,6 +191,63 @@ const filesSlice = createSlice({
       })
       .addCase(toggleStar.rejected, (state, action) => {
         state.starringId = null;
+        state.error = action.payload;
+      })
+      // ── Trash reducers ──
+      // fetchTrashFiles
+      .addCase(fetchTrashFiles.pending, (state) => {
+        state.trashLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrashFiles.fulfilled, (state, action) => {
+        state.trashLoading = false;
+        state.trashFiles = action.payload;
+      })
+      .addCase(fetchTrashFiles.rejected, (state, action) => {
+        state.trashLoading = false;
+        state.error = action.payload;
+      })
+      // moveFileToTrash
+      .addCase(moveFileToTrash.pending, (state, action) => {
+        state.deletingId = action.meta.arg;
+        state.error = null;
+      })
+      .addCase(moveFileToTrash.fulfilled, (state, action) => {
+        state.deletingId = null;
+        const { fileId } = action.payload;
+        state.files = state.files.filter(f => f.id !== fileId);
+        state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+      })
+      .addCase(moveFileToTrash.rejected, (state, action) => {
+        state.deletingId = null;
+        state.error = action.payload;
+      })
+      // restoreFileFromTrash
+      .addCase(restoreFileFromTrash.pending, (state, action) => {
+        state.restoringId = action.meta.arg;
+        state.error = null;
+      })
+      .addCase(restoreFileFromTrash.fulfilled, (state, action) => {
+        state.restoringId = null;
+        const { fileId, file } = action.payload;
+        state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+        state.allFiles = [file, ...state.allFiles];
+      })
+      .addCase(restoreFileFromTrash.rejected, (state, action) => {
+        state.restoringId = null;
+        state.error = action.payload;
+      })
+      // emptyAllTrash
+      .addCase(emptyAllTrash.pending, (state) => {
+        state.emptyingTrash = true;
+        state.error = null;
+      })
+      .addCase(emptyAllTrash.fulfilled, (state) => {
+        state.emptyingTrash = false;
+        state.trashFiles = [];
+      })
+      .addCase(emptyAllTrash.rejected, (state, action) => {
+        state.emptyingTrash = false;
         state.error = action.payload;
       });
   },

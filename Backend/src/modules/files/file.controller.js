@@ -148,7 +148,7 @@ export const moveToTrash = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const { id } = req.params;
 
-  const result = await fileService.moveToTrash(id, userId);
+  const result = await fileService.moveToTrashService(id, userId);
 
   return res.status(200).json({
     success: true,
@@ -156,11 +156,33 @@ export const moveToTrash = asyncHandler(async (req, res) => {
   });
 });
 
-export const restoreFile = asyncHandler(async (req, res) => {
+export const restoreFromTrash = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const { id } = req.params;
 
-  const result = await fileService.restoreFile(id, userId);
+  const result = await fileService.restoreFromTrashService(id, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const getTrashFiles = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+
+  const files = await fileService.getTrashFilesService(userId);
+
+  return res.status(200).json({
+    success: true,
+    files,
+  });
+});
+
+export const emptyTrash = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+
+  const result = await fileService.emptyTrashService(userId);
 
   return res.status(200).json({
     success: true,

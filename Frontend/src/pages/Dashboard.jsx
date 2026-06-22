@@ -23,6 +23,7 @@ import {
   Check,
   Star,
   Share2,
+  RotateCcw,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -51,6 +52,10 @@ import {
   deleteExistingFile,
   toggleStar,
   addUploadedFile,
+  fetchTrashFiles,
+  moveFileToTrash,
+  restoreFileFromTrash,
+  emptyAllTrash,
 } from '../store/slices/filesSlice';
 import {
   fetchFolders,
@@ -119,10 +124,11 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
-const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
+const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
+  const isRestoring = restoringId === file.id;
   const isStarring = starringId === file.id;
   const isStarred = file.starred || file.isStarred;
 
@@ -131,16 +137,22 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
       className={`
         relative group bg-white dark:bg-gray-900 border rounded-2xl overflow-hidden
         transition-all duration-300 cursor-pointer select-none
-        ${isDeleting
+        ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
           : 'border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-xl hover:-translate-y-1 shadow-sm'}
       `}
-      onClick={() => !isDeleting && onPreview(file)}
+      onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
       {isDeleting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
-          <span className="text-sm font-semibold text-red-500">Deleting…</span>
+          <span className="text-sm font-semibold text-red-500">{isTrashView ? 'Deleting…' : 'Trashing…'}</span>
+        </div>
+      )}
+      {isRestoring && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
+          <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
+          <span className="text-sm font-semibold text-green-500">Restoring…</span>
         </div>
       )}
 
@@ -163,7 +175,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm leading-snug flex-1">
             {file.originalName}
           </h3>
-          {isStarred && (
+          {isStarred && !isTrashView && (
             <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
           )}
         </div>
@@ -173,44 +185,67 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
           <span className="text-[11px] text-gray-400">
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
-<div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
-              disabled={isStarring}
-              className={`p-1.5 rounded-lg transition ${
-                isStarred
-                  ? 'text-yellow-500 hover:bg-yellow-50'
-                  : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
-              }`}
-              title={isStarred ? 'Remove from starred' : 'Add to starred'}
-            >
-              {isStarring ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
-              )}
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onShare(file); }}
-              className="p-1.5 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
-              title="Share"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onPreview(file); }}
-              className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
-              title="Preview"
-            >
-              <Eye className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-              className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
-              title="Delete"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+            {isTrashView ? (
+              <>
+                <button
+                  onClick={e => { e.stopPropagation(); onRestore(file.id); }}
+                  disabled={isRestoring}
+                  className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  title="Restore"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
+                  disabled={isDeleting}
+                  className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  title="Delete Forever"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
+                  disabled={isStarring}
+                  className={`p-1.5 rounded-lg transition ${
+                    isStarred
+                      ? 'text-yellow-500 hover:bg-yellow-50'
+                      : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
+                  }`}
+                  title={isStarred ? 'Remove from starred' : 'Add to starred'}
+                >
+                  {isStarring ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+                  )}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onShare(file); }}
+                  className="p-1.5 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+                  title="Share"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onPreview(file); }}
+                  className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  title="Preview"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
+                  className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -218,10 +253,11 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
   );
 };
 
-const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId }) => {
+const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
+  const isRestoring = restoringId === file.id;
   const isStarring = starringId === file.id;
   const isStarred = file.starred || file.isStarred;
 
@@ -230,9 +266,9 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
       className={`
         grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 dark:border-gray-800
         hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
-        ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
+        ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
       `}
-      onClick={() => !isDeleting && onPreview(file)}
+      onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
       <div className="col-span-6 flex items-center gap-3 min-w-0">
         <div className={`w-10 h-10 ${type.bg} rounded-xl flex items-center justify-center shrink-0`}>
@@ -241,7 +277,7 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
             <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{file.originalName}</p>
-            {isStarred && (
+            {isStarred && !isTrashView && (
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
             )}
           </div>
@@ -258,43 +294,66 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
       <div className="col-span-1 flex justify-end gap-1">
         {isDeleting ? (
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
+        ) : isRestoring ? (
+          <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
         ) : (
           <>
-            <button
-              onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
-              disabled={isStarring}
-              className={`p-1.5 opacity-0 group-hover:opacity-100 rounded-lg transition ${
-                isStarred
-                  ? 'text-yellow-500 hover:bg-yellow-50 opacity-100'
-                  : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
-              }`}
-              title={isStarred ? 'Remove from starred' : 'Add to starred'}
-            >
-              {isStarring ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
-              )}
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onShare(file); }}
-              className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
-              title="Share"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onPreview(file); }}
-              className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-              className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {isTrashView ? (
+              <>
+                <button
+                  onClick={e => { e.stopPropagation(); onRestore(file.id); }}
+                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  title="Restore"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
+                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  title="Delete Forever"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
+                  disabled={isStarring}
+                  className={`p-1.5 opacity-0 group-hover:opacity-100 rounded-lg transition ${
+                    isStarred
+                      ? 'text-yellow-500 hover:bg-yellow-50 opacity-100'
+                      : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
+                  }`}
+                  title={isStarred ? 'Remove from starred' : 'Add to starred'}
+                >
+                  {isStarring ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
+                  )}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onShare(file); }}
+                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+                  title="Share"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onPreview(file); }}
+                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
+                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
@@ -326,10 +385,14 @@ const Dashboard = () => {
   const user = useSelector((state) => state.auth.user);
   const files = useSelector((state) => state.files.files);
   const allFiles = useSelector((state) => state.files.allFiles);
+  const trashFiles = useSelector((state) => state.files.trashFiles);
   const loading = useSelector((state) => state.files.loading);
+  const trashLoading = useSelector((state) => state.files.trashLoading);
   const uploading = useSelector((state) => state.files.uploading);
   const deletingId = useSelector((state) => state.files.deletingId);
   const starringId = useSelector((state) => state.files.starringId);
+  const restoringId = useSelector((state) => state.files.restoringId);
+  const emptyingTrash = useSelector((state) => state.files.emptyingTrash);
 
   const folders = useSelector((state) => state.folders.folders);
   const foldersLoading = useSelector((state) => state.folders.loading);
@@ -438,6 +501,12 @@ const Dashboard = () => {
     }
   }, [activeTab, dispatch]);
 
+  useEffect(() => {
+    if (activeTab === 'trash') {
+      dispatch(fetchTrashFiles());
+    }
+  }, [activeTab, dispatch]);
+
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
@@ -502,7 +571,7 @@ const Dashboard = () => {
     }
 
     if (activeTab === 'trash') {
-      return allFiles.filter(f => f.trashed || f.isTrashed);
+      return trashFiles;
     }
 
     if (activeTab === 'archive') {
@@ -510,7 +579,7 @@ const Dashboard = () => {
     }
 
     return files;
-  }, [activeTab, files, allFiles, sharedWithMe]);
+  }, [activeTab, files, allFiles, sharedWithMe, trashFiles]);
 
   const { pageTitle, pageSubtitle } = useMemo(() => {
     if (selectedFolder) {
@@ -528,7 +597,7 @@ const Dashboard = () => {
     if (activeTab === 'recent') return { pageTitle: 'Recent', pageSubtitle: 'Recently accessed and uploaded files' };
     if (activeTab === 'starred') return { pageTitle: 'Starred', pageSubtitle: 'Files you have starred' };
     if (activeTab === 'shared') return { pageTitle: 'Shared', pageSubtitle: 'Files shared with you' };
-    if (activeTab === 'trash') return { pageTitle: 'Trash', pageSubtitle: 'Deleted files' };
+    if (activeTab === 'trash') return { pageTitle: 'Trash', pageSubtitle: 'Files you\'ve deleted — restore or permanently remove them' };
     if (activeTab === 'archive') return { pageTitle: 'Archive', pageSubtitle: 'Archived files' };
     if (activeTab === 'notifications') return { pageTitle: 'Notifications', pageSubtitle: 'Latest system and file activities' };
     return { pageTitle: 'My Drive', pageSubtitle: 'Files not in any folder' };
@@ -604,15 +673,74 @@ const Dashboard = () => {
   const handleDelete = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
     try {
-      addToast(`Deleting "${file?.originalName}"…`, 'info');
-      await dispatch(deleteExistingFile(fileId));
-      addToast(`"${file?.originalName}" was deleted.`, 'success');
-      dispatch(fetchProfile());
+      addToast(`Moving "${file?.originalName}" to trash…`, 'info');
+      const resultAction = await dispatch(moveFileToTrash(fileId));
+      if (moveFileToTrash.fulfilled.match(resultAction)) {
+        addToast(`"${file?.originalName}" moved to trash.`, 'success');
+        refreshAllFiles();
+      } else {
+        addToast(resultAction.payload || 'Failed to move to trash.', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to move to trash. Please try again.', 'error');
+    }
+  };
+
+  const handleRestore = async (fileId) => {
+    const file = trashFiles.find(f => f.id === fileId);
+    try {
+      addToast(`Restoring "${file?.originalName}"…`, 'info');
+      const resultAction = await dispatch(restoreFileFromTrash(fileId));
+      if (restoreFileFromTrash.fulfilled.match(resultAction)) {
+        addToast(`"${file?.originalName}" restored successfully!`, 'success');
+        refreshAllFiles();
+      } else {
+        addToast(resultAction.payload || 'Restore failed.', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Restore failed. Please try again.', 'error');
+    }
+  };
+
+  const handleDeleteForever = async (fileId) => {
+    const file = trashFiles.find(f => f.id === fileId);
+    if (!window.confirm(`Permanently delete "${file?.originalName}"? This cannot be undone.`)) return;
+    try {
+      addToast(`Permanently deleting "${file?.originalName}"…`, 'info');
+      const resultAction = await dispatch(deleteExistingFile(fileId));
+      if (deleteExistingFile.fulfilled.match(resultAction)) {
+        addToast(`"${file?.originalName}" permanently deleted.`, 'success');
+        dispatch(fetchProfile());
+      } else {
+        addToast(resultAction.payload || 'Delete failed.', 'error');
+      }
     } catch (error) {
       console.log(error);
       addToast('Delete failed. Please try again.', 'error');
     }
   };
+
+  const handleEmptyTrash = async () => {
+    if (!window.confirm('Permanently delete all files in trash? This cannot be undone.')) return;
+    try {
+      addToast('Emptying trash…', 'info');
+      const resultAction = await dispatch(emptyAllTrash());
+      if (emptyAllTrash.fulfilled.match(resultAction)) {
+        addToast('Trash emptied successfully!', 'success');
+        dispatch(fetchProfile());
+        refreshAllFiles();
+      } else {
+        addToast(resultAction.payload || 'Failed to empty trash.', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to empty trash. Please try again.', 'error');
+    }
+  };
+
+  const isTrashView = activeTab === 'trash';
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">
@@ -712,6 +840,20 @@ const Dashboard = () => {
 
               {activeTab !== 'notifications' && (
                 <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
+                  {/* Empty Trash button */}
+                  {isTrashView && trashFiles.length > 0 && (
+                    <button
+                      onClick={handleEmptyTrash}
+                      disabled={emptyingTrash}
+                      className="px-4 py-2.5 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm bg-red-600 hover:bg-red-700 text-white hover:shadow-md active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {emptyingTrash
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Emptying…</>
+                        : <><Trash2 className="w-4 h-4" /> Empty Trash</>
+                      }
+                    </button>
+                  )}
+
                   {/* View toggle */}
                   <div className="flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-1 shadow-sm">
                     <button
@@ -730,7 +872,7 @@ const Dashboard = () => {
                     </button>
                   </div>
 
-                  <UploadButton uploading={uploading} onChange={handleUpload} />
+                  {!isTrashView && <UploadButton uploading={uploading} onChange={handleUpload} />}
                 </div>
               )}
             </div>
@@ -788,7 +930,7 @@ const Dashboard = () => {
             )}
 
             {/* ── SECTION HEADER ── */}
-            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
+            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
                   {searchQuery
@@ -800,7 +942,7 @@ const Dashboard = () => {
             )}
 
             {/* ── LOADING ── */}
-            {activeTab !== 'notifications' && (activeTab === 'shared' ? sharedLoading : loading) && (
+            {activeTab !== 'notifications' && (activeTab === 'trash' ? trashLoading : activeTab === 'shared' ? sharedLoading : loading) && (
               <div className="flex flex-col items-center justify-center py-32 gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center">
@@ -808,16 +950,16 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-sm text-gray-400 font-medium">
-                  {activeTab === 'shared' ? 'Loading shared files…' : 'Loading your files…'}
+                  {activeTab === 'trash' ? 'Loading trash…' : activeTab === 'shared' ? 'Loading shared files…' : 'Loading your files…'}
                 </p>
               </div>
             )}
 
             {/* ── EMPTY STATE ── */}
-            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
+            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
               <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-gray-700">
-                  <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+                  {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-gray-600" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />}
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   {emptyState.title}
@@ -838,25 +980,28 @@ const Dashboard = () => {
             )}
 
             {/* ── GRID VIEW ── */}
-            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
+            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
                 {filteredFiles.map(file => (
                   <FileCard
                     key={file.id}
                     file={file}
-                    onDelete={handleDelete}
+                    onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
                     onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
+                    isTrashView={isTrashView}
+                    onRestore={handleRestore}
+                    restoringId={restoringId}
                   />
                 ))}
               </div>
             )}
 
             {/* ── LIST VIEW ── */}
-            {activeTab !== 'notifications' && (activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
+            {activeTab !== 'notifications' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
@@ -868,12 +1013,15 @@ const Dashboard = () => {
                   <FileRow
                     key={file.id}
                     file={file}
-                    onDelete={handleDelete}
+                    onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
                     onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
+                    isTrashView={isTrashView}
+                    onRestore={handleRestore}
+                    restoringId={restoringId}
                   />
                 ))}
               </div>

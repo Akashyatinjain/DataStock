@@ -210,26 +210,107 @@ export const toggleStarFileService = async (fileId, userId) => {
   };
 };
 
- export const moveToTrash = async (fileId, userId) => {
-  return prisma.file.update({
-    where: {
-      id: fileId,
-      ownerId: userId
-    },
-    data: {
-      isTrash: true
-    }
-  });
+export const moveToTrashService = async (fileId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to trash this file");
+  }
+
+  if (file.isTrash) {
+    throw new Error("File is already in trash");
+  }
+
+  const trashedFile = await fileRepo.moveFileToTrash(fileId);
+
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" moved to trash`
+  );
+
+  return {
+    file: trashedFile,
+    message: "File moved to trash",
+  };
 };
 
-export const restoreFile = async (fileId, userId) => {
-  return prisma.file.update({
-    where: {
-      id: fileId,
-      ownerId: userId
-    },
-    data: {
-      isTrash: false
-    }
-  });
+export const restoreFromTrashService = async (fileId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw new Error("File not found");
+  }
+
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to restore this file");
+  }
+
+  if (!file.isTrash) {
+    throw new Error("File is not in trash");
+  }
+
+  const restoredFile = await fileRepo.restoreFileFromTrash(fileId);
+
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" restored from trash`
+  );
+
+  return {
+    file: restoredFile,
+    message: "File restored from trash",
+  };
+};
+
+export const getTrashFilesService = async (userId) => {
+  return fileRepo.getTrashFilesByUserId(userId);
+};
+
+export const emptyTrashService = async (userId) => {
+  const trashedFiles = await fileRepo.getTrashFilesByUserId(userId);
+
+  if (trashedFiles.length === 0) {
+    return { message: "Trash is already empty", deletedCount: 0 };
+  }
+
+  let totalSizeFreed = 0;
+
+  for (const file of trashedFiles) {
+    // delete from cloudinary
+    await deleteFromCloudinary(
+      file.publicId,
+      file.mimeType.startsWith("video") ? "video" : "image"
+    );
+
+    // delete from db
+    await fileRepo.deleteFileById(file.id);
+
+    totalSizeFreed += file.size;
+  }
+
+  // decrease storage used
+  if (totalSizeFreed > 0) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        storageUsed: {
+          decrement: totalSizeFreed,
+        },
+      },
+    });
+  }
+
+  await createNotificationService(
+    userId,
+    `Trash emptied — ${trashedFiles.length} file(s) permanently deleted`
+  );
+
+  return {
+    message: "Trash emptied successfully",
+    deletedCount: trashedFiles.length,
+  };
 };

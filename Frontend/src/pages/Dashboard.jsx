@@ -30,6 +30,7 @@ import Header from '../components/dashboard/layout/Header';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
+import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {
@@ -420,6 +421,17 @@ const Dashboard = () => {
     setIsShareOpen(true);
   }, []);
 
+  // Confirm modal state
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    type: 'danger',
+    onConfirm: null,
+    loading: false,
+  });
+
   const [viewMode, setViewMode] = useState('grid');
 
   // Toast state
@@ -704,40 +716,62 @@ const Dashboard = () => {
     }
   };
 
-  const handleDeleteForever = async (fileId) => {
+  const handleDeleteForever = (fileId) => {
     const file = trashFiles.find(f => f.id === fileId);
-    if (!window.confirm(`Permanently delete "${file?.originalName}"? This cannot be undone.`)) return;
-    try {
-      addToast(`Permanently deleting "${file?.originalName}"…`, 'info');
-      const resultAction = await dispatch(deleteExistingFile(fileId));
-      if (deleteExistingFile.fulfilled.match(resultAction)) {
-        addToast(`"${file?.originalName}" permanently deleted.`, 'success');
-        dispatch(fetchProfile());
-      } else {
-        addToast(resultAction.payload || 'Delete failed.', 'error');
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Delete Permanently?',
+      message: `Confirm delete karna hai na? Do you really want to permanently delete "${file?.originalName}"? This action cannot be undone.`,
+      confirmText: 'Delete Forever',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          addToast(`Permanently deleting "${file?.originalName}"…`, 'info');
+          const resultAction = await dispatch(deleteExistingFile(fileId));
+          if (deleteExistingFile.fulfilled.match(resultAction)) {
+            addToast(`"${file?.originalName}" permanently deleted.`, 'success');
+            dispatch(fetchProfile());
+          } else {
+            addToast(resultAction.payload || 'Delete failed.', 'error');
+          }
+        } catch (error) {
+          console.log(error);
+          addToast('Delete failed. Please try again.', 'error');
+        } finally {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
       }
-    } catch (error) {
-      console.log(error);
-      addToast('Delete failed. Please try again.', 'error');
-    }
+    });
   };
 
-  const handleEmptyTrash = async () => {
-    if (!window.confirm('Permanently delete all files in trash? This cannot be undone.')) return;
-    try {
-      addToast('Emptying trash…', 'info');
-      const resultAction = await dispatch(emptyAllTrash());
-      if (emptyAllTrash.fulfilled.match(resultAction)) {
-        addToast('Trash emptied successfully!', 'success');
-        dispatch(fetchProfile());
-        refreshAllFiles();
-      } else {
-        addToast(resultAction.payload || 'Failed to empty trash.', 'error');
+  const handleEmptyTrash = () => {
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Empty Trash?',
+      message: 'Confirm empty trash karna hai na? Do you really want to permanently delete all files in trash? This action cannot be undone.',
+      confirmText: 'Empty Trash',
+      type: 'danger',
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, loading: true }));
+        try {
+          addToast('Emptying trash…', 'info');
+          const resultAction = await dispatch(emptyAllTrash());
+          if (emptyAllTrash.fulfilled.match(resultAction)) {
+            addToast('Trash emptied successfully!', 'success');
+            dispatch(fetchProfile());
+            refreshAllFiles();
+          } else {
+            addToast(resultAction.payload || 'Failed to empty trash.', 'error');
+          }
+        } catch (error) {
+          console.log(error);
+          addToast('Failed to empty trash. Please try again.', 'error');
+        } finally {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
       }
-    } catch (error) {
-      console.log(error);
-      addToast('Failed to empty trash. Please try again.', 'error');
-    }
+    });
   };
 
   const isTrashView = activeTab === 'trash';
@@ -1141,6 +1175,18 @@ const Dashboard = () => {
 
       {/* TOAST CONTAINER */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* CONFIRM MODAL */}
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.onConfirm}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        type={confirmConfig.type}
+        loading={confirmConfig.loading}
+      />
     </div>
   );
 };

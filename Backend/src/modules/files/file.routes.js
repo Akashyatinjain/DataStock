@@ -52,6 +52,9 @@ router.patch("/:id/star", authenticateUser, toggleStarFile);
 
 router.delete("/:id",authenticateUser,deleteFile);
 
+router.patch("/:id/trash", moveToTrash);
+router.patch("/:id/restore", restoreFile);
+router.delete("/:id/permanent", deletePermanent);
 
 export default router;
 

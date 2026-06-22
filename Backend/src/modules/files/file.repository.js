@@ -119,3 +119,87 @@ export const deleteFilesByFolderId = async (folderId) => {
     }
   });
 };
+
+export const deleteFileService = async (fileId, userId) => {
+  const file = await findFileById(fileId);  
+  if (!file) {
+    throw new Error("File not found");
+  }   
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to delete this file");
+  } 
+  await deleteFileById(fileId);
+  if (file.folderId) {
+    await prisma.folder.update({
+      where: { id: file.folderId },
+      data: {
+        fileCount: {
+          decrement: 1
+        }
+      }
+    });
+  } else {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        storageUsed: {    
+          decrement: file.size
+        }
+      }
+    });
+  }
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" deleted successfully`
+  );
+  return {
+    message: `File "${file.originalName}" deleted successfully` 
+  };
+};
+
+export const deletePermanent = async (fileId, userId) => {
+  const file = await findFileById(fileId);  
+  if (!file) {
+    throw new Error("File not found");
+  } 
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to delete this file");
+  }   
+  if (!file.isTrash) {
+    throw new Error("File must be in trash to delete permanently");
+  } 
+
+  // delete from storage
+  await deleteFileFromStorage(file.path);
+  // delete from database
+  await deleteFileById(fileId);
+  return {
+    message: `File "${file.originalName}" deleted permanently`
+  };
+};
+
+export const moveToTrash = async (fileId, userId) => {    
+  const file = await findFileById(fileId);
+  if (!file) {
+    throw new Error("File not found");
+  }         
+
+  if (file.ownerId !== userId) {
+    throw new Error("Unauthorized to move this file to trash");
+  } 
+  if (file.isTrash) {
+    throw new Error("File is already in trash");
+  }
+  await prisma.file.update({
+    where: {
+      id: fileId
+    },
+    data: {
+      isTrash: true
+    }
+  });
+  return {
+    message: `File "${file.originalName}" moved to trash`
+  };
+};
+

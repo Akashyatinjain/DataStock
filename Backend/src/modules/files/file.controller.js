@@ -143,3 +143,27 @@ export const toggleStarFile = asyncHandler(async (req, res) => {
     ...result,
   });
 });
+
+export const moveToTrash = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+
+  const result = await fileService.moveToTrash(id, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const restoreFile = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+
+  const result = await fileService.restoreFile(id, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});

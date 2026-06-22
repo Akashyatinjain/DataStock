@@ -209,3 +209,27 @@ export const toggleStarFileService = async (fileId, userId) => {
       : "File removed from starred",
   };
 };
+
+ export const moveToTrash = async (fileId, userId) => {
+  return prisma.file.update({
+    where: {
+      id: fileId,
+      ownerId: userId
+    },
+    data: {
+      isTrash: true
+    }
+  });
+};
+
+export const restoreFile = async (fileId, userId) => {
+  return prisma.file.update({
+    where: {
+      id: fileId,
+      ownerId: userId
+    },
+    data: {
+      isTrash: false
+    }
+  });
+};

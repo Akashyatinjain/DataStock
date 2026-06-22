@@ -1595,7 +1595,7 @@ const Dashboard = () => {
         message={confirmConfig.message}
         confirmText={confirmConfig.confirmText}
         type={confirmConfig.type}
-        loading={confirmConfig.loading}/>
+        loading={confirmConfig.loading}
       />
     </div>
   );

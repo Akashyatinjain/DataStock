@@ -95,14 +95,136 @@ export const emptyAllTrash = createAsyncThunk('files/emptyAllTrash', async (_, t
   }
 });
 
+const DEFAULT_STORAGE_LIMIT = 10 * 1024 * 1024 * 1024;
+
+const getCategoryKey = (mimeType = '') => {
+  const type = mimeType.toLowerCase();
+  if (type.startsWith('image/')) return 'images';
+  if (type.startsWith('video/')) return 'videos';
+  if (
+    type.includes('pdf') ||
+    type.includes('text') ||
+    type.includes('document') ||
+    type.includes('word') ||
+    type.includes('sheet') ||
+    type.includes('presentation')
+  ) {
+    return 'documents';
+  }
+  if (
+    type.includes('zip') ||
+    type.includes('rar') ||
+    type.includes('tar') ||
+    type.includes('gzip') ||
+    type.includes('compressed') ||
+    type.includes('archive')
+  ) {
+    return 'archives';
+  }
+  return 'others';
+};
+
+const createEmptyCategories = () => ({
+  images: { size: 0, count: 0 },
+  videos: { size: 0, count: 0 },
+  documents: { size: 0, count: 0 },
+  archives: { size: 0, count: 0 },
+  others: { size: 0, count: 0 },
+});
+
+const toLocalDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const buildUploadTrend = (files) => {
+  const now = new Date();
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
+    date.setDate(now.getDate() - (6 - index));
+    const dateKey = toLocalDateKey(date);
+    return {
+      date: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      dateKey,
+      count: 0,
+      size: 0,
+    };
+  });
+  const byDate = new Map(days.map((day) => [day.dateKey, day]));
+
+  files.forEach((file) => {
+    const uploadedAt = file.createdAt ? new Date(file.createdAt) : null;
+    if (!uploadedAt || Number.isNaN(uploadedAt.getTime())) return;
+
+    const day = byDate.get(toLocalDateKey(uploadedAt));
+    if (!day) return;
+
+    day.count += 1;
+    day.size += Number(file.size) || 0;
+  });
+
+  return days.map(({ dateKey, ...day }) => day);
+};
+
+const buildStorageAnalytics = ({ files, trashFiles, user }) => {
+  const categories = createEmptyCategories();
+
+  files.forEach((file) => {
+    const category = categories[getCategoryKey(file.mimeType)];
+    category.count += 1;
+    category.size += Number(file.size) || 0;
+  });
+
+  const activeStorageUsed = files.reduce((total, file) => total + (Number(file.size) || 0), 0);
+  const trashStorageUsed = trashFiles.reduce((total, file) => total + (Number(file.size) || 0), 0);
+  const profileStorageUsed = Number(user?.storageUsed);
+
+  return {
+    storageUsed: Number.isFinite(profileStorageUsed) ? profileStorageUsed : activeStorageUsed + trashStorageUsed,
+    storageLimit: Number(user?.storageLimit) || DEFAULT_STORAGE_LIMIT,
+    subscriptionPlan: user?.subscriptionPlan || 'BASIC',
+    categories,
+    trash: {
+      size: trashStorageUsed,
+      count: trashFiles.length,
+    },
+    uploadTrend: buildUploadTrend(files),
+  };
+};
+
+export const fetchStorageAnalytics = createAsyncThunk('files/fetchStorageAnalytics', async (_, thunkAPI) => {
+  try {
+    const [allFilesData, trashFilesData] = await Promise.all([
+      getAllFiles(),
+      getTrashFiles(),
+    ]);
+
+    const files = (allFilesData.files || []).map(normalizeFile);
+    const trashFiles = (trashFilesData.files || []).map(normalizeFile);
+    const user = thunkAPI.getState().auth?.user;
+
+    return {
+      analytics: buildStorageAnalytics({ files, trashFiles, user }),
+      files,
+      trashFiles,
+    };
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load storage analytics');
+  }
+});
+
 const filesSlice = createSlice({
   name: 'files',
   initialState: {
     files: [],
     allFiles: [],
     trashFiles: [],
+    analytics: null,
     loading: false,
     trashLoading: false,
+    analyticsLoading: false,
     uploading: false,
     deletingId: null,
     starringId: null,
@@ -245,9 +367,27 @@ const filesSlice = createSlice({
       .addCase(emptyAllTrash.fulfilled, (state) => {
         state.emptyingTrash = false;
         state.trashFiles = [];
+        if (state.analytics) {
+          state.analytics.trash = { size: 0, count: 0 };
+        }
       })
       .addCase(emptyAllTrash.rejected, (state, action) => {
         state.emptyingTrash = false;
+        state.error = action.payload;
+      })
+      // fetchStorageAnalytics
+      .addCase(fetchStorageAnalytics.pending, (state) => {
+        state.analyticsLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchStorageAnalytics.fulfilled, (state, action) => {
+        state.analyticsLoading = false;
+        state.analytics = action.payload.analytics;
+        state.allFiles = action.payload.files;
+        state.trashFiles = action.payload.trashFiles;
+      })
+      .addCase(fetchStorageAnalytics.rejected, (state, action) => {
+        state.analyticsLoading = false;
         state.error = action.payload;
       });
   },

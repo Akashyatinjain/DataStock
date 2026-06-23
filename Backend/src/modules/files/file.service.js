@@ -1,62 +1,68 @@
-// import {cloudinary, uploadOnCloudinary} from "../../services/cloudinary.js";
-
-// import * as fileRepo from "./file.repository.js";
-
-// import prisma from "../../config/db.js"
-
-// export const uploadFilesService = async (file,userId) =>{
-//     if(!file){
-//         throw new Error("Please Enter the files first ");
-//     }
-//     const uploadedFile = await uploadOnCloudinary(file.path);
-//     const savedFile = await fileRepo.createFile({
-//         fileName:uploadedFile.original_filename,
-//         originalName:uploadedFile.originalname,
-//         url:uploadedFile.secure_url,
-//         publicID:uploadedFile.public_id,
-//         mimeType:file.mimetype,
-//         size:uploadedFile.bytes,
-//         ownerId:userId
-//     })
-
-//     await prisma.update({
-//         where :{
-//             id : userId
-//         },
-//         data :{
-//             storageUsed:{
-//                 increment :uploadedFile.bytes
-//             }
-//         }
-//     })
-//     return savedFile;
-// }
-
-
-// export const getUserFilesService = async (userId)=>{
-//     return await fileRepo.getFilesByUserId(userId);
-// }
-
-
-import { uploadOnCloudinary,deleteFromCloudinary } from "../../services/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.js";
 
 import * as fileRepo from "./file.repository.js";
 
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
 
+// ── Helper: create a typed error ──
+const createError = (message, statusCode, code) => {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  err.code = code;
+  return err;
+};
+
 export const uploadFileService = async (
   file,
-  userId,folderId
+  userId, folderId
 ) => {
 
   if (!file) {
-    throw new Error("File is required");
+    throw createError("File is required", 400, "NO_FILE_PROVIDED");
   }
 
-  // upload to cloudinary
-  const uploadedFile =
-    await uploadOnCloudinary(file.path);
+  // ── Storage quota check ──
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { storageUsed: true, storageLimit: true, subscriptionPlan: true },
+  });
+
+  if (!user) {
+    throw createError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  const storageLimit = Number(user.storageLimit) || 10 * 1024 * 1024 * 1024; // default 10 GB
+  const storageUsed = Number(user.storageUsed) || 0;
+  const remaining = storageLimit - storageUsed;
+
+  if (file.size > remaining) {
+    // Clean up the temp file
+    const fs = await import("fs");
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+
+    const usedMB = (storageUsed / (1024 * 1024)).toFixed(1);
+    const limitMB = (storageLimit / (1024 * 1024)).toFixed(0);
+    throw createError(
+      `Storage quota exceeded. You have ${usedMB} MB used out of ${limitMB} MB. This file (${(file.size / (1024 * 1024)).toFixed(1)} MB) won't fit.`,
+      403,
+      "STORAGE_QUOTA_EXCEEDED"
+    );
+  }
+
+  // ── Upload to Cloudinary ──
+  let uploadedFile;
+  try {
+    uploadedFile = await uploadOnCloudinary(file.path);
+  } catch (cloudErr) {
+    throw createError(
+      cloudErr.message || "Failed to upload file to cloud storage. Please try again.",
+      502,
+      "CLOUD_UPLOAD_FAILED"
+    );
+  }
 
   // save metadata in db
 const savedFile =
@@ -142,13 +148,15 @@ export const deleteFileService = async (
     await fileRepo.findFileById(fileId);
 
   if (!file) {
-    throw new Error("File not found");
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
   // ownership check
   if (file.ownerId !== userId) {
-    throw new Error(
-      "Unauthorized to delete this file"
+    throw createError(
+      "Unauthorized to delete this file",
+      403,
+      "UNAUTHORIZED"
     );
   }
 
@@ -190,11 +198,11 @@ export const toggleStarFileService = async (fileId, userId) => {
   const file = await fileRepo.findFileById(fileId);
 
   if (!file) {
-    throw new Error("File not found");
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
   if (file.ownerId !== userId) {
-    throw new Error("Unauthorized to update this file");
+    throw createError("Unauthorized to update this file", 403, "UNAUTHORIZED");
   }
 
   const updatedFile = await fileRepo.updateFileStarred(
@@ -214,15 +222,15 @@ export const moveToTrashService = async (fileId, userId) => {
   const file = await fileRepo.findFileById(fileId);
 
   if (!file) {
-    throw new Error("File not found");
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
   if (file.ownerId !== userId) {
-    throw new Error("Unauthorized to trash this file");
+    throw createError("Unauthorized to trash this file", 403, "UNAUTHORIZED");
   }
 
   if (file.isTrash) {
-    throw new Error("File is already in trash");
+    throw createError("File is already in trash", 400, "ALREADY_TRASHED");
   }
 
   const trashedFile = await fileRepo.moveFileToTrash(fileId);
@@ -242,15 +250,15 @@ export const restoreFromTrashService = async (fileId, userId) => {
   const file = await fileRepo.findFileById(fileId);
 
   if (!file) {
-    throw new Error("File not found");
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
   if (file.ownerId !== userId) {
-    throw new Error("Unauthorized to restore this file");
+    throw createError("Unauthorized to restore this file", 403, "UNAUTHORIZED");
   }
 
   if (!file.isTrash) {
-    throw new Error("File is not in trash");
+    throw createError("File is not in trash", 400, "NOT_IN_TRASH");
   }
 
   const restoredFile = await fileRepo.restoreFileFromTrash(fileId);

@@ -16,7 +16,8 @@ export const getAllFiles = async () => {
 
 
 export const uploadFile = async (
-  formData
+  formData,
+  onUploadProgress
 ) => {
 
   const response =
@@ -27,6 +28,7 @@ export const uploadFile = async (
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        onUploadProgress,
       }
     );
 

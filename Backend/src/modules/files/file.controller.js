@@ -1,59 +1,37 @@
-// import asyncHandler from "../../utils/asyncHandler.js"
-
-// import * as fileService from "./file.service.js"
-
-// export const uploadFile = asyncHandler(
-//     async (req,res) =>{
-//         const userId = req.user.userId;
-//         const file = req.file;
-//         const uploadedFile= await fileService.uploadFilesService(file,userId);
-//         return res.status(200).json({
-//             sucess:true,
-//             message: "File uploaded successfully",
-//             file: uploadedFile
-//         })
-//     }
-// )
-
-// export const getUserFiles = asyncHandler(
-//     async (req,res) =>{
-//         const userId =req.user.userId;
-//         const file = req.file;
-//         const uploadedFile = await fileService.getUserFilesService(userId);
-//         return res.status(200).json({
-//             success: true,
-//             files
-//         });
-//     }
-// )
-
-
-
 import asyncHandler from "../../utils/asyncHandler.js";
 
 import * as fileService from "./file.service.js";
-
-
 
 
 export const uploadFile = asyncHandler(
 
   async (req, res) => {
 
+    // Check if file was provided
+    if (!req.file) {
+      const err = new Error("No file was provided. Please select a file to upload.");
+      err.statusCode = 400;
+      err.code = "NO_FILE_PROVIDED";
+      throw err;
+    }
+
     const userId = req.user.userId;
-    const folderId =
-  req.body.folderId || null;
-  
-    const file = req.file;
+    const folderId = req.body.folderId || null;
+
+    // Validate folderId format if provided
+    if (folderId && typeof folderId !== "string") {
+      const err = new Error("Invalid folder ID format.");
+      err.statusCode = 400;
+      err.code = "VALIDATION_ERROR";
+      throw err;
+    }
 
     const uploadedFile =
       await fileService.uploadFileService(
-  req.file,
-
-  req.user.userId,
-
-  folderId
-);
+        req.file,
+        req.user.userId,
+        folderId
+      );
 
     return res.status(201).json({
 

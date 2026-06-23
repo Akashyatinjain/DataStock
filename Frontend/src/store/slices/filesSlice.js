@@ -40,12 +40,13 @@ export const fetchAllFiles = createAsyncThunk('files/fetchAllFiles', async (_, t
   }
 });
 
-export const uploadNewFile = createAsyncThunk('files/uploadNewFile', async (formData, thunkAPI) => {
+export const uploadNewFile = createAsyncThunk('files/uploadNewFile', async (payload, thunkAPI) => {
   try {
-    const data = await uploadFile(formData);
+    const { formData, onUploadProgress } = payload instanceof FormData ? { formData: payload } : payload;
+    const data = await uploadFile(formData, onUploadProgress);
     return normalizeFile(data.file || data);
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to upload file');
+    return thunkAPI.rejectWithValue(error.response?.data || { message: error.response?.data?.message || 'Failed to upload file' });
   }
 });
 

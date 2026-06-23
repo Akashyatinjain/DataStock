@@ -1,28 +1,3 @@
-// import express from "express";
-
-// import { uploadFile,getUserFiles } from "./file.controller.js";
-
-// import {authenticateUser} from "../../middleware/authMiddleware"
-
-// import { upload } from "../../middleware/multer.middleware.js";
-
-// const router = express.router();
-
-// router.post(
-//   "/upload",
-
-//   authenticateUser,
-
-//   upload.single("file"),
-
-//   uploadFile
-// );
-
-// router.get("/",authenticateUser,getUserFiles);
-
-// export default router;
-
-
 import express from "express";
 
 import {
@@ -46,11 +21,21 @@ import {
 
 const router = express.Router();
 
+// ── Multer error-catching wrapper ──
+// Wraps upload.single() so that Multer errors (file too large, wrong type, etc.)
+// are forwarded to the global error handler instead of crashing the request.
+const handleUpload = (req, res, next) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      return next(err); // forwards to errorHandler
+    }
+    next();
+  });
+};
 
+router.post("/upload", authenticateUser, handleUpload, uploadFile);
 
-router.post("/upload",authenticateUser,upload.single("file"),uploadFile);
-
-router.get("/",authenticateUser,getUserFiles);
+router.get("/", authenticateUser, getUserFiles);
 
 // Trash routes — must be before /:id to avoid "trash" being parsed as an id
 router.get("/trash", authenticateUser, getTrashFiles);
@@ -60,8 +45,7 @@ router.patch("/:id/restore", authenticateUser, restoreFromTrash);
 
 router.patch("/:id/star", authenticateUser, toggleStarFile);
 
-router.delete("/:id",authenticateUser,deleteFile);
+router.delete("/:id", authenticateUser, deleteFile);
 
 
 export default router;
-

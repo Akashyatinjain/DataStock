@@ -21,13 +21,19 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 
     // upload file to cloudinary (using upload_large for chunked uploading of files up to 200MB)
-    const response = await cloudinary.uploader.upload_large(
-      localFilePath,
-      {
-        resource_type: "auto",
-        chunk_size: 20 * 1024 * 1024 // 20MB chunks
-      }
-    );
+    const response = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_large(
+        localFilePath,
+        {
+          resource_type: "auto",
+          chunk_size: 20 * 1024 * 1024 // 20MB chunks
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+    });
 
     // delete local temp file after success
     if (fs.existsSync(localFilePath)) {

@@ -14,7 +14,7 @@ export const errorHandler = (err, req, res, next) => {
   let status = err.statusCode || 500;
   let code = err.code || "INTERNAL_ERROR";
   let message = err.message || "Internal server error";
-  let suggestion = null;
+  let suggestion = err.suggestion || null;
 
   // ── Multer errors ──
   if (err instanceof multer.MulterError) {
@@ -22,8 +22,7 @@ export const errorHandler = (err, req, res, next) => {
       case "LIMIT_FILE_SIZE":
         status = 413;
         code = "FILE_TOO_LARGE";
-        // Use configured max size from multer options if available, fallback to 10 MB
-        const maxSize = (err?.limits?.fileSize) || 10 * 1024 * 1024;
+        const maxSize = (err?.limits?.fileSize) || 100 * 1024 * 1024;
         message = `File is too large. Maximum allowed size is ${formatBytes(maxSize)}.`;
         suggestion = "Compress your file or split it into smaller parts before uploading.";
         break;

@@ -20,7 +20,7 @@ const ERROR_TITLES = {
 
 // ── Fallback suggestions when server doesn't provide one ──
 const FALLBACK_SUGGESTIONS = {
-  FILE_TOO_LARGE: 'Try compressing or resizing your file to be under 10 MB.',
+  FILE_TOO_LARGE: 'Images and files can be up to 10 MB. Videos can be up to 100 MB.',
   INVALID_FILE_TYPE: 'Accepted formats: PNG, JPG, PDF, TXT, DOC, DOCX, XLS, XLSX, PPT, PPTX, MP4, ZIP.',
   STORAGE_QUOTA_EXCEEDED: 'Delete some files or empty your trash to free up space.',
   CLOUD_UPLOAD_FAILED: 'This is usually temporary. Wait a moment and try again.',

@@ -6,6 +6,7 @@ import {
   ALLOWED_UPLOAD_ACCEPT,
   ALLOWED_UPLOAD_LABELS,
   formatUploadSize,
+  UPLOAD_LIMIT_HINT,
   validateUploadFile,
 } from '../../../utils/uploadValidation';
 import ErrorPopup from './ErrorPopup';
@@ -112,7 +113,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
                 <p className="text-sm text-gray-500">
                   Drop a file or <span className="text-green-600 font-medium">browse</span>
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Max {formatUploadSize()}</p>
+                <p className="text-xs text-gray-400 mt-1">{UPLOAD_LIMIT_HINT}</p>
               </div>
             )}
             <input

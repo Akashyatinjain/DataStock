@@ -1,7 +1,7 @@
 import express from "express";
 import { deleteProfileImage, getProfile, updateProfile, getStorageActivity } from "./user.controller.js";
 import { authenticateUser } from "../../middleware/authMiddleware.js";
-import { upload } from "../../middleware/multer.middleware.js";
+import { upload, validateUploadedFileSize } from "../../middleware/multer.middleware.js";
 import { uploadProfileImage } from "./user.controller.js";
 import { updateUser } from "./user.controller.js";
 
@@ -14,6 +14,7 @@ router.post(
   "/upload-profile",
   authenticateUser,
   upload.single("file"),
+  validateUploadedFileSize,
   uploadProfileImage
 );
 router.delete("/delete-profile", authenticateUser, deleteProfileImage);

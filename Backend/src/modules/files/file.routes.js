@@ -16,7 +16,8 @@ import {
 } from "../../middleware/authMiddleware.js";
 
 import {
-  upload
+  upload,
+  validateUploadedFileSize,
 } from "../../middleware/multer.middleware.js";
 
 const router = express.Router();
@@ -33,7 +34,7 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-router.post("/upload", authenticateUser, handleUpload, uploadFile);
+router.post("/upload", authenticateUser, handleUpload, validateUploadedFileSize, uploadFile);
 
 router.get("/", authenticateUser, getUserFiles);
 

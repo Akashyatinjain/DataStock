@@ -44,6 +44,8 @@ import {
   getFolderId,
 } from '../utils/fileHelpers';
 import { QUICK_FILTERS } from '../utils/filters';
+import { getErrorMessage } from '../utils/errorMessage';
+import { ALLOWED_UPLOAD_ACCEPT, validateUploadFile } from '../utils/uploadValidation';
 
 import { connectSocket, socket } from "../socket";
 
@@ -94,7 +96,7 @@ const Toast = ({ toast, onRemove }) => (
     `}
   >
     <ToastIcon type={toast.type} />
-    <span className="flex-1 text-gray-100">{toast.message}</span>
+    <span className="flex-1 text-gray-100">{getErrorMessage(toast.message, '')}</span>
     <button onClick={() => onRemove(toast.id)} className="text-gray-500 hover:text-white transition ml-1">
       <X className="w-4 h-4" />
     </button>
@@ -755,7 +757,7 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
 
 const UploadButton = ({ uploading, onChange }) => (
   <label className="cursor-pointer inline-flex max-w-full">
-    <input type="file" className="hidden" onChange={onChange} />
+    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={onChange} />
     <div className={`
       px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
       ${uploading
@@ -834,7 +836,7 @@ const Dashboard = () => {
   const [toasts, setToasts] = useState([]);
   const addToast = useCallback((message, type = 'success') => {
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message: getErrorMessage(message), type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
   }, []);
   const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
@@ -1099,6 +1101,12 @@ const Dashboard = () => {
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const validationError = validateUploadFile(file);
+    if (validationError) {
+      addToast(validationError, 'error');
+      e.target.value = '';
+      return;
+    }
     try {
       addToast(`Uploading "${file.name}"…`, 'info');
       const formData = new FormData();
@@ -1461,7 +1469,7 @@ const Dashboard = () => {
                 </p>
                 {emptyState.showUpload && (
                   <label className="cursor-pointer inline-flex">
-                    <input type="file" className="hidden" onChange={handleUpload} />
+                    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} />
                     <div className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
                       <Plus className="w-4 h-4" />
                       Upload a file

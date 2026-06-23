@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { getErrorMessage } from '../../../utils/errorMessage';
 
 export default function useToast(duration = 4000) {
   const [toasts, setToasts] = useState([]);
@@ -11,7 +12,7 @@ export default function useToast(duration = 4000) {
   const toast = useCallback(
     (type, msg) => {
       const id = ++toastId.current;
-      setToasts((prev) => [...prev, { id, type, msg }]);
+      setToasts((prev) => [...prev, { id, type, msg: getErrorMessage(msg) }]);
       setTimeout(() => removeToast(id), duration);
     },
     [duration, removeToast]

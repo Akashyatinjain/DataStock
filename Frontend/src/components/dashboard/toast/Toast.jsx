@@ -1,4 +1,5 @@
 import { X, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { getErrorMessage } from '../../../utils/errorMessage';
 
 export default function Toast({ toasts, removeToast }) {
   return (
@@ -17,7 +18,7 @@ export default function Toast({ toasts, removeToast }) {
           {t.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
           {t.type === 'success' && <Check className="w-4 h-4 shrink-0" />}
           {t.type === 'info' && <Loader2 className="w-4 h-4 shrink-0 animate-spin" />}
-          <span>{t.msg}</span>
+          <span>{getErrorMessage(t.msg, '')}</span>
           <button onClick={() => removeToast(t.id)} className="ml-1 hover:opacity-60">
             <X className="w-3.5 h-3.5" />
           </button>

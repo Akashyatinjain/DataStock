@@ -1,37 +1,14 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Loader2, FileWarning } from 'lucide-react';
+import { X, Upload, Loader2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { uploadNewFile } from '../../../store/slices/filesSlice';
+import {
+  ALLOWED_UPLOAD_ACCEPT,
+  ALLOWED_UPLOAD_LABELS,
+  formatUploadSize,
+  validateUploadFile,
+} from '../../../utils/uploadValidation';
 import ErrorPopup from './ErrorPopup';
-
-// ── Client-side validation constants (mirror backend) ──
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-
-const ALLOWED_MIME_TYPES = [
-  'image/png',
-  'image/jpeg',
-  'image/jpg',
-  'application/pdf',
-  'video/mp4',
-  'application/zip',
-  'text/plain',
-  'application/msword',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-];
-
-const ALLOWED_LABELS = 'PNG, JPG, PDF, TXT, DOC, DOCX, XLS, XLSX, PPT, PPTX, MP4, ZIP';
-
-const formatBytes = (bytes) => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-};
 
 export default function UploadModal({ onClose, onUploaded, toast, folderId = null }) {
   const dispatch = useDispatch();
@@ -41,29 +18,6 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
   const [uploadError, setUploadError] = useState(null);
   const inputRef = useRef(null);
 
-  // ── Client-side file validation ──
-  const validateFile = (f) => {
-    if (!f) return null;
-
-    if (f.size > MAX_FILE_SIZE) {
-      return {
-        code: 'FILE_TOO_LARGE',
-        message: `"${f.name}" is ${formatBytes(f.size)}, which exceeds the maximum upload size of ${formatBytes(MAX_FILE_SIZE)}.`,
-        suggestion: 'Compress your file or split it into smaller parts before uploading.',
-      };
-    }
-
-    if (!ALLOWED_MIME_TYPES.includes(f.type)) {
-      return {
-        code: 'INVALID_FILE_TYPE',
-        message: `"${f.name}" has type "${f.type || 'unknown'}" which is not supported.`,
-        suggestion: `Accepted formats: ${ALLOWED_LABELS}.`,
-      };
-    }
-
-    return null;
-  };
-
   const handleFileSelect = (f) => {
     if (!f) return;
 
@@ -71,7 +25,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
     setUploadError(null);
 
     // Validate before setting
-    const validationError = validateFile(f);
+    const validationError = validateUploadFile(f);
     if (validationError) {
       setUploadError(validationError);
       setFile(null);
@@ -85,7 +39,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
     if (!file) return;
 
     // Double-check validation
-    const validationError = validateFile(file);
+    const validationError = validateUploadFile(file);
     if (validationError) {
       setUploadError(validationError);
       return;
@@ -151,27 +105,28 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
             {file ? (
               <div>
                 <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
-                <p className="text-xs text-gray-400 mt-1">{formatBytes(file.size)}</p>
+                <p className="text-xs text-gray-400 mt-1">{formatUploadSize(file.size)}</p>
               </div>
             ) : (
               <div>
                 <p className="text-sm text-gray-500">
                   Drop a file or <span className="text-green-600 font-medium">browse</span>
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Max {formatBytes(MAX_FILE_SIZE)}</p>
+                <p className="text-xs text-gray-400 mt-1">Max {formatUploadSize()}</p>
               </div>
             )}
             <input
               ref={inputRef}
               type="file"
               className="hidden"
+              accept={ALLOWED_UPLOAD_ACCEPT}
               onChange={(e) => handleFileSelect(e.target.files[0])}
             />
           </div>
 
           {/* Accepted formats hint */}
           <p className="text-[11px] text-gray-400 text-center mb-4 leading-relaxed">
-            {ALLOWED_LABELS}
+            {ALLOWED_UPLOAD_LABELS}
           </p>
 
           <div className="flex gap-2">

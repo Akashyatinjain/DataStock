@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, X, Lightbulb } from 'lucide-react';
+import { getErrorMessage } from '../../../utils/errorMessage';
 import '../../../styles/ErrorPopup.css';
 
 // ── Error-code → friendly title mapping ──
@@ -47,10 +48,10 @@ export default function ErrorPopup({ error, onDismiss }) {
 
   if (!error) return null;
 
-  const code = error.code || 'INTERNAL_ERROR';
+  const code = typeof error?.code === 'string' ? error.code : 'INTERNAL_ERROR';
   const title = ERROR_TITLES[code] || 'Error';
-  const message = error.message || 'An unexpected error occurred. Please try again.';
-  const suggestion = error.suggestion || FALLBACK_SUGGESTIONS[code] || null;
+  const message = getErrorMessage(error, 'An unexpected error occurred. Please try again.');
+  const suggestion = typeof error?.suggestion === 'string' ? error.suggestion : FALLBACK_SUGGESTIONS[code] || null;
 
   return (
     <div className="error-popup-backdrop">

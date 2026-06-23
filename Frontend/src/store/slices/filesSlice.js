@@ -295,7 +295,11 @@ const filesSlice = createSlice({
       })
       .addCase(uploadNewFile.rejected, (state, action) => {
         state.uploading = false;
-        state.error = action.payload;
+        // Keep state.error as a string — other components may render it directly as text.
+        // The full structured object (with code, suggestion) is still available
+        // via result.payload in UploadModal's dispatch handler.
+        const p = action.payload;
+        state.error = typeof p === 'string' ? p : p?.message || 'Failed to upload file';
       })
       // deleteExistingFile (permanent delete)
       .addCase(deleteExistingFile.pending, (state, action) => {

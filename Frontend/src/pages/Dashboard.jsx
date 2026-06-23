@@ -579,24 +579,24 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
           <span className="text-[11px] text-gray-400">
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+          <div className="flex gap-1 shrink-0">
             {isTrashView ? (
               <>
                 <button
                   onClick={e => { e.stopPropagation(); onRestore(file.id); }}
                   disabled={isRestoring}
-                  className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
                   title="Restore"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onDelete(file.id); }}
                   disabled={isDeleting}
-                  className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
                   title="Delete Forever"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </>
             ) : (
@@ -604,7 +604,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
                 <button
                   onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
                   disabled={isStarring}
-                  className={`p-1.5 rounded-lg transition ${
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
                     isStarred
                       ? 'text-yellow-500 hover:bg-yellow-50'
                       : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
@@ -612,31 +612,31 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
                   title={isStarred ? 'Remove from starred' : 'Add to starred'}
                 >
                   {isStarring ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+                    <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
                   )}
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onShare(file); }}
-                  className="p-1.5 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
                   title="Share"
                 >
-                  <Share2 className="w-3.5 h-3.5" />
+                  <Share2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="p-1.5 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
                   title="Preview"
                 >
-                  <Eye className="w-3.5 h-3.5" />
+                  <Eye className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
                   title="Delete"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </>
             )}
@@ -658,13 +658,13 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
   return (
     <div
       className={`
-        grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 dark:border-gray-800
+        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-gray-800
         hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
-      <div className="col-span-6 flex items-center gap-3 min-w-0">
+      <div className="md:col-span-6 flex items-center gap-3 min-w-0">
         <div className={`w-10 h-10 ${type.bg} rounded-xl flex items-center justify-center shrink-0`}>
           <Icon className={`w-5 h-5 ${type.color}`} />
         </div>
@@ -676,16 +676,19 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
             )}
           </div>
           <p className="text-[11px] text-gray-400 truncate">{file.url}</p>
+          <p className="md:hidden text-[11px] text-gray-400 truncate">
+            {formatFileSize(file.size)} - {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </p>
         </div>
       </div>
 
-      <div className="col-span-2 text-sm text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</div>
+      <div className="hidden md:block md:col-span-2 text-sm text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</div>
 
-      <div className="col-span-3 text-sm text-gray-400">
+      <div className="hidden md:block md:col-span-3 text-sm text-gray-400">
         {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
 
-      <div className="col-span-1 flex justify-end gap-1">
+      <div className="md:col-span-1 flex justify-end gap-1 shrink-0">
         {isDeleting ? (
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
         ) : isRestoring ? (
@@ -696,14 +699,14 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
               <>
                 <button
                   onClick={e => { e.stopPropagation(); onRestore(file.id); }}
-                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
                   title="Restore"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
                   title="Delete Forever"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -714,9 +717,9 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
                 <button
                   onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
                   disabled={isStarring}
-                  className={`p-1.5 opacity-0 group-hover:opacity-100 rounded-lg transition ${
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
                     isStarred
-                      ? 'text-yellow-500 hover:bg-yellow-50 opacity-100'
+                      ? 'text-yellow-500 hover:bg-yellow-50'
                       : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
                   }`}
                   title={isStarred ? 'Remove from starred' : 'Add to starred'}
@@ -729,20 +732,20 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onShare(file); }}
-                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-sky-50 rounded-lg text-gray-400 hover:text-sky-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
                   title="Share"
                 >
                   <Share2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-50 rounded-lg text-gray-400 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -1503,7 +1506,7 @@ const Dashboard = () => {
             {/* ── LIST VIEW ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
+                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
                   <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Size</div>
                   <div className="col-span-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Date</div>

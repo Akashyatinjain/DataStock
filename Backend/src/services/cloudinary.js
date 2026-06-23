@@ -20,11 +20,12 @@ const uploadOnCloudinary = async (localFilePath) => {
       throw new Error("Local file path missing");
     }
 
-    // upload file to cloudinary
-    const response = await cloudinary.uploader.upload(
+    // upload file to cloudinary (using upload_large for chunked uploading of files up to 200MB)
+    const response = await cloudinary.uploader.upload_large(
       localFilePath,
       {
-        resource_type: "auto"
+        resource_type: "auto",
+        chunk_size: 20 * 1024 * 1024 // 20MB chunks
       }
     );
 

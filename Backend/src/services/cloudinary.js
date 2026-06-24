@@ -72,32 +72,32 @@ const uploadOnCloudinary = async (localFilePath) => {
 // DELETE FILE
 // ==========================
 
-// const deleteFromCloudinary = async (
-//   publicId,
-//   resourceType = "image"
-// ) => {
+export const getPublicIdFromUrl = (url) => {
+  if (!url || !url.includes("cloudinary.com")) return null;
 
-//   try {
+  try {
+    const uploadIndex = url.indexOf("/upload/");
+    if (uploadIndex === -1) return null;
 
-//     return await cloudinary.uploader.destroy(
-//       publicId,
-//       {
-//         resource_type: resourceType
-//       }
-//     );
+    let pathAfterUpload = url.slice(uploadIndex + "/upload/".length);
+    pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, "");
 
-//   } catch (error) {
+    const segments = pathAfterUpload.split("/");
+    while (
+      segments.length > 1 &&
+      segments[0].includes("_") &&
+      !segments[0].includes(".")
+    ) {
+      segments.shift();
+    }
 
-//     console.log(
-//       "CLOUDINARY DELETE ERROR:",
-//       error
-//     );
+    const publicId = segments.join("/").replace(/\.[^/.]+$/, "");
+    return publicId || null;
+  } catch {
+    return null;
+  }
+};
 
-//     throw new Error(
-//       error.message || "Cloudinary delete failed"
-//     );
-//   }
-// };
 const deleteFromCloudinary = async (
   publicId,
   resourceType = "image"
@@ -127,5 +127,6 @@ const deleteFromCloudinary = async (
 
 export {
   uploadOnCloudinary,
-  deleteFromCloudinary
+  deleteFromCloudinary,
+  getPublicIdFromUrl,
 };

@@ -1,7 +1,13 @@
-import fs from "fs/promises";
+import fs from "fs";
+import fsPromises from "fs/promises";
+import path from "path";
 import multer from "multer";
 
-const uploadPath = "public/temp";
+const uploadPath = path.join(process.cwd(), "public", "temp");
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
 
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const IMAGE_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -12,6 +18,8 @@ const ALLOWED_MIME_TYPES = [
   "image/png",
   "image/jpeg",
   "image/jpg",
+  "image/webp",
+  "image/gif",
   "application/pdf",
   "text/plain",
   "application/msword",
@@ -89,7 +97,7 @@ export const validateUploadedFileSize = async (req, res, next) => {
   if (req.file.size <= maxSize) return next();
 
   if (req.file.path) {
-    await fs.unlink(req.file.path).catch(() => {});
+    await fsPromises.unlink(req.file.path).catch(() => {});
   }
 
   const fileType = getFileTypeLabel(req.file.mimetype);

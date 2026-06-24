@@ -241,7 +241,7 @@ const Header = ({
               </button>
 
               <button
-                onClick={() => navigate('/settings')}
+                onClick={() => navigate('/profile')}
                 className={`${iconBtnClass} hidden sm:block`}
                 aria-label="Settings"
               >
@@ -289,7 +289,7 @@ const Header = ({
                           Your Profile
                         </button>
                         <button
-                          onClick={() => { navigate('/settings'); setShowUserMenu(false); }}
+                          onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
                           className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800/60' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} transition`}
                         >
                           <Settings className={`w-4 h-4 mr-3 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />

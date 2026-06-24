@@ -1,6 +1,9 @@
 import * as userService from "./user.service.js";
-import { uploadOnCloudinary } from "../../services/cloudinary.js";
-import { updateUserProfileImage } from "./user.service.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+  getPublicIdFromUrl,
+} from "../../services/cloudinary.js";
 
 export const getProfile = async (req, res) => {
   try {
@@ -11,7 +14,7 @@ export const getProfile = async (req, res) => {
       user
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -25,7 +28,7 @@ export const updateProfile = async (req, res) => {
       user: updatedUser
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -38,7 +41,18 @@ export const deleteAccount = async (req, res) => {
       message: "Account deleted"
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const removeCloudinaryImage = async (imageUrl) => {
+  const publicId = getPublicIdFromUrl(imageUrl);
+  if (!publicId) return;
+
+  try {
+    await deleteFromCloudinary(publicId);
+  } catch (error) {
+    console.warn("Failed to delete old profile image from Cloudinary:", error.message);
   }
 };
 
@@ -48,17 +62,27 @@ export const uploadProfileImage = async (req, res) => {
     if (!localFilePath) {
       return res.status(400).json({ message: "File is required" });
     }
+
+    const currentUser = await userService.getUserProfile(req.user.userId);
+    const previousImageUrl = currentUser?.imageUrl;
+
     const result = await uploadOnCloudinary(localFilePath);
     if (!result) {
       return res.status(500).json({ message: "Upload failed" });
     }
-    await updateUserProfileImage(req.user.userId, result.secure_url);
+
+    await userService.updateUserProfileImage(req.user.userId, result.secure_url);
+
+    if (previousImageUrl && previousImageUrl !== result.secure_url) {
+      await removeCloudinaryImage(previousImageUrl);
+    }
+
     return res.status(200).json({
       message: "Uploaded successfully",
-      imageUrl: result.secure_url
+      imageUrl: result.secure_url,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -73,13 +97,18 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
 export const deleteProfileImage = async (req, res) => {
   try {
+    const currentUser = await userService.getUserProfile(req.user.userId);
+    if (currentUser?.imageUrl) {
+      await removeCloudinaryImage(currentUser.imageUrl);
+    }
+
     const user = await userService.deleteUserProfileImage(req.user.userId);
     return res.status(200).json({
       message: "Profile picture removed",
@@ -96,6 +125,6 @@ export const getStorageActivity = async (req, res) => {
     const data = await userService.getStorageActivity(userId);
     res.json({ message: "Storage activity", data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };

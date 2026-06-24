@@ -23,12 +23,7 @@ export const getFiles = async () => {
 };
 
 export const uploadFile = async (formData) => {
-  const response = await API.post("/files/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-
+  const response = await API.post("/files/upload", formData);
   return response.data;
 };
 

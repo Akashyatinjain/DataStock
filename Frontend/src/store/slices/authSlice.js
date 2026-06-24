@@ -3,7 +3,10 @@ import API from '../../api/axios';
 import { getStoredUser, clearStoredAuth, persistAuth } from '../../utils/auth';
 
 const getErrorMessage = (error, fallback) =>
-  error.response?.data?.message || error.message || fallback;
+  error.response?.data?.message ||
+  error.response?.data?.error ||
+  error.message ||
+  fallback;
 
 export const signupUser = createAsyncThunk('auth/signupUser', async (payload, thunkAPI) => {
   try {
@@ -55,7 +58,7 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
     const response = await API.get('/user/profile');
     return response.data; // { success: true, user: ... }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch profile');
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to fetch profile'));
   }
 });
 
@@ -64,18 +67,16 @@ export const updateUserProfile = createAsyncThunk('auth/updateUserProfile', asyn
     const response = await API.put('/user/update', { username });
     return response.data; // { success: true, user: ... }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to update profile');
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to update profile'));
   }
 });
 
 export const uploadProfileImage = createAsyncThunk('auth/uploadProfileImage', async (formData, thunkAPI) => {
   try {
-    const response = await API.post('/user/upload-profile', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await API.post('/user/upload-profile', formData);
     return response.data; // { success: true, imageUrl: ... }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to upload image');
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to upload image'));
   }
 });
 
@@ -84,7 +85,7 @@ export const deleteProfileImage = createAsyncThunk('auth/deleteProfileImage', as
     const response = await API.delete('/user/delete-profile');
     return response.data; // { success: true }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to delete profile image');
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to delete profile image'));
   }
 });
 
@@ -231,10 +232,15 @@ const authSlice = createSlice({
         state.deletingImage = true;
         state.error = null;
       })
-      .addCase(deleteProfileImage.fulfilled, (state) => {
+      .addCase(deleteProfileImage.fulfilled, (state, action) => {
         state.deletingImage = false;
-        if (state.user) {
+        const updatedUser = action.payload.user;
+        if (updatedUser) {
+          state.user = { ...state.user, ...updatedUser, imageUrl: null };
+        } else if (state.user) {
           state.user.imageUrl = null;
+        }
+        if (state.user) {
           persistAuth({ user: state.user });
         }
       })

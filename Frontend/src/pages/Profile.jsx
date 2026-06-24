@@ -219,7 +219,7 @@ export default function ProfilePage() {
           <h3 className="text-lg font-semibold text-red-700 mb-2">Failed to Load Profile</h3>
           <p className="text-red-600 mb-4">{errorMessage}</p>
           <button
-            onClick={fetchProfile}
+            onClick={fetchProfileData}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
           >
             Try Again
@@ -543,8 +543,7 @@ export default function ProfilePage() {
           </button>
 
           <button
-            onClick={() => navigate("/settings")}
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group"
+            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl flex items-center gap-3"
           >
             <div className="p-2 bg-gray-200 rounded-xl">
               <Settings size={20} className="text-gray-700" />

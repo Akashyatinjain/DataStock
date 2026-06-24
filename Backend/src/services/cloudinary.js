@@ -128,5 +128,4 @@ const deleteFromCloudinary = async (
 export {
   uploadOnCloudinary,
   deleteFromCloudinary,
-  getPublicIdFromUrl,
 };

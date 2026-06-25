@@ -89,16 +89,10 @@ export default function ProfilePage() {
       fetchProfileData();
     };
 
-    const handleFocus = () => {
-      fetchProfileData();
-    };
-
     window.addEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
-    window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener(SUBSCRIPTION_UPDATED_EVENT, handleSubscriptionUpdated);
-      window.removeEventListener("focus", handleFocus);
     };
   }, [fetchProfileData]);
 
@@ -205,7 +199,7 @@ export default function ProfilePage() {
 
   
   
-  if (loading) {
+  if (loading && !user) {
     return <ProfileSkeleton />;
   }
 

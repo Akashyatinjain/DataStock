@@ -220,7 +220,7 @@ const authSlice = createSlice({
         state.uploading = false;
         if (state.user) {
           state.user.imageUrl = action.payload.imageUrl;
-          persistAuth({ user: state.user });
+          persistAuth({ user: { ...state.user, imageUrl: action.payload.imageUrl } });
         }
       })
       .addCase(uploadProfileImage.rejected, (state, action) => {
@@ -241,7 +241,7 @@ const authSlice = createSlice({
           state.user.imageUrl = null;
         }
         if (state.user) {
-          persistAuth({ user: state.user });
+          persistAuth({ user: { ...state.user, imageUrl: null } });
         }
       })
       .addCase(deleteProfileImage.rejected, (state, action) => {

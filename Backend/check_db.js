@@ -1,28 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from "./src/config/db.js";
 
-const prisma = new PrismaClient();
-
-async function checkUsers() {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      subscriptionPlan: true,
-      subscriptionId: true,
-      storageLimit: true,
-      storageUsed: true,
-    }
-  });
-
-  console.log("Users:", users);
-  
-  // also get the first user and format BigInt properly for display
-  if (users.length > 0) {
-    console.log("First user storage limit:", users[0].storageLimit?.toString(), "bytes");
+async function main() {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        imageUrl: true,
+      }
+    });
+    console.log("USERS IN DATABASE:", JSON.stringify(users, null, 2));
+  } catch (error) {
+    console.error("Database query error:", error);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
-checkUsers()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+main();

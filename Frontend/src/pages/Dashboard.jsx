@@ -346,12 +346,12 @@ const StorageAnalyticsView = ({
               <div className="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
                 <div 
                   className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
+                  style={{ width: `${(storageActivity.activeUsed / (storageActivity.storageLimit || 1)) * 100}%` }}
                   title={`Active Files: ${formatFileSize(storageActivity.activeUsed)}`}
                 />
                 <div 
                   className="h-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
+                  style={{ width: `${(storageActivity.trashUsed / (storageActivity.storageLimit || 1)) * 100}%` }}
                   title={`Trash Files: ${formatFileSize(storageActivity.trashUsed)}`}
                 />
               </div>
@@ -361,14 +361,14 @@ const StorageAnalyticsView = ({
                 <div className="flex gap-4">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block shadow-sm"></span>
-                    Active ({((storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                    Active ({((storageActivity.activeUsed / (storageActivity.storageLimit || 1)) * 100).toFixed(0)}%)
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block shadow-sm"></span>
-                    Trash ({((storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                    Trash ({((storageActivity.trashUsed / (storageActivity.storageLimit || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
-                <span>{formatFileSize(storageActivity.storageUsed)}</span>
+                <span>{formatFileSize(storageActivity.storageLimit)}</span>
               </div>
             </div>
             
@@ -458,24 +458,26 @@ const StorageAnalyticsView = ({
             </button>
           </div>
 
-          <div className="flex-1 flex items-end gap-3 min-h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex-1 flex items-stretch gap-3 min-h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
             {uploadTrend.map((day) => {
               const count = Number(day.count) || 0;
               const size = Number(day.size) || 0;
               const heightPct = Math.min((count / uploadTrendMax) * 100, 100);
               return (
-                <div key={day.date} className="flex-1 flex flex-col items-center group relative gap-2">
+                <div key={day.date} className="flex-1 flex flex-col items-center group relative">
                   <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none whitespace-nowrap shadow-xl z-10 flex flex-col gap-0.5 items-center">
                     <span className="font-bold">{count} uploads</span>
                     <span className="text-gray-400">{formatFileSize(size)}</span>
                   </div>
-                  <div
-                    className="w-full max-w-12 rounded-t-xl bg-green-100 dark:bg-green-950/40 group-hover:bg-green-500 transition-all duration-300 relative overflow-hidden flex items-end"
-                    style={{ height: `${Math.max(heightPct, count > 0 ? 12 : 4)}%` }}
-                  >
-                    {count > 0 && <div className="w-full h-1.5 bg-green-600 rounded-t-xl" />}
+                  <div className="flex-1 w-full flex items-end justify-center">
+                    <div
+                      className="w-full max-w-12 rounded-t-xl bg-green-100 dark:bg-green-950/40 group-hover:bg-green-500 transition-all duration-300 relative overflow-hidden flex items-end"
+                      style={{ height: `${Math.max(heightPct, count > 0 ? 12 : 4)}%` }}
+                    >
+                      {count > 0 && <div className="w-full h-1.5 bg-green-600 rounded-t-xl" />}
+                    </div>
                   </div>
-                  <span className="text-[10px] font-semibold text-gray-400 truncate w-full text-center">{day.date}</span>
+                  <span className="text-[10px] font-semibold text-gray-400 truncate w-full text-center pt-2">{day.date}</span>
                 </div>
               );
             })}

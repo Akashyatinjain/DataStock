@@ -215,6 +215,33 @@ const buildStorageAnalytics = ({ files, trashFiles, user }) => {
   };
 };
 
+const updateAnalyticsAndActivity = (state) => {
+  const activeUsed = state.allFiles.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
+  const trashUsed = state.trashFiles.reduce((sum, f) => sum + (Number(f.size) || 0), 0);
+  const totalUsed = activeUsed + trashUsed;
+
+  if (state.analytics) {
+    state.analytics = buildStorageAnalytics({
+      files: state.allFiles,
+      trashFiles: state.trashFiles,
+      user: {
+        storageLimit: state.analytics.storageLimit,
+        subscriptionPlan: state.analytics.subscriptionPlan,
+      }
+    });
+  }
+
+  if (state.storageActivity) {
+    state.storageActivity = {
+      ...state.storageActivity,
+      storageUsed: totalUsed,
+      activeUsed,
+      trashUsed,
+    };
+  }
+};
+
+
 export const fetchStorageAnalytics = createAsyncThunk('files/fetchStorageAnalytics', async (_, thunkAPI) => {
   try {
     const [allFilesData, trashFilesData] = await Promise.all([
@@ -303,6 +330,7 @@ const filesSlice = createSlice({
       .addCase(uploadNewFile.fulfilled, (state, action) => {
         state.uploading = false;
         state.allFiles = [action.payload, ...state.allFiles];
+        updateAnalyticsAndActivity(state);
       })
       .addCase(uploadNewFile.rejected, (state, action) => {
         state.uploading = false;
@@ -323,6 +351,7 @@ const filesSlice = createSlice({
         state.files = state.files.filter(f => f.id !== fileId);
         state.allFiles = state.allFiles.filter(f => f.id !== fileId);
         state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+        updateAnalyticsAndActivity(state);
       })
       .addCase(deleteExistingFile.rejected, (state, action) => {
         state.deletingId = null;
@@ -383,9 +412,11 @@ const filesSlice = createSlice({
       })
       .addCase(moveFileToTrash.fulfilled, (state, action) => {
         state.deletingId = null;
-        const { fileId } = action.payload;
+        const { fileId, file } = action.payload;
         state.files = state.files.filter(f => f.id !== fileId);
         state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+        state.trashFiles = [file, ...state.trashFiles];
+        updateAnalyticsAndActivity(state);
       })
       .addCase(moveFileToTrash.rejected, (state, action) => {
         state.deletingId = null;
@@ -401,6 +432,7 @@ const filesSlice = createSlice({
         const { fileId, file } = action.payload;
         state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
         state.allFiles = [file, ...state.allFiles];
+        updateAnalyticsAndActivity(state);
       })
       .addCase(restoreFileFromTrash.rejected, (state, action) => {
         state.restoringId = null;
@@ -414,9 +446,7 @@ const filesSlice = createSlice({
       .addCase(emptyAllTrash.fulfilled, (state) => {
         state.emptyingTrash = false;
         state.trashFiles = [];
-        if (state.analytics) {
-          state.analytics.trash = { size: 0, count: 0 };
-        }
+        updateAnalyticsAndActivity(state);
       })
       .addCase(emptyAllTrash.rejected, (state, action) => {
         state.emptyingTrash = false;

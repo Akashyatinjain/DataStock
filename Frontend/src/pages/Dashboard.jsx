@@ -64,7 +64,6 @@ import {
   moveFileToTrash,
   restoreFileFromTrash,
   emptyAllTrash,
-  fetchStorageAnalytics,
   fetchStorageActivity,
 } from '../store/slices/filesSlice';
 import {
@@ -198,7 +197,7 @@ const StorageAnalyticsView = ({
   storageActivity,
   activityLoading,
 }) => {
-  if (analyticsLoading) {
+  if (analyticsLoading || activityLoading) {
     return (
       <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
@@ -209,7 +208,7 @@ const StorageAnalyticsView = ({
     );
   }
 
-  if (!analytics) {
+  if (!analytics && !storageActivity) {
     return (
       <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
         <div className="text-center py-20 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
@@ -338,7 +337,7 @@ const StorageAnalyticsView = ({
               <div className="flex justify-between items-center mb-2 text-sm text-gray-600 dark:text-gray-400">
                 <span>Active vs Trash Storage</span>
                 <span className="font-semibold text-gray-900 dark:text-gray-100">
-                  {((storageActivity.storageUsed / storageActivity.storageLimit) * 100).toFixed(1)}% Limit Used
+                  {getPercent(storageActivity.storageUsed, storageActivity.storageLimit).toFixed(1)}% Limit Used
                 </span>
               </div>
               
@@ -346,12 +345,12 @@ const StorageAnalyticsView = ({
               <div className="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
                 <div 
                   className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
+                  style={{ width: `${getPercent(storageActivity.activeUsed, storageActivity.storageUsed)}%` }}
                   title={`Active Files: ${formatFileSize(storageActivity.activeUsed)}`}
                 />
                 <div 
                   className="h-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
+                  style={{ width: `${getPercent(storageActivity.trashUsed, storageActivity.storageUsed)}%` }}
                   title={`Trash Files: ${formatFileSize(storageActivity.trashUsed)}`}
                 />
               </div>
@@ -361,11 +360,11 @@ const StorageAnalyticsView = ({
                 <div className="flex gap-4">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block shadow-sm"></span>
-                    Active ({((storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                    Active ({getPercent(storageActivity.activeUsed, storageActivity.storageUsed).toFixed(0)}%)
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block shadow-sm"></span>
-                    Trash ({((storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
+                    Trash ({getPercent(storageActivity.trashUsed, storageActivity.storageUsed).toFixed(0)}%)
                   </span>
                 </div>
                 <span>{formatFileSize(storageActivity.storageUsed)}</span>
@@ -395,14 +394,17 @@ const StorageAnalyticsView = ({
           <div className="flex items-center justify-between gap-3 mb-6">
             <div>
               <h3 className="font-bold text-gray-900 dark:text-gray-100">Storage Mix</h3>
-              <p className="text-xs text-gray-400 mt-1">{formatFileSize(analyticsActiveSize)} active storage</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {formatFileSize(storageActivity?.activeUsed ?? analyticsActiveSize)} active storage
+              </p>
             </div>
             <BarChart2 className="w-5 h-5 text-gray-400" />
           </div>
 
           <div className="flex h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 mb-6">
             {analyticsCategories.map((category) => {
-              const width = getPercent(category.size, analyticsActiveSize);
+              const mixTotal = storageActivity?.activeUsed ?? analyticsActiveSize;
+              const width = getPercent(category.size, mixTotal);
               return (
                 <div
                   key={category.key}
@@ -417,7 +419,8 @@ const StorageAnalyticsView = ({
           <div className="space-y-4">
             {analyticsCategories.map((category) => {
               const Icon = category.icon;
-              const percent = getPercent(category.size, analyticsActiveSize);
+              const mixTotal = storageActivity?.activeUsed ?? analyticsActiveSize;
+              const percent = getPercent(category.size, mixTotal);
               return (
                 <div key={category.key} className="flex items-center gap-4">
                   <div className={`w-10 h-10 ${category.bg} rounded-xl flex items-center justify-center shrink-0`}>
@@ -458,23 +461,25 @@ const StorageAnalyticsView = ({
             </button>
           </div>
 
-          <div className="flex-1 flex items-end gap-3 min-h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex-1 flex items-end gap-2 sm:gap-3 h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
             {uploadTrend.map((day) => {
               const count = Number(day.count) || 0;
               const size = Number(day.size) || 0;
-              const heightPct = Math.min((count / uploadTrendMax) * 100, 100);
+              const maxBarHeight = 168;
+              const barHeight = count > 0
+                ? Math.max(Math.round((count / uploadTrendMax) * maxBarHeight), 20)
+                : 6;
               return (
-                <div key={day.date} className="flex-1 flex flex-col items-center group relative gap-2">
+                <div key={day.dateKey || day.date} className="flex-1 flex flex-col items-center justify-end group relative gap-2 h-full min-w-0">
                   <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none whitespace-nowrap shadow-xl z-10 flex flex-col gap-0.5 items-center">
                     <span className="font-bold">{count} uploads</span>
                     <span className="text-gray-400">{formatFileSize(size)}</span>
                   </div>
                   <div
-                    className="w-full max-w-12 rounded-t-xl bg-green-100 dark:bg-green-950/40 group-hover:bg-green-500 transition-all duration-300 relative overflow-hidden flex items-end"
-                    style={{ height: `${Math.max(heightPct, count > 0 ? 12 : 4)}%` }}
-                  >
-                    {count > 0 && <div className="w-full h-1.5 bg-green-600 rounded-t-xl" />}
-                  </div>
+                    className="w-full max-w-12 rounded-t-xl bg-gradient-to-t from-green-600 to-green-400 dark:from-green-500 dark:to-green-300 transition-all duration-300 shadow-sm"
+                    style={{ height: `${barHeight}px` }}
+                    title={`${count} uploads · ${formatFileSize(size)}`}
+                  />
                   <span className="text-[10px] font-semibold text-gray-400 truncate w-full text-center">{day.date}</span>
                 </div>
               );
@@ -962,7 +967,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (activeTab === 'analytics') {
-      dispatch(fetchStorageAnalytics());
       dispatch(fetchStorageActivity());
     }
   }, [activeTab, dispatch]);
@@ -1000,7 +1004,7 @@ const Dashboard = () => {
   const totalFileCount = allFiles.length;
 
   const analyticsCategories = useMemo(() => {
-    const categories = analytics?.categories || {};
+    const categories = storageActivity?.categories || analytics?.categories || {};
 
     return ANALYTICS_CATEGORIES.map((category) => {
       const data = categories[category.key] || {};
@@ -1010,27 +1014,29 @@ const Dashboard = () => {
         count: Number(data.count) || 0,
       };
     });
-  }, [analytics]);
+  }, [analytics, storageActivity]);
 
-  const analyticsUsed = Number(analytics?.storageUsed) || 0;
-  const analyticsLimit = Number(analytics?.storageLimit) || 0;
+  const analyticsUsed = Number(storageActivity?.storageUsed ?? analytics?.storageUsed) || 0;
+  const analyticsLimit = Number(storageActivity?.storageLimit ?? analytics?.storageLimit) || 0;
   const analyticsPercent = getPercent(analyticsUsed, analyticsLimit);
   const analyticsRemaining = Math.max(analyticsLimit - analyticsUsed, 0);
-  const analyticsActiveSize = analyticsCategories.reduce(
+  const analyticsActiveSize = Number(storageActivity?.activeUsed) || analyticsCategories.reduce(
     (total, category) => total + category.size,
     0
   );
-  const analyticsFileCount = analyticsCategories.reduce(
+  const analyticsFileCount = Number(storageActivity?.activeFileCount) || analyticsCategories.reduce(
     (total, category) => total + category.count,
     0
   );
   const analyticsTrash = {
-    size: Number(analytics?.trash?.size) || 0,
-    count: Number(analytics?.trash?.count) || 0,
+    size: Number(storageActivity?.trashUsed ?? storageActivity?.trash?.size ?? analytics?.trash?.size) || 0,
+    count: Number(storageActivity?.trash?.count ?? analytics?.trash?.count) || 0,
   };
-  const uploadTrend = Array.isArray(analytics?.uploadTrend)
-    ? analytics.uploadTrend
-    : [];
+  const uploadTrend = Array.isArray(storageActivity?.uploadTrend)
+    ? storageActivity.uploadTrend
+    : Array.isArray(analytics?.uploadTrend)
+      ? analytics.uploadTrend
+      : [];
   const uploadTrendMax = Math.max(...uploadTrend.map((day) => Number(day.count) || 0), 1);
   const weeklyUploadCount = uploadTrend.reduce(
     (total, day) => total + (Number(day.count) || 0),

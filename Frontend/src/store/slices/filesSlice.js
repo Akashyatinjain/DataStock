@@ -14,10 +14,19 @@ import {
 } from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
 
+const mapStoragePayloadToAnalytics = (data) => ({
+  storageUsed: Number(data?.storageUsed) || 0,
+  storageLimit: Number(data?.storageLimit) || DEFAULT_STORAGE_LIMIT,
+  subscriptionPlan: data?.subscriptionPlan || 'BASIC',
+  categories: data?.categories || createEmptyCategories(),
+  trash: data?.trash || { size: Number(data?.trashUsed) || 0, count: 0 },
+  uploadTrend: Array.isArray(data?.uploadTrend) ? data.uploadTrend : [],
+});
+
 export const fetchStorageActivity = createAsyncThunk('files/fetchStorageActivity', async (_, thunkAPI) => {
   try {
-    const data = await getStorageActivity();
-    return data.data;
+    const response = await getStorageActivity();
+    return response.data;
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load storage activity');
   }
@@ -217,19 +226,11 @@ const buildStorageAnalytics = ({ files, trashFiles, user }) => {
 
 export const fetchStorageAnalytics = createAsyncThunk('files/fetchStorageAnalytics', async (_, thunkAPI) => {
   try {
-    const [allFilesData, trashFilesData] = await Promise.all([
-      getAllFiles(),
-      getTrashFiles(),
-    ]);
-
-    const files = (allFilesData.files || []).map(normalizeFile);
-    const trashFiles = (trashFilesData.files || []).map(normalizeFile);
-    const user = thunkAPI.getState().auth?.user;
-
+    const response = await getStorageActivity();
+    const data = response.data;
     return {
-      analytics: buildStorageAnalytics({ files, trashFiles, user }),
-      files,
-      trashFiles,
+      analytics: mapStoragePayloadToAnalytics(data),
+      storageActivity: data,
     };
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load storage analytics');
@@ -244,6 +245,7 @@ const filesSlice = createSlice({
     trashFiles: [],
     storageActivity: null,
     activityLoading: false,
+    analytics: null,
 
     loading: false,
     trashLoading: false,
@@ -422,29 +424,33 @@ const filesSlice = createSlice({
         state.emptyingTrash = false;
         state.error = action.payload;
       })
-        // fetchStorageActivity
         .addCase(fetchStorageActivity.pending, (state) => {
           state.activityLoading = true;
+          state.analyticsLoading = true;
           state.error = null;
         })
         .addCase(fetchStorageActivity.fulfilled, (state, action) => {
           state.activityLoading = false;
+          state.analyticsLoading = false;
           state.storageActivity = action.payload;
+          state.analytics = mapStoragePayloadToAnalytics(action.payload);
         })
         .addCase(fetchStorageActivity.rejected, (state, action) => {
           state.activityLoading = false;
+          state.analyticsLoading = false;
           state.error = action.payload;
         })
         // fetchStorageAnalytics
         .addCase(fetchStorageAnalytics.pending, (state) => {
           state.analyticsLoading = true;
+          state.activityLoading = true;
           state.error = null;
         })
         .addCase(fetchStorageAnalytics.fulfilled, (state, action) => {
           state.analyticsLoading = false;
+          state.activityLoading = false;
           state.analytics = action.payload.analytics;
-          state.allFiles = action.payload.files;
-          state.trashFiles = action.payload.trashFiles;
+          state.storageActivity = action.payload.storageActivity;
         })
         .addCase(fetchStorageAnalytics.rejected, (state, action) => {
           state.analyticsLoading = false;

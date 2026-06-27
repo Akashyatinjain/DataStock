@@ -72,7 +72,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 // DELETE FILE
 // ==========================
 
-export const getPublicIdFromUrl = (url) => {
+const getPublicIdFromUrl = (url) => {
   if (!url || !url.includes("cloudinary.com")) return null;
 
   try {
@@ -128,4 +128,5 @@ const deleteFromCloudinary = async (
 export {
   uploadOnCloudinary,
   deleteFromCloudinary,
+  getPublicIdFromUrl,
 };

@@ -10,6 +10,7 @@ import {
   restoreFromTrash,
   getTrashFiles,
   emptyTrash,
+  toggleArchiveFile,
 } from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
 
@@ -65,6 +66,15 @@ export const toggleStar = createAsyncThunk('files/toggleStar', async (fileId, th
     return normalizeFile(data.file);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to toggle star');
+  }
+});
+
+export const toggleArchive = createAsyncThunk('files/toggleArchive', async (fileId, thunkAPI) => {
+  try {
+    const data = await toggleArchiveFile(fileId);
+    return normalizeFile(data.file);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to toggle archive');
   }
 });
 
@@ -242,6 +252,7 @@ const filesSlice = createSlice({
     deletingId: null,
     starringId: null,
     restoringId: null,
+    archivingId: null,
     emptyingTrash: false,
     error: null,
   },
@@ -330,6 +341,25 @@ const filesSlice = createSlice({
       })
       .addCase(toggleStar.rejected, (state, action) => {
         state.starringId = null;
+        state.error = action.payload;
+      })
+      // toggleArchive
+      .addCase(toggleArchive.pending, (state, action) => {
+        state.archivingId = action.meta.arg;
+        state.error = null;
+      })
+      .addCase(toggleArchive.fulfilled, (state, action) => {
+        state.archivingId = null;
+        const updatedFile = action.payload;
+        if (updatedFile.isArchived) {
+          state.files = state.files.filter(f => f.id !== updatedFile.id);
+        } else {
+          state.files = state.files.map(f => f.id === updatedFile.id ? updatedFile : f);
+        }
+        state.allFiles = state.allFiles.map(f => f.id === updatedFile.id ? updatedFile : f);
+      })
+      .addCase(toggleArchive.rejected, (state, action) => {
+        state.archivingId = null;
         state.error = action.payload;
       })
       // ── Trash reducers ──

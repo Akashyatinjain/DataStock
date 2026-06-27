@@ -50,6 +50,11 @@ export const toggleStarFile = async (fileId) => {
   return response.data;
 };
 
+export const toggleArchiveFile = async (fileId) => {
+  const response = await API.patch(`/files/${fileId}/archive`);
+  return response.data;
+};
+
 export const moveToTrash = async (fileId) => {
   const response = await API.patch(`/files/${fileId}/trash`);
   return response.data;

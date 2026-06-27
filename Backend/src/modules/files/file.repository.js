@@ -66,7 +66,8 @@ export const getFilesByUserId =
         folderId:
           folderId || null,
 
-        isTrash: false
+        isTrash: false,
+        isArchived: false
       },
 
       orderBy: {
@@ -143,5 +144,12 @@ export const getTrashFilesByUserId = async (userId) => {
     orderBy: {
       updatedAt: "desc",
     },
+  });
+};
+
+export const updateFileArchived = async (fileId, isArchived) => {
+  return prisma.file.update({
+    where: { id: fileId },
+    data: { isArchived },
   });
 };

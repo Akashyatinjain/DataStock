@@ -322,3 +322,36 @@ export const emptyTrashService = async (userId) => {
     deletedCount: trashedFiles.length,
   };
 };
+
+export const toggleArchiveFileService = async (fileId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+
+  if (file.ownerId !== userId) {
+    throw createError("Unauthorized to update this file", 403, "UNAUTHORIZED");
+  }
+
+  if (file.isTrash) {
+    throw createError("Cannot archive a file that is in the trash", 400, "CANNOT_ARCHIVE_TRASHED");
+  }
+
+  const updatedFile = await fileRepo.updateFileArchived(
+    fileId,
+    !file.isArchived
+  );
+
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" ${updatedFile.isArchived ? "archived" : "unarchived"} successfully`
+  );
+
+  return {
+    file: updatedFile,
+    message: updatedFile.isArchived
+      ? "File archived successfully"
+      : "File unarchived successfully",
+  };
+};

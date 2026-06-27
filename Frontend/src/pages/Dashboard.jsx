@@ -58,6 +58,7 @@ import {
   uploadNewFile,
   deleteExistingFile,
   toggleStar,
+  toggleArchive,
   addUploadedFile,
   fetchTrashFiles,
   moveFileToTrash,
@@ -518,13 +519,15 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
-const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId, isTrashView, onRestore, restoringId }) => {
+const FileCard = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
   const isRestoring = restoringId === file.id;
   const isStarring = starringId === file.id;
+  const isArchiving = archivingId === file.id;
   const isStarred = file.starred || file.isStarred;
+  const isArchived = file.archived || file.isArchived;
 
   return (
     <div
@@ -618,6 +621,22 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
                   )}
                 </button>
                 <button
+                  onClick={e => { e.stopPropagation(); onToggleArchive(file.id); }}
+                  disabled={isArchiving}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                    isArchived
+                      ? 'text-amber-600 hover:bg-amber-50'
+                      : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'
+                  }`}
+                  title={isArchived ? 'Unarchive' : 'Archive'}
+                >
+                  {isArchiving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Archive className={`w-4 h-4 ${isArchived ? 'fill-amber-500 text-amber-500' : ''}`} />
+                  )}
+                </button>
+                <button
                   onClick={e => { e.stopPropagation(); onShare(file); }}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
                   title="Share"
@@ -647,13 +666,15 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId
   );
 };
 
-const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId, starringId, isTrashView, onRestore, restoringId }) => {
+const FileRow = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
   const isRestoring = restoringId === file.id;
   const isStarring = starringId === file.id;
+  const isArchiving = archivingId === file.id;
   const isStarred = file.starred || file.isStarred;
+  const isArchived = file.archived || file.isArchived;
 
   return (
     <div
@@ -731,6 +752,22 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onShare, deletingId,
                   )}
                 </button>
                 <button
+                  onClick={e => { e.stopPropagation(); onToggleArchive(file.id); }}
+                  disabled={isArchiving}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                    isArchived
+                      ? 'text-amber-600 hover:bg-amber-50'
+                      : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'
+                  }`}
+                  title={isArchived ? 'Unarchive' : 'Archive'}
+                >
+                  {isArchiving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Archive className={`w-4 h-4 ${isArchived ? 'fill-amber-500 text-amber-500' : ''}`} />
+                  )}
+                </button>
+                <button
                   onClick={e => { e.stopPropagation(); onShare(file); }}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
                   title="Share"
@@ -790,6 +827,7 @@ const Dashboard = () => {
   const deletingId = useSelector((state) => state.files.deletingId);
   const starringId = useSelector((state) => state.files.starringId);
   const restoringId = useSelector((state) => state.files.restoringId);
+  const archivingId = useSelector((state) => state.files.archivingId);
   const emptyingTrash = useSelector((state) => state.files.emptyingTrash);
   const analytics = useSelector((state) => state.files.analytics);
   const analyticsLoading = useSelector((state) => state.files.analyticsLoading);
@@ -1137,7 +1175,7 @@ const Dashboard = () => {
       const resultAction = await dispatch(toggleStar(fileId));
       if (toggleStar.fulfilled.match(resultAction)) {
         addToast(
-          resultAction.payload.starred
+          resultAction.payload.starred || resultAction.payload.isStarred
             ? `"${file?.originalName}" added to starred`
             : `"${file?.originalName}" removed from starred`,
           'success'
@@ -1148,6 +1186,26 @@ const Dashboard = () => {
     } catch (error) {
       console.log(error);
       addToast('Failed to update starred status', 'error');
+    }
+  };
+
+  const handleToggleArchive = async (fileId) => {
+    const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
+    try {
+      const resultAction = await dispatch(toggleArchive(fileId));
+      if (toggleArchive.fulfilled.match(resultAction)) {
+        addToast(
+          resultAction.payload.isArchived || resultAction.payload.archived
+            ? `"${file?.originalName}" archived successfully`
+            : `"${file?.originalName}" unarchived successfully`,
+          'success'
+        );
+      } else {
+        addToast(resultAction.payload || 'Failed to update archive status', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to update archive status', 'error');
     }
   };
 
@@ -1492,9 +1550,11 @@ const Dashboard = () => {
                     onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
+                    onToggleArchive={handleToggleArchive}
                     onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
+                    archivingId={archivingId}
                     isTrashView={isTrashView}
                     onRestore={handleRestore}
                     restoringId={restoringId}
@@ -1519,9 +1579,11 @@ const Dashboard = () => {
                     onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
+                    onToggleArchive={handleToggleArchive}
                     onShare={handleShare}
                     deletingId={deletingId}
                     starringId={starringId}
+                    archivingId={archivingId}
                     isTrashView={isTrashView}
                     onRestore={handleRestore}
                     restoringId={restoringId}

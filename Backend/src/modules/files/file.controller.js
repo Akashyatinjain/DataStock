@@ -167,3 +167,15 @@ export const emptyTrash = asyncHandler(async (req, res) => {
     ...result,
   });
 });
+
+export const toggleArchiveFile = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+
+  const result = await fileService.toggleArchiveFileService(id, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});

@@ -9,6 +9,7 @@ import {
   restoreFromTrash,
   getTrashFiles,
   emptyTrash,
+  toggleArchiveFile,
 } from "./file.controller.js";
 
 import {
@@ -45,6 +46,7 @@ router.patch("/:id/trash", authenticateUser, moveToTrash);
 router.patch("/:id/restore", authenticateUser, restoreFromTrash);
 
 router.patch("/:id/star", authenticateUser, toggleStarFile);
+router.patch("/:id/archive", authenticateUser, toggleArchiveFile);
 
 router.delete("/:id", authenticateUser, deleteFile);
 

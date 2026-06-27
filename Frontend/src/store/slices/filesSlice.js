@@ -16,7 +16,7 @@ import { normalizeFile } from '../../utils/fileHelpers';
 export const fetchStorageActivity = createAsyncThunk('files/fetchStorageActivity', async (_, thunkAPI) => {
   try {
     const data = await getStorageActivity();
-    return data;
+    return data.data;
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to load storage activity');
   }

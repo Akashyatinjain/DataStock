@@ -345,12 +345,12 @@ const StorageAnalyticsView = ({
               <div className="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
                 <div 
                   className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.activeUsed / storageActivity.storageLimit) * 100}%` }}
+                  style={{ width: `${(storageActivity.activeUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
                   title={`Active Files: ${formatFileSize(storageActivity.activeUsed)}`}
                 />
                 <div 
                   className="h-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000"
-                  style={{ width: `${(storageActivity.trashUsed / storageActivity.storageLimit) * 100}%` }}
+                  style={{ width: `${(storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100}%` }}
                   title={`Trash Files: ${formatFileSize(storageActivity.trashUsed)}`}
                 />
               </div>
@@ -367,7 +367,7 @@ const StorageAnalyticsView = ({
                     Trash ({((storageActivity.trashUsed / (storageActivity.storageUsed || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
-                <span>{formatFileSize(storageActivity.storageLimit)}</span>
+                <span>{formatFileSize(storageActivity.storageUsed)}</span>
               </div>
             </div>
             

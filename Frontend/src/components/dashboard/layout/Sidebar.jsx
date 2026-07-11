@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from '../../../store/slices/authSlice';
 import { fetchFiles } from '../../../store/slices/filesSlice';
 import { fetchFolders, deleteExistingFolder } from '../../../store/slices/foldersSlice';
 import { DEFAULT_STORAGE } from '../../../utils/constants';
@@ -61,7 +60,8 @@ const Sidebar = ({
   const selectedFolderId = getActiveFolderId(activeTab);
   const files = syncFiles ? filesFromParent : reduxFiles;
   const statsFiles = allFilesFromParent ?? files;
-  const [storageData, setStorageData] = useState(storageDataProp || DEFAULT_STORAGE);
+  const [fallbackStorageData, setFallbackStorageData] = useState(DEFAULT_STORAGE);
+  const storageData = storageDataProp || fallbackStorageData;
 
   const showFoldersLoading = syncFolders ? foldersLoadingFromParent : reduxFoldersLoading;
   const [showNewMenu, setShowNewMenu] = useState(false);
@@ -89,10 +89,6 @@ const Sidebar = ({
   }, [setIsMobileMenuOpen]);
 
   useEffect(() => {
-    if (storageDataProp) setStorageData(storageDataProp);
-  }, [storageDataProp]);
-
-  useEffect(() => {
     if (!syncFolders) {
       dispatch(fetchFolders());
     }
@@ -100,7 +96,7 @@ const Sidebar = ({
       dispatch(fetchFiles()).then((result) => {
         if (fetchFiles.fulfilled.match(result)) {
           const usedGB = computeUsedGB(result.payload);
-          if (usedGB > 0) setStorageData((p) => ({ ...p, used: usedGB }));
+          if (usedGB > 0) setFallbackStorageData((p) => ({ ...p, used: usedGB }));
         }
       });
     }
@@ -128,11 +124,6 @@ const Sidebar = ({
       toast('error', result.payload || 'Failed to delete folder');
     }
     setDeletingFolderId(null);
-  };
-
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    window.location.href = '/login';
   };
 
   const sidebarBody = (
@@ -234,7 +225,6 @@ const Sidebar = ({
         />
         <MobileSidebarPanel
           isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
         >
           {sidebarBody}
         </MobileSidebarPanel>

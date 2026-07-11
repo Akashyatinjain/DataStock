@@ -38,7 +38,6 @@ import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {
-  normalizeList,
   normalizeFile,
   getActiveFolderId,
   getFolderId,
@@ -66,10 +65,7 @@ import {
   emptyAllTrash,
   fetchStorageActivity,
 } from '../store/slices/filesSlice';
-import {
-  fetchFolders,
-  deleteExistingFolder,
-} from '../store/slices/foldersSlice';
+import { fetchFolders } from '../store/slices/foldersSlice';
 import {
   fetchNotifications,
   readNotification,
@@ -1612,7 +1608,7 @@ const Dashboard = () => {
                         try {
                           await dispatch(readAllNotifications());
                           addToast("All notifications marked as read", "success");
-                        } catch (err) {
+                        } catch {
                           addToast("Failed to mark all read", "error");
                         }
                       }}
@@ -1675,7 +1671,7 @@ const Dashboard = () => {
                               try {
                                 await dispatch(readNotification(notif.id));
                                 addToast("Notification marked as read", "success");
-                              } catch (err) {
+                              } catch {
                                 addToast("Failed to update notification", "error");
                               }
                             }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Share2,
@@ -57,7 +57,7 @@ const Avatar = ({ user, size = 8 }) => (
   </div>
 );
 
-const ShareModal = ({ file, isOpen, onClose, onToast }) => {
+const ShareModalContent = ({ file, onClose, onToast }) => {
   const dispatch = useDispatch();
   const {
     fileShares: shares,
@@ -75,29 +75,18 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
   const [permission, setPermission] = useState('VIEW');
   const [copied, setCopied] = useState(false);
 
-  const loadShares = useCallback(() => {
-    if (file?.id) {
-      dispatch(fetchFileShares(file.id));
-    }
-  }, [dispatch, file?.id]);
+  const fileId = file.id;
 
   useEffect(() => {
-    if (isOpen && file?.id) {
-      setTab('people');
-      setEmail('');
-      setPermission('VIEW');
-      dispatch(clearShareModalState());
-      loadShares();
-    }
-  }, [isOpen, file?.id, loadShares, dispatch]);
-
-  if (!isOpen || !file) return null;
+    dispatch(clearShareModalState());
+    dispatch(fetchFileShares(fileId));
+  }, [dispatch, fileId]);
 
   const handleShare = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
     const result = await dispatch(
-      shareFileWithUser({ fileId: file.id, email: email.trim(), permission })
+      shareFileWithUser({ fileId, email: email.trim(), permission })
     );
     if (shareFileWithUser.fulfilled.match(result)) {
       setEmail('');
@@ -115,7 +104,7 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
   };
 
   const handleGenerateLink = async () => {
-    const result = await dispatch(createPublicLink(file.id));
+    const result = await dispatch(createPublicLink(fileId));
     if (createPublicLink.fulfilled.match(result)) {
       onToast?.('Public link generated!', 'success');
     } else {
@@ -371,6 +360,19 @@ const ShareModal = ({ file, isOpen, onClose, onToast }) => {
         .animate-fade-in { animation: fade-in 0.2s ease-out; }
       `}</style>
     </div>
+  );
+};
+
+const ShareModal = ({ file, isOpen, onClose, onToast }) => {
+  if (!isOpen || !file) return null;
+
+  return (
+    <ShareModalContent
+      key={file.id}
+      file={file}
+      onClose={onClose}
+      onToast={onToast}
+    />
   );
 };
 

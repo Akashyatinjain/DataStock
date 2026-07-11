@@ -11,7 +11,7 @@ export function MobileSidebarOverlay({ isOpen, onClose }) {
   );
 }
 
-export function MobileSidebarPanel({ isOpen, children, onClose }) {
+export function MobileSidebarPanel({ isOpen, children }) {
   return (
     <aside
       className={`fixed left-0 top-14 z-50 h-[calc(100dvh-3.5rem)] w-[min(85vw,18rem)] border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-transform duration-300 ${

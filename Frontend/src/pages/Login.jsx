@@ -34,7 +34,18 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [step, setStep] = useState('login'); // 'login', 'otp-verification', 'success'
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (!error) return {};
+
+    return {
+      general:
+        error === "google_auth_failed"
+          ? "Google sign-in was cancelled or failed. Please try again."
+          : decodeURIComponent(error),
+    };
+  });
   const isLoading = authLoading || otpLoading;
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -42,12 +53,6 @@ const LoginPage = () => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
     if (error) {
-      setErrors({
-        general:
-          error === "google_auth_failed"
-            ? "Google sign-in was cancelled or failed. Please try again."
-            : decodeURIComponent(error),
-      });
       window.history.replaceState({}, document.title, "/login");
     }
   }, []);

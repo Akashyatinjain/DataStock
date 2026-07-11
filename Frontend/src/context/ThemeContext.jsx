@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleTheme, setTheme, THEME_KEY, getStoredTheme, applyTheme } from '../store/slices/themeSlice';
-
-export { getStoredTheme, applyTheme };
+import { setTheme, THEME_KEY, applyTheme } from '../store/slices/themeSlice';
 
 export function ThemeProvider({ children }) {
   const dispatch = useDispatch();
@@ -26,17 +24,3 @@ export function ThemeProvider({ children }) {
 
   return children;
 }
-
-export function useTheme() {
-  const dispatch = useDispatch();
-  const theme = useSelector((state) => state.theme.theme);
-
-  return {
-    theme,
-    isDark: theme === 'dark',
-    toggleTheme: () => dispatch(toggleTheme()),
-    setLightTheme: () => dispatch(setTheme('light')),
-    setDarkTheme: () => dispatch(setTheme('dark')),
-  };
-}
-

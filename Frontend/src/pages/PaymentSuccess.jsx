@@ -48,6 +48,8 @@ const PLAN_DETAILS = {
   },
 };
 
+const CONFETTI_COLORS = ["#34d399", "#10b981", "#6ee7b7", "#a78bfa", "#f59e0b", "#ec4899"];
+
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -182,16 +184,22 @@ export default function PaymentSuccess() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-green-400/5 rounded-full blur-[150px]" />
       </div>
 
-      {[...Array(20)].map((_, i) => (
+      {Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        left: `${(i * 37 + 11) % 100}%`,
+        delay: `${((i * 19) % 30) / 10}s`,
+        duration: `${3 + ((i * 7) % 20) / 10}s`,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      })).map((piece) => (
         <div
-          key={i}
+          key={piece.id}
           className="absolute w-2 h-2 rounded-full animate-confetti"
           style={{
-            left: `${Math.random() * 100}%`,
+            left: piece.left,
             top: "-5%",
-            backgroundColor: ["#34d399", "#10b981", "#6ee7b7", "#a78bfa", "#f59e0b", "#ec4899"][i % 6],
-            animationDelay: `${Math.random() * 3}s`,
-            animationDuration: `${3 + Math.random() * 2}s`,
+            backgroundColor: piece.color,
+            animationDelay: piece.delay,
+            animationDuration: piece.duration,
           }}
         />
       ))}

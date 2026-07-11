@@ -123,7 +123,7 @@ export default function Pricing() {
       const result = await dispatch(startCheckout(planKey));
 
       if (startCheckout.fulfilled.match(result) && result.payload.success && result.payload.checkoutUrl) {
-        window.location.href = result.payload.checkoutUrl;
+        window.location.assign(result.payload.checkoutUrl);
         return;
       }
 

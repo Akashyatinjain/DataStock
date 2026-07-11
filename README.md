@@ -1,346 +1,131 @@
-# 📦 DataStock
+# DataStock
 
-> A modern cloud storage platform inspired by Google Drive where users can securely upload, organize, manage, preview, and share files.
+DataStock is a full-stack cloud storage web app for uploading, organizing,
+previewing, sharing, archiving, and deleting files. The project is split into a
+Vite React frontend and an Express/Prisma backend.
 
-![React](https://img.shields.io/badge/React-19-blue?logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-Express-green?logo=node.js)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma-blue?logo=postgresql)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+## Live Links
 
-## 🚀 Live Demo
+- Frontend: https://data-stock.vercel.app
+- Backend API: https://datastock-skpb.onrender.com
 
-🌐 Frontend: https://data-stock.vercel.app
+## Features
 
-🔗 Backend API: https://datastock-skpb.onrender.com
+- Email/password, OTP, and Google OAuth authentication
+- JWT and cookie-based session support
+- File upload, preview, download, archive, star, trash, and restore flows
+- Folder creation, navigation, and deletion
+- File sharing with users and public links
+- Notifications and realtime socket updates
+- Storage analytics, subscription pricing, and payment return handling
+- Light and dark theme support
 
----
+## Tech Stack
 
-# ✨ Features
+- Frontend: React 19, Vite, Redux Toolkit, Tailwind CSS, React Router, Axios
+- Backend: Node.js, Express, Prisma, PostgreSQL, Socket.IO
+- Services: Cloudinary, Google OAuth, Dodo Payments
+- Deployment: Vercel for frontend, Render for backend
 
-### 🔐 Authentication
+## Project Structure
 
-- Email & Password Login
-- Google OAuth Login
-- OTP Authentication
-- JWT Authentication
-- Secure Cookies
-
-### 📁 File Management
-
-- Upload Files
-- Download Files
-- Delete Files
-- Rename Files
-- Move Files into Folders
-- Preview Images & PDFs
-- Star Important Files
-- Trash Files
-
-### 📂 Folder Management
-
-- Create Folder
-- Rename Folder
-- Delete Folder
-- Nested Folder Support
-
-### 👤 User Profile
-
-- Profile Picture Upload
-- Update Profile
-- Storage Statistics
-
-### 📊 Dashboard
-
-- Storage Usage
-- Recent Files
-- Quick Access
-- Recent Activity
-
-### ☁ Cloud Storage
-
-- Cloudinary Integration
-- PostgreSQL Database
-- Secure File Metadata Storage
-
-### 📱 Responsive UI
-
-- Desktop
-- Tablet
-- Mobile Friendly
-
----
-
-# 🛠 Tech Stack
-
-## Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
-- React Icons
-
-## Backend
-
-- Node.js
-- Express.js
-- Prisma ORM
-- PostgreSQL
-- JWT
-- Passport.js
-- Multer
-- Cloudinary
-
-## Database
-
-- PostgreSQL (Neon)
-
-## Deployment
-
-- Vercel
-- Render
-
----
-
-# 📂 Project Structure
-
-```
-DataStock
-│
-├── client
-│   ├── src
-│   ├── components
-│   ├── pages
-│   ├── context
-│   ├── hooks
-│   ├── api
-│   └── assets
-│
-├── server
-│   ├── prisma
-│   ├── controllers
-│   ├── middleware
-│   ├── routes
-│   ├── services
-│   ├── utils
-│   └── uploads
-│
-└── README.md
+```text
+DataStock/
+  Backend/
+    prisma/
+    src/
+      config/
+      middleware/
+      modules/
+      services/
+      utils/
+    server.js
+  Frontend/
+    public/
+    src/
+      api/
+      components/
+      config/
+      context/
+      hooks/
+      pages/
+      routes/
+      store/
+      styles/
+      utils/
 ```
 
----
+## Local Setup
 
-# ⚙ Installation
-
-## Clone Repository
+Install dependencies:
 
 ```bash
-git clone https://github.com/Akashyatinjain/DataStock.git
-```
+cd Backend
+npm install
 
-```bash
-cd DataStock
-```
-
----
-
-## Install Client
-
-```bash
-cd client
+cd ../Frontend
 npm install
 ```
 
----
-
-## Install Server
-
-```bash
-cd ../server
-npm install
-```
-
----
-
-# 🔑 Environment Variables
-
-Create a `.env` file inside the **server** directory.
+Create `Backend/.env`:
 
 ```env
 DATABASE_URL=
-
 JWT_SECRET=
-
 SESSION_SECRET=
-
 GOOGLE_CLIENT_ID=
-
 GOOGLE_CLIENT_SECRET=
-
 CLOUDINARY_CLOUD_NAME=
-
 CLOUDINARY_API_KEY=
-
 CLOUDINARY_API_SECRET=
-
 EMAIL_USER=
-
 EMAIL_PASS=
-
-FRONTEND_URL=
-
+FRONTEND_URL=http://localhost:5173
 PORT=5000
 ```
 
-For the client:
+Create `Frontend/.env`:
 
 ```env
-VITE_BASE_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 ```
 
----
-
-# 🗄 Database
-
-Generate Prisma Client
+Prepare the database:
 
 ```bash
+cd Backend
 npx prisma generate
-```
-
-Run Migrations
-
-```bash
 npx prisma migrate dev
 ```
 
-Open Prisma Studio
+Run the app:
 
 ```bash
-npx prisma studio
-```
+cd Backend
+npm run dev
 
----
-
-# ▶ Run Project
-
-Backend
-
-```bash
+cd ../Frontend
 npm run dev
 ```
 
-Frontend
+## Quality Checks
 
 ```bash
-npm run dev
+cd Frontend
+npm run lint
+npm run build
 ```
 
----
-
-# 📸 Screenshots
-
-> Add screenshots here.
-
-- Login Page
-- Dashboard
-- File Upload
-- Folder View
-- Profile Page
-- Storage Statistics
-
----
-
-# 🔒 Security
-
-- JWT Authentication
-- Password Hashing
-- Protected Routes
-- CORS Protection
-- Cookie-based Authentication
-- Input Validation
-
----
-
-# 📈 Future Improvements
-
-- File Sharing
-- Public Links
-- Real-time Notifications
-- Activity Timeline
-- Version History
-- Payment Integration
-- Team Workspaces
-- Drag & Drop Upload
-- Search & Filters
-- Dark Mode
-- WebSocket Support
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome!
-
-1. Fork the repository
-2. Create a new branch
+For backend syntax checks:
 
 ```bash
-git checkout -b feature-name
+cd Backend
+node --check server.js
 ```
 
-3. Commit your changes
+## Notes
 
-```bash
-git commit -m "Added new feature"
-```
-
-4. Push
-
-```bash
-git push origin feature-name
-```
-
-5. Open a Pull Request
-
----
-
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-# 👨‍💻 Author
-
-**Akash Jain**
-
-GitHub:
-https://github.com/Akashyatinjain
-
----
-
-## ⭐ Support
-
-If you like this project,
-
-⭐ Star the repository
-
-🍴 Fork it
-
-🐛 Report issues
-
-💡 Suggest new features
-
----
-
-## 💙 Built with
-
-- React
-- Express
-- Prisma
-- PostgreSQL
-- Cloudinary
-- Tailwind CSS
-- Node.js
+- Generated frontend builds belong in `Frontend/dist` and should not be placed
+  under `Frontend/public`.
+- Keep secrets in local `.env` files only.
+- Run Prisma migrations whenever the schema changes.

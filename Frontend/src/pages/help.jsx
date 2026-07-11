@@ -737,7 +737,7 @@ const HelpPage = () => {
                     className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl hover:border-green-200 hover:shadow-sm transition text-center"
                   >
                     <div className="w-9 h-9 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
-                      <Icon className="w-4 h-4 text-green-600" />
+                      {React.createElement(Icon, { className: 'w-4 h-4 text-green-600' })}
                     </div>
                     <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{label}</span>
                   </button>

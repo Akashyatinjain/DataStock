@@ -398,9 +398,12 @@ const filesSlice = createSlice({
         
         // Optimistic update
         const fileId = action.meta.arg;
+        console.log('toggleArchive.pending fileId:', fileId);
         const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
+        console.log('toggleArchive.pending file found:', file ? file.originalName : 'NOT FOUND');
         if (file) {
           const nextArchived = !(file.isArchived || file.archived);
+          console.log('toggleArchive.pending nextArchived:', nextArchived);
           
           state.allFiles = state.allFiles.map(f =>
             f.id === fileId ? { ...f, isArchived: nextArchived, archived: nextArchived } : f
@@ -421,6 +424,7 @@ const filesSlice = createSlice({
       .addCase(toggleArchive.fulfilled, (state, action) => {
         state.archivingId = null;
         const updatedFile = action.payload;
+        console.log('toggleArchive.fulfilled updatedFile:', updatedFile);
         if (updatedFile.isArchived) {
           state.files = state.files.filter(f => f.id !== updatedFile.id);
         } else {
@@ -430,11 +434,18 @@ const filesSlice = createSlice({
             state.files = [updatedFile, ...state.files.filter(f => f.id !== updatedFile.id)];
           }
         }
-        state.allFiles = state.allFiles.map(f => f.id === updatedFile.id ? updatedFile : f);
+        state.allFiles = state.allFiles.map(f => {
+          if (f.id === updatedFile.id) {
+            console.log('toggleArchive.fulfilled matched and updated file:', f.originalName);
+            return updatedFile;
+          }
+          return f;
+        });
       })
       .addCase(toggleArchive.rejected, (state, action) => {
         state.archivingId = null;
         state.error = action.payload;
+        console.log('toggleArchive.rejected error:', action.payload);
         
         // Rollback
         const fileId = action.meta.arg;

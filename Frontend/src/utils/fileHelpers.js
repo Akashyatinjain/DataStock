@@ -11,11 +11,14 @@ export const getFolderId = (folder) => folder._id || folder.id;
 export const normalizeFile = (file) => {
   if (!file) return file;
   const isStarred = file.isStarred ?? file.starred ?? false;
+  const isArchived = file.isArchived ?? file.archived ?? false;
   return {
     ...file,
     id: file.id || file._id,
     isStarred,
     starred: isStarred,
+    isArchived,
+    archived: isArchived,
   };
 };
 

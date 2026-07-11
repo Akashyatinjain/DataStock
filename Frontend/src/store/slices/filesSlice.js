@@ -259,6 +259,7 @@ const filesSlice = createSlice({
     error: null,
     lastDeletedFile: null,
     trashFilesBackup: null,
+    currentFolderId: null,
   },
   reducers: {
     addUploadedFile: (state, action) => {
@@ -281,6 +282,7 @@ const filesSlice = createSlice({
       .addCase(fetchFiles.fulfilled, (state, action) => {
         state.loading = false;
         state.files = action.payload;
+        state.currentFolderId = action.meta.arg || null;
       })
       .addCase(fetchFiles.rejected, (state, action) => {
         state.loading = false;
@@ -396,7 +398,7 @@ const filesSlice = createSlice({
         
         // Optimistic update
         const fileId = action.meta.arg;
-        const file = state.allFiles.find(f => f.id === fileId);
+        const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
         if (file) {
           const nextArchived = !(file.isArchived || file.archived);
           
@@ -407,7 +409,12 @@ const filesSlice = createSlice({
           if (nextArchived) {
             state.files = state.files.filter(f => f.id !== fileId);
           } else {
-            state.files = state.files.map(f => f.id === fileId ? { ...f, isArchived: false, archived: false } : f);
+            const unarchivedFile = { ...file, isArchived: false, archived: false };
+            const fileFolder = file.folderId || null;
+            const currentFolder = state.currentFolderId || null;
+            if (fileFolder === currentFolder) {
+              state.files = [unarchivedFile, ...state.files.filter(f => f.id !== fileId)];
+            }
           }
         }
       })
@@ -417,7 +424,11 @@ const filesSlice = createSlice({
         if (updatedFile.isArchived) {
           state.files = state.files.filter(f => f.id !== updatedFile.id);
         } else {
-          state.files = state.files.map(f => f.id === updatedFile.id ? updatedFile : f);
+          const fileFolder = updatedFile.folderId || null;
+          const currentFolder = state.currentFolderId || null;
+          if (fileFolder === currentFolder) {
+            state.files = [updatedFile, ...state.files.filter(f => f.id !== updatedFile.id)];
+          }
         }
         state.allFiles = state.allFiles.map(f => f.id === updatedFile.id ? updatedFile : f);
       })
@@ -427,7 +438,7 @@ const filesSlice = createSlice({
         
         // Rollback
         const fileId = action.meta.arg;
-        const file = state.allFiles.find(f => f.id === fileId);
+        const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
         if (file) {
           const nextArchived = !(file.isArchived || file.archived);
           state.allFiles = state.allFiles.map(f =>
@@ -435,6 +446,12 @@ const filesSlice = createSlice({
           );
           if (nextArchived) {
             state.files = state.files.filter(f => f.id !== fileId);
+          } else {
+            const fileFolder = file.folderId || null;
+            const currentFolder = state.currentFolderId || null;
+            if (fileFolder === currentFolder) {
+              state.files = [file, ...state.files.filter(f => f.id !== fileId)];
+            }
           }
         }
       })

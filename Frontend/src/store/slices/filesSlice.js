@@ -257,6 +257,8 @@ const filesSlice = createSlice({
     archivingId: null,
     emptyingTrash: false,
     error: null,
+    lastDeletedFile: null,
+    trashFilesBackup: null,
   },
   reducers: {
     addUploadedFile: (state, action) => {
@@ -308,9 +310,6 @@ const filesSlice = createSlice({
       })
       .addCase(uploadNewFile.rejected, (state, action) => {
         state.uploading = false;
-        // Keep state.error as a string — other components may render it directly as text.
-        // The full structured object (with code, suggestion) is still available
-        // via result.payload in UploadModal's dispatch handler.
         const p = action.payload;
         state.error = typeof p === 'string' ? p : p?.message || 'Failed to upload file';
       })
@@ -318,22 +317,55 @@ const filesSlice = createSlice({
       .addCase(deleteExistingFile.pending, (state, action) => {
         state.deletingId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const fileId = action.meta.arg;
+        const file = state.trashFiles.find(f => f.id === fileId) || 
+                     state.allFiles.find(f => f.id === fileId) || 
+                     state.files.find(f => f.id === fileId);
+        if (file) {
+          state.files = state.files.filter(f => f.id !== fileId);
+          state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+          state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+          state.lastDeletedFile = file;
+        }
       })
-      .addCase(deleteExistingFile.fulfilled, (state, action) => {
+      .addCase(deleteExistingFile.fulfilled, (state) => {
         state.deletingId = null;
-        const fileId = action.payload;
-        state.files = state.files.filter(f => f.id !== fileId);
-        state.allFiles = state.allFiles.filter(f => f.id !== fileId);
-        state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+        state.lastDeletedFile = null;
       })
       .addCase(deleteExistingFile.rejected, (state, action) => {
         state.deletingId = null;
         state.error = action.payload;
+        
+        // Rollback
+        if (state.lastDeletedFile && state.lastDeletedFile.id === action.meta.arg) {
+          const file = state.lastDeletedFile;
+          if (file.isTrash) {
+            state.trashFiles = [file, ...state.trashFiles];
+          } else {
+            state.allFiles = [file, ...state.allFiles];
+            state.files = [file, ...state.files];
+          }
+          state.lastDeletedFile = null;
+        }
       })
       // toggleStar
       .addCase(toggleStar.pending, (state, action) => {
         state.starringId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const fileId = action.meta.arg;
+        const toggle = f => {
+          if (f.id === fileId) {
+            const nextStarred = !(f.isStarred || f.starred);
+            return { ...f, isStarred: nextStarred, starred: nextStarred };
+          }
+          return f;
+        };
+        state.files = state.files.map(toggle);
+        state.allFiles = state.allFiles.map(toggle);
       })
       .addCase(toggleStar.fulfilled, (state, action) => {
         state.starringId = null;
@@ -344,11 +376,40 @@ const filesSlice = createSlice({
       .addCase(toggleStar.rejected, (state, action) => {
         state.starringId = null;
         state.error = action.payload;
+        
+        // Rollback
+        const fileId = action.meta.arg;
+        const toggle = f => {
+          if (f.id === fileId) {
+            const nextStarred = !(f.isStarred || f.starred);
+            return { ...f, isStarred: nextStarred, starred: nextStarred };
+          }
+          return f;
+        };
+        state.files = state.files.map(toggle);
+        state.allFiles = state.allFiles.map(toggle);
       })
       // toggleArchive
       .addCase(toggleArchive.pending, (state, action) => {
         state.archivingId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const fileId = action.meta.arg;
+        const file = state.allFiles.find(f => f.id === fileId);
+        if (file) {
+          const nextArchived = !(file.isArchived || file.archived);
+          
+          state.allFiles = state.allFiles.map(f =>
+            f.id === fileId ? { ...f, isArchived: nextArchived, archived: nextArchived } : f
+          );
+          
+          if (nextArchived) {
+            state.files = state.files.filter(f => f.id !== fileId);
+          } else {
+            state.files = state.files.map(f => f.id === fileId ? { ...f, isArchived: false, archived: false } : f);
+          }
+        }
       })
       .addCase(toggleArchive.fulfilled, (state, action) => {
         state.archivingId = null;
@@ -363,6 +424,19 @@ const filesSlice = createSlice({
       .addCase(toggleArchive.rejected, (state, action) => {
         state.archivingId = null;
         state.error = action.payload;
+        
+        // Rollback
+        const fileId = action.meta.arg;
+        const file = state.allFiles.find(f => f.id === fileId);
+        if (file) {
+          const nextArchived = !(file.isArchived || file.archived);
+          state.allFiles = state.allFiles.map(f =>
+            f.id === fileId ? { ...f, isArchived: nextArchived, archived: nextArchived } : f
+          );
+          if (nextArchived) {
+            state.files = state.files.filter(f => f.id !== fileId);
+          }
+        }
       })
       // ── Trash reducers ──
       // fetchTrashFiles
@@ -382,40 +456,87 @@ const filesSlice = createSlice({
       .addCase(moveFileToTrash.pending, (state, action) => {
         state.deletingId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const fileId = action.meta.arg;
+        const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
+        if (file) {
+          state.files = state.files.filter(f => f.id !== fileId);
+          state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+          const trashedFile = { ...file, isTrash: true };
+          state.trashFiles = [trashedFile, ...state.trashFiles.filter(f => f.id !== fileId)];
+        }
       })
       .addCase(moveFileToTrash.fulfilled, (state, action) => {
         state.deletingId = null;
-        const { fileId } = action.payload;
-        state.files = state.files.filter(f => f.id !== fileId);
-        state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+        const { fileId, file } = action.payload;
+        if (file) {
+          state.trashFiles = state.trashFiles.map(f => f.id === fileId ? file : f);
+        }
       })
       .addCase(moveFileToTrash.rejected, (state, action) => {
         state.deletingId = null;
         state.error = action.payload;
+        
+        // Rollback
+        const fileId = action.meta.arg;
+        const file = state.trashFiles.find(f => f.id === fileId);
+        if (file) {
+          state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+          const restoredFile = { ...file, isTrash: false };
+          state.allFiles = [restoredFile, ...state.allFiles];
+          state.files = [restoredFile, ...state.files];
+        }
       })
       // restoreFileFromTrash
       .addCase(restoreFileFromTrash.pending, (state, action) => {
         state.restoringId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const fileId = action.meta.arg;
+        const file = state.trashFiles.find(f => f.id === fileId);
+        if (file) {
+          state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
+          const restoredFile = { ...file, isTrash: false };
+          state.allFiles = [restoredFile, ...state.allFiles];
+          state.files = [restoredFile, ...state.files];
+        }
       })
       .addCase(restoreFileFromTrash.fulfilled, (state, action) => {
         state.restoringId = null;
         const { fileId, file } = action.payload;
-        state.trashFiles = state.trashFiles.filter(f => f.id !== fileId);
-        state.allFiles = [file, ...state.allFiles];
+        if (file) {
+          state.allFiles = state.allFiles.map(f => f.id === fileId ? file : f);
+          state.files = state.files.map(f => f.id === fileId ? file : f);
+        }
       })
       .addCase(restoreFileFromTrash.rejected, (state, action) => {
         state.restoringId = null;
         state.error = action.payload;
+        
+        // Rollback
+        const fileId = action.meta.arg;
+        const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
+        if (file) {
+          state.allFiles = state.allFiles.filter(f => f.id !== fileId);
+          state.files = state.files.filter(f => f.id !== fileId);
+          const trashedFile = { ...file, isTrash: true };
+          state.trashFiles = [trashedFile, ...state.trashFiles];
+        }
       })
       // emptyAllTrash
       .addCase(emptyAllTrash.pending, (state) => {
         state.emptyingTrash = true;
         state.error = null;
+        
+        // Optimistic update
+        state.trashFilesBackup = state.trashFiles;
+        state.trashFiles = [];
       })
       .addCase(emptyAllTrash.fulfilled, (state) => {
         state.emptyingTrash = false;
-        state.trashFiles = [];
+        state.trashFilesBackup = null;
         if (state.analytics) {
           state.analytics.trash = { size: 0, count: 0 };
         }
@@ -423,6 +544,12 @@ const filesSlice = createSlice({
       .addCase(emptyAllTrash.rejected, (state, action) => {
         state.emptyingTrash = false;
         state.error = action.payload;
+        
+        // Rollback
+        if (state.trashFilesBackup) {
+          state.trashFiles = state.trashFilesBackup;
+          state.trashFilesBackup = null;
+        }
       })
         .addCase(fetchStorageActivity.pending, (state) => {
           state.activityLoading = true;

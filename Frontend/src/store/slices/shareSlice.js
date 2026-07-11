@@ -93,6 +93,7 @@ const shareSlice = createSlice({
     revoking: false,
     publicFileLoading: false,
     error: null,
+    removedShareBackup: null,
   },
   reducers: {
     clearShareModalState: (state) => {
@@ -104,6 +105,7 @@ const shareSlice = createSlice({
       state.removingId = null;
       state.linkLoading = false;
       state.revoking = false;
+      state.removedShareBackup = null;
     },
     clearPublicFile: (state) => {
       state.publicFile = null;
@@ -152,14 +154,26 @@ const shareSlice = createSlice({
       .addCase(removeFileShare.pending, (state, action) => {
         state.removingId = action.meta.arg;
         state.error = null;
+        
+        // Optimistic update
+        const shareId = action.meta.arg;
+        state.removedShareBackup = state.fileShares.find((share) => share.id === shareId);
+        state.fileShares = state.fileShares.filter((share) => share.id !== shareId);
       })
-      .addCase(removeFileShare.fulfilled, (state, action) => {
+      .addCase(removeFileShare.fulfilled, (state) => {
         state.removingId = null;
-        state.fileShares = state.fileShares.filter((share) => share.id !== action.payload);
+        state.removedShareBackup = null;
       })
       .addCase(removeFileShare.rejected, (state, action) => {
         state.removingId = null;
         state.error = action.payload;
+        
+        // Rollback
+        const shareId = action.meta.arg;
+        if (state.removedShareBackup && state.removedShareBackup.id === shareId) {
+          state.fileShares = [...state.fileShares, state.removedShareBackup];
+          state.removedShareBackup = null;
+        }
       })
       .addCase(createPublicLink.pending, (state) => {
         state.linkLoading = true;

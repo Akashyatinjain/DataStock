@@ -967,6 +967,17 @@ const Dashboard = () => {
     }
   }, [activeTab, dispatch]);
 
+  useEffect(() => {
+    if (
+      activeTab === 'archive' ||
+      activeTab === 'recent' ||
+      activeTab === 'starred' ||
+      activeTab?.startsWith('filter-')
+    ) {
+      dispatch(fetchAllFiles());
+    }
+  }, [activeTab, dispatch]);
+
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
@@ -1196,6 +1207,7 @@ const Dashboard = () => {
     try {
       const resultAction = await dispatch(toggleArchive(fileId));
       if (toggleArchive.fulfilled.match(resultAction)) {
+        dispatch(fetchAllFiles());
         addToast(
           resultAction.payload.isArchived || resultAction.payload.archived
             ? `"${file?.originalName}" archived successfully`

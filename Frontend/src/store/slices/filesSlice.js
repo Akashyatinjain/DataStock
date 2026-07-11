@@ -169,6 +169,7 @@ const filesSlice = createSlice({
     emptyingTrash: false,
     error: null,
     lastDeletedFile: null,
+    archiveRollbackFile: null,
     trashFilesBackup: null,
     currentFolderId: null,
   },
@@ -310,6 +311,7 @@ const filesSlice = createSlice({
         // Optimistic update
         const fileId = action.meta.arg;
         const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
+        state.archiveRollbackFile = file ? { ...file } : null;
         if (file) {
           const nextArchived = !(file.isArchived || file.archived);
           
@@ -331,17 +333,23 @@ const filesSlice = createSlice({
       })
       .addCase(toggleArchive.fulfilled, (state, action) => {
         state.archivingId = null;
+        state.archiveRollbackFile = null;
         const updatedFile = action.payload;
+        const fileFolder = updatedFile.folderId || null;
+        const currentFolder = state.currentFolderId || null;
+
         if (updatedFile.isArchived) {
           state.files = state.files.filter(f => f.id !== updatedFile.id);
         } else {
-          const fileFolder = updatedFile.folderId || null;
-          const currentFolder = state.currentFolderId || null;
           if (fileFolder === currentFolder) {
             state.files = [updatedFile, ...state.files.filter(f => f.id !== updatedFile.id)];
           }
         }
-        state.allFiles = state.allFiles.map(f => f.id === updatedFile.id ? updatedFile : f);
+
+        const existsInAllFiles = state.allFiles.some(f => f.id === updatedFile.id);
+        state.allFiles = existsInAllFiles
+          ? state.allFiles.map(f => f.id === updatedFile.id ? updatedFile : f)
+          : [updatedFile, ...state.allFiles];
       })
       .addCase(toggleArchive.rejected, (state, action) => {
         state.archivingId = null;
@@ -349,13 +357,16 @@ const filesSlice = createSlice({
         
         // Rollback
         const fileId = action.meta.arg;
-        const file = state.allFiles.find(f => f.id === fileId) || state.files.find(f => f.id === fileId);
-        if (file) {
-          const nextArchived = !(file.isArchived || file.archived);
+        const file = state.archiveRollbackFile;
+        state.archiveRollbackFile = null;
+
+        if (file && file.id === fileId) {
+          const wasArchived = file.isArchived || file.archived;
           state.allFiles = state.allFiles.map(f =>
-            f.id === fileId ? { ...f, isArchived: nextArchived, archived: nextArchived } : f
+            f.id === fileId ? file : f
           );
-          if (nextArchived) {
+
+          if (wasArchived) {
             state.files = state.files.filter(f => f.id !== fileId);
           } else {
             const fileFolder = file.folderId || null;

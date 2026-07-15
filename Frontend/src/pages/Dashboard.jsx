@@ -64,6 +64,7 @@ import {
   restoreFileFromTrash,
   emptyAllTrash,
   fetchStorageActivity,
+  moveFileToFolder,
 } from '../store/slices/filesSlice';
 import { fetchFolders } from '../store/slices/foldersSlice';
 import {
@@ -532,6 +533,11 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, on
 
   return (
     <div
+      draggable={!isDeleting && !isRestoring && !isTrashView}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", file.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       className={`
         relative group bg-white dark:bg-gray-900 border rounded-2xl overflow-hidden
         transition-all duration-300 cursor-pointer select-none
@@ -679,6 +685,11 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onS
 
   return (
     <div
+      draggable={!isDeleting && !isRestoring && !isTrashView}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", file.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       className={`
         grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-gray-800
         hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
@@ -851,6 +862,8 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery]       = useState('');
   const [activeTab, setActiveTab]           = useState('my-drive');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const dragCounter = React.useRef(0);
 
   // Share modal state
   const [shareModalFile, setShareModalFile] = useState(null);
@@ -1182,6 +1195,80 @@ const Dashboard = () => {
     }
   };
 
+  const uploadDroppedFiles = async (droppedFiles) => {
+    if (!droppedFiles || droppedFiles.length === 0) return;
+    
+    if (activeTab === 'notifications' || activeTab === 'analytics' || activeTab === 'trash') {
+      addToast('Cannot upload files in this view', 'error');
+      return;
+    }
+
+    for (let i = 0; i < droppedFiles.length; i++) {
+      const file = droppedFiles[i];
+      const validationError = validateUploadFile(file);
+      if (validationError) {
+        addToast(`${file.name}: ${validationError}`, 'error');
+        continue;
+      }
+      try {
+        addToast(`Uploading "${file.name}"…`, 'info');
+        const formData = new FormData();
+        formData.append('file', file);
+        if (selectedFolderId) formData.append('folderId', selectedFolderId);
+        
+        const resultAction = await dispatch(uploadNewFile(formData));
+        if (uploadNewFile.fulfilled.match(resultAction)) {
+          loadFiles(selectedFolderId);
+          dispatch(fetchProfile());
+          addToast(`"${file.name}" uploaded successfully!`, 'success');
+        } else {
+          addToast(resultAction.payload || `Upload of "${file.name}" failed.`, 'error');
+        }
+      } catch (error) {
+        console.log(error);
+        addToast(`Upload of "${file.name}" failed.`, 'error');
+      }
+    }
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      dragCounter.current++;
+      setIsDraggingFile(true);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      dragCounter.current--;
+      if (dragCounter.current === 0) {
+        setIsDraggingFile(false);
+      }
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+    dragCounter.current = 0;
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadDroppedFiles(e.dataTransfer.files);
+    }
+  };
+
   const handleToggleStar = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
     try {
@@ -1222,6 +1309,28 @@ const Dashboard = () => {
       addToast('Failed to update archive status', 'error');
     }
   };
+
+  const handleMoveFile = useCallback(async (fileId, folderId) => {
+    try {
+      const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
+      const targetFolder = folderId ? folders.find(f => getFolderId(f) === folderId) : null;
+      const targetName = targetFolder ? `"${targetFolder.name}"` : 'My Drive';
+      
+      addToast(`Moving "${file?.originalName}" to ${targetName}…`, 'info');
+      
+      const resultAction = await dispatch(moveFileToFolder({ fileId, folderId }));
+      if (moveFileToFolder.fulfilled.match(resultAction)) {
+        addToast(`"${file?.originalName}" moved to ${targetName} successfully!`, 'success');
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+      } else {
+        addToast(resultAction.payload || 'Failed to move file. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to move file. Please try again.', 'error');
+    }
+  }, [dispatch, allFiles, files, folders, selectedFolderId, loadFiles, refreshAllFiles, addToast]);
 
   const handleDelete = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
@@ -1384,6 +1493,7 @@ const Dashboard = () => {
           refreshAllFiles();
           if (selectedFolderId === folderId) loadFiles(null);
         }}
+        onMoveFile={handleMoveFile}
       />
 
       <main
@@ -1391,7 +1501,24 @@ const Dashboard = () => {
           sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
         }`}
       >
-          <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px]">
+        <div 
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          className="p-4 sm:p-6 lg:p-8 max-w-[1600px] relative"
+        >
+          {isDraggingFile && (
+            <div className="absolute inset-0 bg-green-50/90 dark:bg-gray-900/90 backdrop-blur-sm border-2 border-dashed border-green-500 rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-950/40 flex items-center justify-center animate-bounce">
+                  <Upload className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">Drop files here to upload</p>
+                <p className="text-xs text-gray-400">Upload directly to {selectedFolder ? `"${selectedFolder.name}"` : 'My Drive'}</p>
+              </div>
+            </div>
+          )}
 
             {/* ── TOP BAR ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">

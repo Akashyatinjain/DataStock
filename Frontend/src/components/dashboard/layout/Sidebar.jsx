@@ -46,6 +46,7 @@ const Sidebar = ({
   onFileUploaded,
   onFolderCreated,
   onFolderDeleted,
+  onMoveFile,
 }) => {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.auth.user);
@@ -152,6 +153,7 @@ const Sidebar = ({
           sidebarCollapsed={sidebarCollapsed}
           isMobile={isMobile}
           onNavigate={closeMobile}
+          onMoveFile={onMoveFile}
         />
 
         {expanded && (
@@ -163,6 +165,7 @@ const Sidebar = ({
             deletingFolderId={deletingFolderId}
             onDeleteFolder={handleDeleteFolder}
             onNewFolder={() => setShowNewFolder(true)}
+            onMoveFile={onMoveFile}
           />
         )}
 

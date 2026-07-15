@@ -179,3 +179,16 @@ export const toggleArchiveFile = asyncHandler(async (req, res) => {
     ...result,
   });
 });
+
+export const moveFile = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const { folderId } = req.body;
+
+  const result = await fileService.moveFileService(id, folderId, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});

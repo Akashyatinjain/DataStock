@@ -355,3 +355,45 @@ export const toggleArchiveFileService = async (fileId, userId) => {
       : "File unarchived successfully",
   };
 };
+
+export const moveFileService = async (fileId, folderId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+
+  if (file.ownerId !== userId) {
+    throw createError("Unauthorized to move this file", 403, "UNAUTHORIZED");
+  }
+
+  if (file.isTrash) {
+    throw createError("Cannot move a file that is in the trash", 400, "CANNOT_MOVE_TRASHED");
+  }
+
+  if (folderId) {
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+    });
+
+    if (!folder) {
+      throw createError("Target folder not found", 404, "FOLDER_NOT_FOUND");
+    }
+
+    if (folder.ownerId !== userId) {
+      throw createError("Unauthorized to move to this folder", 403, "UNAUTHORIZED");
+    }
+  }
+
+  const updatedFile = await fileRepo.updateFileFolder(fileId, folderId);
+
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" moved successfully`
+  );
+
+  return {
+    file: updatedFile,
+    message: "File moved successfully",
+  };
+};

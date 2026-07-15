@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Plus, Folder, Trash2, Loader2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
 
@@ -9,7 +10,28 @@ export default function SidebarFolders({
   deletingFolderId,
   onDeleteFolder,
   onNewFolder,
+  onMoveFile,
 }) {
+  const [dragOverFolderId, setDragOverFolderId] = useState(null);
+
+  const handleDragOver = (e, folderId) => {
+    e.preventDefault();
+    setDragOverFolderId(folderId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverFolderId(null);
+  };
+
+  const handleDrop = (e, folderId) => {
+    e.preventDefault();
+    setDragOverFolderId(null);
+    const fileId = e.dataTransfer.getData("text/plain");
+    if (fileId && onMoveFile) {
+      onMoveFile(fileId, folderId);
+    }
+  };
+
   return (
     <>
       <div className="my-5 border-t border-gray-200 dark:border-gray-800" />
@@ -38,15 +60,21 @@ export default function SidebarFolders({
             folders.map((folder) => {
               const id = getFolderId(folder);
               const tabId = `folder-${id}`;
+              const isDragOver = dragOverFolderId === id;
+
               return (
                 <div
                   key={id}
                   onClick={() => setActiveTab(tabId)}
+                  onDragOver={(e) => handleDragOver(e, id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, id)}
                   className={`
-                    group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-sm cursor-pointer
+                    group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm cursor-pointer
                     ${activeTab === tabId
                       ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 font-medium'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}
+                    ${isDragOver ? 'bg-green-100 dark:bg-green-950/60 border border-green-500 scale-105 shadow-md font-bold' : ''}
                   `}
                 >
                   <Folder className="w-5 h-5 text-yellow-500 shrink-0" />

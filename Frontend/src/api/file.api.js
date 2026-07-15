@@ -74,3 +74,8 @@ export const emptyTrash = async () => {
   const response = await API.delete('/files/trash');
   return response.data;
 };
+
+export const moveFile = async (fileId, folderId) => {
+  const response = await API.patch(`/files/${fileId}/move`, { folderId });
+  return response.data;
+};

@@ -1,6 +1,5 @@
 import express from "express";
 
-import {
   uploadFile,
   getUserFiles,
   deleteFile,
@@ -10,6 +9,7 @@ import {
   getTrashFiles,
   emptyTrash,
   toggleArchiveFile,
+  moveFile,
 } from "./file.controller.js";
 
 import {
@@ -47,6 +47,7 @@ router.patch("/:id/restore", authenticateUser, restoreFromTrash);
 
 router.patch("/:id/star", authenticateUser, toggleStarFile);
 router.patch("/:id/archive", authenticateUser, toggleArchiveFile);
+router.patch("/:id/move", authenticateUser, moveFile);
 
 router.delete("/:id", authenticateUser, deleteFile);
 

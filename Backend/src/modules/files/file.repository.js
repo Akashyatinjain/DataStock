@@ -153,3 +153,10 @@ export const updateFileArchived = async (fileId, isArchived) => {
     data: { isArchived },
   });
 };
+
+export const updateFileFolder = async (fileId, folderId) => {
+  return prisma.file.update({
+    where: { id: fileId },
+    data: { folderId },
+  });
+};

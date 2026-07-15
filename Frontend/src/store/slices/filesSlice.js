@@ -11,6 +11,7 @@ import {
   getTrashFiles,
   emptyTrash,
   toggleArchiveFile,
+  moveFile,
 } from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
 
@@ -113,6 +114,15 @@ export const restoreFileFromTrash = createAsyncThunk('files/restoreFileFromTrash
     return { fileId, file: normalizeFile(data.file) };
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to restore file');
+  }
+});
+
+export const moveFileToFolder = createAsyncThunk('files/moveFileToFolder', async ({ fileId, folderId }, thunkAPI) => {
+  try {
+    const data = await moveFile(fileId, folderId);
+    return { fileId, folderId, file: normalizeFile(data.file || data) };
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to move file');
   }
 });
 
@@ -463,6 +473,34 @@ const filesSlice = createSlice({
           const trashedFile = { ...file, isTrash: true };
           state.trashFiles = [trashedFile, ...state.trashFiles];
         }
+      })
+      // moveFileToFolder
+      .addCase(moveFileToFolder.pending, (state, action) => {
+        state.error = null;
+        const { fileId, folderId } = action.meta.arg;
+        state.allFiles = state.allFiles.map(f => f.id === fileId ? { ...f, folderId } : f);
+        if (state.currentFolderId !== folderId) {
+          state.files = state.files.filter(f => f.id !== fileId);
+        } else {
+          state.files = state.files.map(f => f.id === fileId ? { ...f, folderId } : f);
+        }
+      })
+      .addCase(moveFileToFolder.fulfilled, (state, action) => {
+        const { fileId, folderId, file } = action.payload;
+        state.allFiles = state.allFiles.map(f => f.id === fileId ? file : f);
+        if (state.currentFolderId === folderId) {
+          const exists = state.files.some(f => f.id === fileId);
+          if (!exists) {
+            state.files = [file, ...state.files];
+          } else {
+            state.files = state.files.map(f => f.id === fileId ? file : f);
+          }
+        } else {
+          state.files = state.files.filter(f => f.id !== fileId);
+        }
+      })
+      .addCase(moveFileToFolder.rejected, (state, action) => {
+        state.error = action.payload;
       })
       // emptyAllTrash
       .addCase(emptyAllTrash.pending, (state) => {

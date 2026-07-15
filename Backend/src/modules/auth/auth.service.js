@@ -7,9 +7,6 @@ import {
   sanitizeUser,
 } from "../../utils/authSession.utils.js";
 
-/* =========================
-   SIGNUP LOCAL
-========================= */
 export const signUpUserLocal = async ({ username, email, password }, res) => {
   if (!username || !email || !password) {
     throw new Error("Username, email and password are required");

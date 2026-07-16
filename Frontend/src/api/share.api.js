@@ -38,11 +38,21 @@ export const removeShare = async (shareId) => {
 };
 
 /**
- * Generate (or retrieve existing) public share link for a file.
+ * Generate (or retrieve existing / update) public share link for a file.
+ * @param {string} fileId
+ * @param {object} options - Custom share options (expiresAt, password, allowDownload)
+ */
+export const generatePublicLink = async (fileId, options = {}) => {
+  const response = await API.post(`/share/public/${fileId}`, options);
+  return response.data;
+};
+
+/**
+ * Fetch active public link configuration info for a file (creator only).
  * @param {string} fileId
  */
-export const generatePublicLink = async (fileId) => {
-  const response = await API.post(`/share/public/${fileId}`);
+export const getPublicLinkInfo = async (fileId) => {
+  const response = await API.get(`/share/public/info/${fileId}`);
   return response.data;
 };
 
@@ -58,8 +68,21 @@ export const revokePublicLink = async (token) => {
 /**
  * Get file info from a public share token (no auth required).
  * @param {string} token
+ * @param {string} [password] - Optional link password for verification
  */
-export const getPublicFile = async (token) => {
-  const response = await API.get(`/share/public/file/${token}`);
+export const getPublicFile = async (token, password = '') => {
+  const response = await API.get(`/share/public/file/${token}`, {
+    params: password ? { password } : {}
+  });
+  return response.data;
+};
+
+/**
+ * Verify password for a protected public link and retrieve file.
+ * @param {string} token
+ * @param {string} password
+ */
+export const verifyPublicFilePassword = async (token, password) => {
+  const response = await API.post(`/share/public/file/${token}/verify`, { password });
   return response.data;
 };

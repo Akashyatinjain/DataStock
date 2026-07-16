@@ -24,6 +24,7 @@ import {
   createPublicLink,
   deletePublicLink,
   clearShareModalState,
+  fetchPublicLinkInfo,
 } from '../../../store/slices/shareSlice';
 
 const PermBadge = ({ permission }) => (
@@ -75,12 +76,46 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
   const [permission, setPermission] = useState('VIEW');
   const [copied, setCopied] = useState(false);
 
+  // Customizable Public Link Settings
+  const [expirationEnabled, setExpirationEnabled] = useState(false);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [passwordEnabled, setPasswordEnabled] = useState(false);
+  const [password, setPassword] = useState('');
+  const [allowDownload, setAllowDownload] = useState(true);
+
   const fileId = file.id;
+  const linkSettings = useSelector((state) => state.share.publicLinkSettings);
 
   useEffect(() => {
     dispatch(clearShareModalState());
     dispatch(fetchFileShares(fileId));
+    dispatch(fetchPublicLinkInfo(fileId));
   }, [dispatch, fileId]);
+
+  useEffect(() => {
+    if (linkSettings) {
+      setExpirationEnabled(!!linkSettings.expiresAt);
+      if (linkSettings.expiresAt) {
+        const date = new Date(linkSettings.expiresAt);
+        // format to YYYY-MM-DDTHH:MM local format
+        const offset = date.getTimezoneOffset();
+        const localDate = new Date(date.getTime() - (offset*60*1050)); // close timezone adjustment
+        const formatted = localDate.toISOString().slice(0, 16);
+        setExpiresAt(formatted);
+      } else {
+        setExpiresAt('');
+      }
+      setPasswordEnabled(linkSettings.hasPassword);
+      setPassword(linkSettings.hasPassword ? '••••••••' : '');
+      setAllowDownload(linkSettings.allowDownload ?? true);
+    } else {
+      setExpirationEnabled(false);
+      setExpiresAt('');
+      setPasswordEnabled(false);
+      setPassword('');
+      setAllowDownload(true);
+    }
+  }, [linkSettings]);
 
   const handleShare = async (e) => {
     e.preventDefault();
@@ -103,12 +138,25 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
     }
   };
 
-  const handleGenerateLink = async () => {
-    const result = await dispatch(createPublicLink(fileId));
-    if (createPublicLink.fulfilled.match(result)) {
-      onToast?.('Public link generated!', 'success');
+  const handleGenerateOrUpdateLink = async () => {
+    const options = {
+      allowDownload,
+      expiresAt: expirationEnabled && expiresAt ? new Date(expiresAt).toISOString() : null,
+    };
+    
+    if (passwordEnabled) {
+      if (password && password !== '••••••••') {
+        options.password = password;
+      }
     } else {
-      onToast?.(result.payload || 'Failed to generate link', 'error');
+      options.password = null;
+    }
+
+    const result = await dispatch(createPublicLink({ fileId, options }));
+    if (createPublicLink.fulfilled.match(result)) {
+      onToast?.(publicLink ? 'Link settings updated!' : 'Public link generated!', 'success');
+    } else {
+      onToast?.(result.payload || 'Failed to save settings', 'error');
     }
   };
 
@@ -285,43 +333,30 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
 
           {tab === 'link' && (
             <div className="space-y-5">
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">
-                <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center">
+                <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-950/20 dark:to-blue-950/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
                   <Globe className="w-7 h-7 text-sky-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">Public Link</h3>
-                <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Public Link</h3>
+                <p className="text-sm text-gray-400 dark:text-gray-555 mb-4 leading-relaxed">
                   Anyone with this link can view the file — no login required.
                 </p>
 
-                {!publicLink ? (
-                  <button
-                    onClick={handleGenerateLink}
-                    disabled={linkLoading}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-200 text-white rounded-xl text-sm font-semibold transition"
-                  >
-                    {linkLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Link2 className="w-4 h-4" />
-                    )}
-                    Generate Link
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-2">
+                {publicLink && (
+                  <div className="mb-5 space-y-3">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-2">
                       <input
                         type="text"
                         readOnly
                         value={publicLink}
-                        className="flex-1 text-sm text-gray-700 bg-transparent outline-none px-2 truncate"
+                        className="flex-1 text-sm text-gray-700 dark:text-gray-350 bg-transparent outline-none px-2 truncate"
                       />
                       <button
                         onClick={handleCopy}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 shrink-0 ${
                           copied
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400'
+                            : 'bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-705 dark:text-gray-300'
                         }`}
                       >
                         {copied ? (
@@ -331,11 +366,96 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
                         )}
                       </button>
                     </div>
+                  </div>
+                )}
 
+                {/* Configuration Settings */}
+                <div className="text-left bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-4 mb-4 space-y-4 shadow-xs">
+                  <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Custom Sharing Options</h4>
+                  
+                  {/* Expiration Date */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={expirationEnabled}
+                        onChange={(e) => setExpirationEnabled(e.target.checked)}
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                      />
+                      <span>Set expiration date</span>
+                    </label>
+                    {expirationEnabled && (
+                      <input
+                        type="datetime-local"
+                        value={expiresAt}
+                        onChange={(e) => setExpiresAt(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 dark:text-gray-300"
+                      />
+                    )}
+                  </div>
+
+                  {/* Password Protection */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={passwordEnabled}
+                        onChange={(e) => {
+                          setPasswordEnabled(e.target.checked);
+                          if (!e.target.checked) setPassword('');
+                        }}
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                      />
+                      <span>Password protection</span>
+                    </label>
+                    {passwordEnabled && (
+                      <input
+                        type={password === '••••••••' ? 'text' : 'password'}
+                        placeholder={password === '••••••••' ? 'Link is password protected' : 'Enter password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onFocus={() => {
+                          if (password === '••••••••') setPassword('');
+                        }}
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 dark:text-gray-300"
+                      />
+                    )}
+                  </div>
+
+                  {/* Allow Download Toggle */}
+                  <div className="flex items-center justify-between py-1">
+                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allowDownload}
+                        onChange={(e) => setAllowDownload(e.target.checked)}
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                      />
+                      <span>Allow downloads for visitors</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row items-center gap-2 justify-center">
+                  <button
+                    onClick={handleGenerateOrUpdateLink}
+                    disabled={linkLoading}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-200 text-white rounded-xl text-sm font-semibold transition"
+                  >
+                    {linkLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    {publicLink ? 'Update settings' : 'Generate link'}
+                  </button>
+
+                  {publicLink && (
                     <button
                       onClick={handleRevoke}
                       disabled={revoking}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-semibold transition border border-red-100"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold transition border border-red-100 dark:border-red-950/30"
                     >
                       {revoking ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -344,8 +464,9 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
                       )}
                       Revoke Link
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
+
               </div>
             </div>
           )}

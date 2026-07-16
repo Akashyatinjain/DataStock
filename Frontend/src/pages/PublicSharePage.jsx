@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -15,8 +15,9 @@ import {
   AlertCircle,
   Clock,
   HardDrive,
+  Lock,
 } from 'lucide-react';
-import { fetchPublicFile, clearPublicFile } from '../store/slices/shareSlice';
+import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
 /* ─── helpers ─── */
@@ -29,7 +30,7 @@ const formatSize = (bytes) => {
 };
 
 const getFileIcon = (mime) => {
-  if (!mime) return <FileText className="w-16 h-16 text-slate-400" />;
+  if (!mime) return <FileText className="w-16 h-16 text-slate-400 dark:text-slate-500" />;
   if (mime.includes('image')) return <FileImage className="w-16 h-16 text-sky-500" />;
   if (mime.includes('video')) return <FileVideo className="w-16 h-16 text-violet-500" />;
   if (mime.includes('audio')) return <FileAudio className="w-16 h-16 text-pink-500" />;
@@ -39,11 +40,11 @@ const getFileIcon = (mime) => {
   }
   if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-16 h-16 text-amber-500" />;
   if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-16 h-16 text-orange-500" />;
-  return <FileText className="w-16 h-16 text-slate-400" />;
+  return <FileText className="w-16 h-16 text-slate-400 dark:text-slate-500" />;
 };
 
 /* ─── Preview renderer ─── */
-const FilePreview = ({ file }) => {
+const FilePreview = ({ file, allowDownload }) => {
   const mime = file.mimeType || '';
   const url = file.url;
 
@@ -65,9 +66,9 @@ const FilePreview = ({ file }) => {
   }
   if (mime.includes('audio')) {
     return (
-      <div className="bg-white rounded-2xl p-8 shadow-lg text-center w-full max-w-md">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100 dark:border-slate-800">
         <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4" />
-        <p className="font-semibold text-gray-700 mb-4">{file.originalName}</p>
+        <p className="font-semibold text-gray-700 dark:text-gray-300 mb-4">{file.originalName}</p>
         <audio controls className="w-full">
           <source src={url} type={mime} />
         </audio>
@@ -95,10 +96,14 @@ const FilePreview = ({ file }) => {
 
   // Fallback
   return (
-    <div className="bg-white rounded-2xl p-10 shadow-lg text-center">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-slate-800 text-center">
       {getFileIcon(mime)}
-      <p className="text-lg font-semibold text-gray-700 mt-4">Preview not available</p>
-      <p className="text-gray-400 mt-2 text-sm">Download the file to open it.</p>
+      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mt-4">Preview not available</p>
+      {allowDownload ? (
+        <p className="text-gray-400 dark:text-gray-500 mt-2 text-sm">Download the file to open it.</p>
+      ) : (
+        <p className="text-red-500 dark:text-red-400 mt-2 text-sm font-medium">Downloads are restricted for this link.</p>
+      )}
     </div>
   );
 };
@@ -107,9 +112,13 @@ const FilePreview = ({ file }) => {
 const PublicSharePage = () => {
   const { token } = useParams();
   const dispatch = useDispatch();
-  const file = useSelector((state) => state.share.publicFile);
+  const publicFileData = useSelector((state) => state.share.publicFile);
   const loading = useSelector((state) => state.share.publicFileLoading);
   const error = useSelector((state) => state.share.error);
+
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -119,6 +128,22 @@ const PublicSharePage = () => {
       dispatch(clearPublicFile());
     };
   }, [token, dispatch]);
+
+  const handleVerifyPassword = async (e) => {
+    e.preventDefault();
+    if (!password.trim()) return;
+    setVerifying(true);
+    setPasswordError('');
+    const result = await dispatch(verifyPublicFilePasswordThunk({ token, password: password.trim() }));
+    setVerifying(false);
+    if (verifyPublicFilePasswordThunk.rejected.match(result)) {
+      setPasswordError(result.payload || 'Incorrect password');
+    }
+  };
+
+  const isPasswordProtected = publicFileData?.isPasswordProtected;
+  const file = publicFileData?.file;
+  const allowDownload = publicFileData?.allowDownload ?? true;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#f0fdf4] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
@@ -147,21 +172,21 @@ const PublicSharePage = () => {
         {/* ── Loading ── */}
         {loading && (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-green-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-green-100 dark:border-emerald-500/20">
               <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
             </div>
-            <p className="text-gray-400 font-medium">Loading shared file…</p>
+            <p className="text-gray-400 dark:text-gray-500 font-medium">Loading shared file…</p>
           </div>
         )}
 
         {/* ── Error ── */}
         {!loading && error && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-10 shadow-lg border border-red-100 dark:border-slate-800 text-center max-w-md w-full">
-            <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-500/20">
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Link Unavailable</h1>
-            <p className="text-gray-400 dark:text-gray-400 text-sm mb-6">{error}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">{error}</p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm transition"
@@ -171,9 +196,59 @@ const PublicSharePage = () => {
           </div>
         )}
 
+        {/* ── Password Protection ── */}
+        {!loading && isPasswordProtected && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-slate-800 text-center max-w-md w-full animate-fade-in">
+            <div className="w-14 h-14 bg-green-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-100 dark:border-emerald-500/20">
+              <Lock className="w-7 h-7 text-green-600 dark:text-emerald-400" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Password Protected</h1>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-5">
+              Enter the password to access this shared file.
+            </p>
+
+            {publicFileData && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/40 rounded-xl border border-gray-100 dark:border-slate-800/50 text-left mb-6">
+                <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-slate-700">
+                  {getFileIcon(publicFileData.mimeType)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{publicFileData.fileName}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{formatSize(publicFileData.size)}</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyPassword} className="space-y-4">
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white text-gray-700 dark:text-gray-300 transition"
+                disabled={verifying}
+              />
+              {passwordError && (
+                <p className="text-red-500 dark:text-red-400 text-xs text-left font-semibold">{passwordError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={verifying || !password}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-1.5"
+              >
+                {verifying ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Unlock File'
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+
         {/* ── File view ── */}
-        {!loading && file && (
-          <div className="w-full max-w-4xl">
+        {!loading && !isPasswordProtected && file && (
+          <div className="w-full max-w-4xl animate-fade-in">
             {/* File header card */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="w-16 h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-slate-700">
@@ -196,21 +271,23 @@ const PublicSharePage = () => {
                   </span>
                 </div>
               </div>
-              <a
-                href={file.url}
-                target="_blank"
-                rel="noreferrer"
-                download
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm transition shadow-sm shrink-0"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </a>
+              {allowDownload && (
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm transition shadow-sm shrink-0"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </a>
+              )}
             </div>
 
             {/* Preview area */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden p-6 flex items-center justify-center min-h-75">
-              <FilePreview file={file} />
+              <FilePreview file={file} allowDownload={allowDownload} />
             </div>
 
             {/* Footer note */}
@@ -224,6 +301,14 @@ const PublicSharePage = () => {
           </div>
         )}
       </main>
+
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in { animation: fade-in 0.2s ease-out; }
+      `}</style>
     </div>
   );
 };

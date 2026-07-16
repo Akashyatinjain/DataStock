@@ -7,6 +7,8 @@ import {
   removeShare,
   revokePublicLink,
   shareFile,
+  getPublicLinkInfo,
+  verifyPublicFilePassword,
 } from '../../api/share.api';
 
 const getErrorMessage = (error, fallback) =>
@@ -51,12 +53,21 @@ export const removeFileShare = createAsyncThunk('share/removeFileShare', async (
   }
 });
 
-export const createPublicLink = createAsyncThunk('share/createPublicLink', async (fileId, thunkAPI) => {
+export const createPublicLink = createAsyncThunk('share/createPublicLink', async ({ fileId, options = {} }, thunkAPI) => {
   try {
-    const data = await generatePublicLink(fileId);
-    return data.url || `${window.location.origin}/share/${data.token}`;
+    const data = await generatePublicLink(fileId, options);
+    return data;
   } catch (error) {
     return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to generate link'));
+  }
+});
+
+export const fetchPublicLinkInfo = createAsyncThunk('share/fetchPublicLinkInfo', async (fileId, thunkAPI) => {
+  try {
+    const data = await getPublicLinkInfo(fileId);
+    return data.share;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load link settings'));
   }
 });
 
@@ -72,11 +83,23 @@ export const deletePublicLink = createAsyncThunk('share/deletePublicLink', async
 export const fetchPublicFile = createAsyncThunk('share/fetchPublicFile', async (token, thunkAPI) => {
   try {
     const data = await getPublicFile(token);
-    return data.file;
+    return data;
   } catch (error) {
     return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load file'));
   }
 });
+
+export const verifyPublicFilePasswordThunk = createAsyncThunk(
+  'share/verifyPublicFilePasswordThunk',
+  async ({ token, password }, thunkAPI) => {
+    try {
+      const data = await verifyPublicFilePassword(token, password);
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getErrorMessage(error, 'Incorrect password'));
+    }
+  }
+);
 
 const shareSlice = createSlice({
   name: 'share',
@@ -84,6 +107,7 @@ const shareSlice = createSlice({
     sharedWithMe: [],
     fileShares: [],
     publicLink: '',
+    publicLinkSettings: null,
     publicFile: null,
     loading: false,
     fileSharesLoading: false,
@@ -99,6 +123,7 @@ const shareSlice = createSlice({
     clearShareModalState: (state) => {
       state.fileShares = [];
       state.publicLink = '';
+      state.publicLinkSettings = null;
       state.error = null;
       state.fileSharesLoading = false;
       state.sharing = false;
@@ -181,9 +206,30 @@ const shareSlice = createSlice({
       })
       .addCase(createPublicLink.fulfilled, (state, action) => {
         state.linkLoading = false;
-        state.publicLink = action.payload;
+        if (action.payload) {
+          state.publicLink = action.payload.url;
+          state.publicLinkSettings = action.payload.share;
+        }
       })
       .addCase(createPublicLink.rejected, (state, action) => {
+        state.linkLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPublicLinkInfo.pending, (state) => {
+        state.linkLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPublicLinkInfo.fulfilled, (state, action) => {
+        state.linkLoading = false;
+        if (action.payload) {
+          state.publicLink = action.payload.url;
+          state.publicLinkSettings = action.payload;
+        } else {
+          state.publicLink = '';
+          state.publicLinkSettings = null;
+        }
+      })
+      .addCase(fetchPublicLinkInfo.rejected, (state, action) => {
         state.linkLoading = false;
         state.error = action.payload;
       })
@@ -194,6 +240,7 @@ const shareSlice = createSlice({
       .addCase(deletePublicLink.fulfilled, (state) => {
         state.revoking = false;
         state.publicLink = '';
+        state.publicLinkSettings = null;
       })
       .addCase(deletePublicLink.rejected, (state, action) => {
         state.revoking = false;
@@ -209,6 +256,19 @@ const shareSlice = createSlice({
         state.publicFile = action.payload;
       })
       .addCase(fetchPublicFile.rejected, (state, action) => {
+        state.publicFileLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(verifyPublicFilePasswordThunk.pending, (state) => {
+        state.publicFileLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyPublicFilePasswordThunk.fulfilled, (state, action) => {
+        state.publicFileLoading = false;
+        state.publicFile = action.payload;
+        state.error = null;
+      })
+      .addCase(verifyPublicFilePasswordThunk.rejected, (state, action) => {
         state.publicFileLoading = false;
         state.error = action.payload;
       });

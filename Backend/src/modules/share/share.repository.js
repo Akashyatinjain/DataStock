@@ -100,3 +100,11 @@ export const revokePublicShare = async (token) => {
     data: { isActive: false },
   });
 };
+
+export const updatePublicShare = async (id, data) => {
+  return prisma.publicShare.update({
+    where: { id },
+    data,
+    include: { file: true },
+  });
+};

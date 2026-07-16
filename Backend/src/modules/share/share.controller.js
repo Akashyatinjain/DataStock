@@ -62,8 +62,13 @@ export const removeShare = asyncHandler(async (req, res) => {
 export const generatePublicLink = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const { fileId } = req.params;
+  const { expiresAt, password, allowDownload } = req.body;
 
-  const share = await shareService.generatePublicLinkService(fileId, userId);
+  const share = await shareService.generatePublicLinkService(fileId, userId, {
+    expiresAt,
+    password,
+    allowDownload,
+  });
 
   const publicUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/share/${share.token}`;
 
@@ -71,17 +76,54 @@ export const generatePublicLink = asyncHandler(async (req, res) => {
     success: true,
     token: share.token,
     url: publicUrl,
+    share: {
+      id: share.id,
+      token: share.token,
+      expiresAt: share.expiresAt,
+      allowDownload: share.allowDownload,
+      hasPassword: share.password !== null,
+    }
+  });
+});
+
+export const getPublicLinkInfo = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { fileId } = req.params;
+
+  const info = await shareService.getPublicLinkInfoService(fileId, userId);
+
+  let publicUrl = null;
+  if (info) {
+    publicUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/share/${info.token}`;
+  }
+
+  res.status(200).json({
+    success: true,
+    share: info ? { ...info, url: publicUrl } : null,
   });
 });
 
 export const getPublicFile = asyncHandler(async (req, res) => {
   const { token } = req.params;
+  const { password } = req.query;
 
-  const file = await shareService.getPublicFileService(token);
+  const result = await shareService.getPublicFileService(token, password);
 
   res.status(200).json({
     success: true,
-    file,
+    ...result,
+  });
+});
+
+export const verifyPublicFilePassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const result = await shareService.getPublicFileService(token, password);
+
+  res.status(200).json({
+    success: true,
+    ...result,
   });
 });
 

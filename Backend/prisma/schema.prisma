@@ -184,6 +184,8 @@ model PublicShare {
   isActive Boolean @default(true)
 
   expiresAt DateTime?
+  password  String?
+  allowDownload Boolean @default(true)
 
   createdAt DateTime @default(now())
 

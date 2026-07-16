@@ -186,7 +186,19 @@ const filesSlice = createSlice({
   reducers: {
     addUploadedFile: (state, action) => {
       const file = action.payload;
-      state.allFiles = [file, ...state.allFiles];
+      const index = state.allFiles.findIndex(f => f.id === file.id);
+      if (index !== -1) {
+        state.allFiles[index] = file;
+      } else {
+        state.allFiles = [file, ...state.allFiles];
+      }
+
+      const fileIndex = state.files.findIndex(f => f.id === file.id);
+      if (fileIndex !== -1) {
+        state.files[fileIndex] = file;
+      } else if (file.folderId === state.currentFolderId) {
+        state.files = [file, ...state.files];
+      }
     },
     removeDeletedFile: (state, action) => {
       const fileId = action.payload;

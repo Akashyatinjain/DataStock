@@ -26,20 +26,23 @@ export const uploadFile = asyncHandler(
       throw err;
     }
 
+    const fileId = req.body.fileId || null;
+
     const uploadedFile =
       await fileService.uploadFileService(
         req.file,
         req.user.userId,
-        folderId
+        folderId,
+        fileId
       );
 
     return res.status(201).json({
 
       success: true,
 
-      message: "File uploaded successfully",
+      message: uploadedFile.message || "File uploaded successfully",
 
-      file: uploadedFile
+      file: uploadedFile.savedFile
     });
   }
 );
@@ -187,6 +190,36 @@ export const moveFile = asyncHandler(async (req, res) => {
 
   const result = await fileService.moveFileService(id, folderId, userId);
 
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const getFileVersions = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const versions = await fileService.getFileVersionsService(id, userId);
+  return res.status(200).json({
+    success: true,
+    versions,
+  });
+});
+
+export const restoreVersion = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id, versionId } = req.params;
+  const result = await fileService.restoreVersionService(id, versionId, userId);
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const deleteVersion = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id, versionId } = req.params;
+  const result = await fileService.deleteVersionService(id, versionId, userId);
   return res.status(200).json({
     success: true,
     ...result,

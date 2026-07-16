@@ -74,10 +74,25 @@ model File {
   sharedWith FileShare[] @relation("FileShares")
   publicShares PublicShare[]
   comments     Comment[]
+  versions     FileVersion[]
 
   @@index([ownerId])
   @@index([folderId])
 }
+
+model FileVersion {
+  id            String   @id @default(uuid())
+  fileId        String
+  file          File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  url           String
+  publicId      String
+  size          Int
+  createdAt     DateTime @default(now())
+
+  @@index([fileId])
+}
+
 
 model Folder {
   id          String   @id @default(uuid())

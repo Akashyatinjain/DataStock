@@ -3,7 +3,17 @@ import prisma from "../../config/db.js";
 // create File 
 export const createFile = async (data) =>{
     return prisma.file.create({
-        data,
+        data: {
+            ...data,
+            versions: {
+                create: {
+                    versionNumber: 1,
+                    url: data.url,
+                    publicId: data.publicId,
+                    size: data.size,
+                }
+            }
+        },
         include :{
             owner:{
                 select :{
@@ -11,7 +21,8 @@ export const createFile = async (data) =>{
                     username:true,
                     email:true
                 }
-            }
+            },
+            versions: true
         }
     });
 };
@@ -89,13 +100,41 @@ export const getAllFilesByUserId = async (userId) => {
 };
 
 export const findFileById = async (fileId) => {
-
   return prisma.file.findUnique({
     where: {
       id: fileId
+    },
+    include: {
+      versions: true
     }
   });
 };
+
+export const getFileVersionsByFileId = async (fileId) => {
+  return prisma.fileVersion.findMany({
+    where: { fileId },
+    orderBy: { versionNumber: "desc" },
+  });
+};
+
+export const findVersionById = async (versionId) => {
+  return prisma.fileVersion.findUnique({
+    where: { id: versionId },
+  });
+};
+
+export const deleteVersionById = async (versionId) => {
+  return prisma.fileVersion.delete({
+    where: { id: versionId },
+  });
+};
+
+export const findFileVersionCount = async (fileId) => {
+  return prisma.fileVersion.count({
+    where: { fileId },
+  });
+};
+
 
 export const deleteFileById = async (fileId) => {
 
@@ -140,6 +179,9 @@ export const getTrashFilesByUserId = async (userId) => {
     where: {
       ownerId: userId,
       isTrash: true,
+    },
+    include: {
+      versions: true,
     },
     orderBy: {
       updatedAt: "desc",

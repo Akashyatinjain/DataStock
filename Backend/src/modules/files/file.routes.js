@@ -10,6 +10,9 @@ import {
   emptyTrash,
   toggleArchiveFile,
   moveFile,
+  getFileVersions,
+  restoreVersion,
+  deleteVersion,
 } from "./file.controller.js";
 
 import {
@@ -48,6 +51,10 @@ router.patch("/:id/restore", authenticateUser, restoreFromTrash);
 router.patch("/:id/star", authenticateUser, toggleStarFile);
 router.patch("/:id/archive", authenticateUser, toggleArchiveFile);
 router.patch("/:id/move", authenticateUser, moveFile);
+
+router.get("/:id/versions", authenticateUser, getFileVersions);
+router.post("/:id/versions/:versionId/restore", authenticateUser, restoreVersion);
+router.delete("/:id/versions/:versionId", authenticateUser, deleteVersion);
 
 router.delete("/:id", authenticateUser, deleteFile);
 

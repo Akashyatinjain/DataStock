@@ -16,7 +16,8 @@ const createError = (message, statusCode, code) => {
 
 export const uploadFileService = async (
   file,
-  userId, folderId
+  userId, folderId,
+  fileId = null
 ) => {
 
   if (!file) {
@@ -65,42 +66,79 @@ export const uploadFileService = async (
     );
   }
 
-  // save metadata in db
-const savedFile =
-  await fileRepo.createFile({
+  // Check if file is explicitly provided by ID or matched by name
+  const existingFile = fileId
+    ? await prisma.file.findUnique({
+        where: { id: fileId },
+        include: { versions: true }
+      })
+    : await prisma.file.findFirst({
+        where: {
+          originalName: file.originalname,
+          folderId: folderId || null,
+          ownerId: userId,
+          isTrash: false,
+        },
+        include: {
+          versions: true,
+        }
+      });
 
-    fileName:
-      uploadedFile.public_id,
+  let savedFile;
+  let isNewVersion = false;
 
-    originalName:
-      file.originalname,
+  if (existingFile) {
+    isNewVersion = true;
+    const nextVersionNumber = existingFile.versions.length > 0
+      ? Math.max(...existingFile.versions.map(v => v.versionNumber)) + 1
+      : 2;
 
-    url:
-      uploadedFile.secure_url,
+    await prisma.fileVersion.create({
+      data: {
+        fileId: existingFile.id,
+        versionNumber: nextVersionNumber,
+        url: uploadedFile.secure_url,
+        publicId: uploadedFile.public_id,
+        size: uploadedFile.bytes,
+      }
+    });
 
-    publicId:
-      uploadedFile.public_id,
-
-    mimeType:
-      file.mimetype,
-
-    size:
-      uploadedFile.bytes,
-
-    ownerId:
-      userId,
-
-    folderId:
-      folderId || null
-  });
+    savedFile = await prisma.file.update({
+      where: { id: existingFile.id },
+      data: {
+        url: uploadedFile.secure_url,
+        publicId: uploadedFile.public_id,
+        size: uploadedFile.bytes,
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          }
+        },
+        versions: true,
+      }
+    });
+  } else {
+    savedFile = await fileRepo.createFile({
+      fileName: uploadedFile.public_id,
+      originalName: file.originalname,
+      url: uploadedFile.secure_url,
+      publicId: uploadedFile.public_id,
+      mimeType: file.mimetype,
+      size: uploadedFile.bytes,
+      ownerId: userId,
+      folderId: folderId || null
+    });
+  }
 
   // update user storage used
   await prisma.user.update({
-
     where: {
       id: userId
     },
-
     data: {
       storageUsed: {
         increment: uploadedFile.bytes
@@ -110,7 +148,9 @@ const savedFile =
 
   await createNotificationService(
     userId,
-    `File "${file.originalname}" uploaded successfully`
+    isNewVersion
+      ? `File "${file.originalname}" updated with version ${savedFile.versions.length}`
+      : `File "${file.originalname}" uploaded successfully`
   );
 
   // Broadcast file uploaded event
@@ -129,7 +169,7 @@ const savedFile =
 
   return {
     savedFile,
-    message: "File uploaded successfully"
+    message: isNewVersion ? "New file version uploaded successfully" : "File uploaded successfully"
   };
 };
 
@@ -175,34 +215,61 @@ export const deleteFileService = async (
     );
   }
 
-  // delete from cloudinary
-  await deleteFromCloudinary(
+  // delete all versions from cloudinary only if they are not referenced by other active files or versions elsewhere
+  const versions = file.versions || [];
+  const uniquePublicIds = [...new Set([
     file.publicId,
-    file.mimeType.startsWith("video")
-      ? "video"
-      : "image"
-  );
+    ...versions.map(v => v.publicId)
+  ].filter(Boolean))];
 
-  // delete from db
+  for (const pid of uniquePublicIds) {
+    const referencedElsewhere = await prisma.fileVersion.count({
+      where: {
+        publicId: pid,
+        fileId: { not: fileId }
+      }
+    }) + await prisma.file.count({
+      where: {
+        publicId: pid,
+        id: { not: fileId }
+      }
+    });
+
+    if (referencedElsewhere === 0) {
+      try {
+        await deleteFromCloudinary(
+          pid,
+          file.mimeType.startsWith("video") ? "video" : "image"
+        );
+      } catch (err) {
+        console.error(`Failed to delete asset ${pid} from Cloudinary:`, err);
+      }
+    }
+  }
+
+  // delete from db (cascade delete handles database FileVersion records)
   await fileRepo.deleteFileById(fileId);
+
+  // sum total size of all versions to reclaim storage quota
+  const totalSize = versions.length > 0
+    ? versions.reduce((sum, v) => sum + v.size, 0)
+    : file.size;
 
   // decrease storage used
   await prisma.user.update({
-
     where: {
       id: userId
     },
-
     data: {
       storageUsed: {
-        decrement: file.size
+        decrement: totalSize
       }
     }
   });
 
   await createNotificationService(
     userId,
-    `File "${file.originalName}" deleted successfully`
+    `File "${file.originalName}" deleted permanently`
   );
 
   // Broadcast file deleted event
@@ -321,17 +388,47 @@ export const emptyTrashService = async (userId) => {
 
   let totalSizeFreed = 0;
 
+  const trashedFileIds = trashedFiles.map(f => f.id);
+
   for (const file of trashedFiles) {
-    // delete from cloudinary
-    await deleteFromCloudinary(
+    const versions = file.versions || [];
+    const uniquePublicIds = [...new Set([
       file.publicId,
-      file.mimeType.startsWith("video") ? "video" : "image"
-    );
+      ...versions.map(v => v.publicId)
+    ].filter(Boolean))];
+
+    for (const pid of uniquePublicIds) {
+      const referencedElsewhere = await prisma.fileVersion.count({
+        where: {
+          publicId: pid,
+          fileId: { notIn: trashedFileIds }
+        }
+      }) + await prisma.file.count({
+        where: {
+          publicId: pid,
+          id: { notIn: trashedFileIds }
+        }
+      });
+
+      if (referencedElsewhere === 0) {
+        try {
+          await deleteFromCloudinary(
+            pid,
+            file.mimeType.startsWith("video") ? "video" : "image"
+          );
+        } catch (err) {
+          console.error(`Failed to delete asset ${pid} from Cloudinary:`, err);
+        }
+      }
+    }
+
+    const fileSize = versions.length > 0
+      ? versions.reduce((sum, v) => sum + v.size, 0)
+      : file.size;
+    totalSizeFreed += fileSize;
 
     // delete from db
     await fileRepo.deleteFileById(file.id);
-
-    totalSizeFreed += file.size;
   }
 
   // decrease storage used
@@ -438,5 +535,192 @@ export const moveFileService = async (fileId, folderId, userId) => {
   return {
     file: updatedFile,
     message: "File moved successfully",
+  };
+};
+
+export const getFileVersionsService = async (fileId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+  if (file.ownerId !== userId) {
+    throw createError("Unauthorized to view this file's versions", 403, "UNAUTHORIZED");
+  }
+  return await fileRepo.getFileVersionsByFileId(fileId);
+};
+
+export const restoreVersionService = async (fileId, versionId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+  if (file.ownerId !== userId) {
+    throw createError("Unauthorized to modify this file", 403, "UNAUTHORIZED");
+  }
+
+  const version = await fileRepo.findVersionById(versionId);
+  if (!version || version.fileId !== fileId) {
+    throw createError("Version not found for this file", 404, "VERSION_NOT_FOUND");
+  }
+
+  const versions = await fileRepo.getFileVersionsByFileId(fileId);
+  const nextVersionNumber = versions.length > 0
+    ? Math.max(...versions.map(v => v.versionNumber)) + 1
+    : 2;
+
+  await prisma.fileVersion.create({
+    data: {
+      fileId: fileId,
+      versionNumber: nextVersionNumber,
+      url: version.url,
+      publicId: version.publicId,
+      size: version.size,
+    }
+  });
+
+  const updatedFile = await prisma.file.update({
+    where: { id: fileId },
+    data: {
+      url: version.url,
+      publicId: version.publicId,
+      size: version.size,
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+        }
+      },
+      versions: true,
+    }
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      storageUsed: {
+        increment: version.size
+      }
+    }
+  });
+
+  await createNotificationService(
+    userId,
+    `File "${file.originalName}" restored to version ${version.versionNumber}`
+  );
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_uploaded", updatedFile);
+  }
+
+  return {
+    file: updatedFile,
+    message: `File restored to version ${version.versionNumber} successfully`,
+  };
+};
+
+export const deleteVersionService = async (fileId, versionId, userId) => {
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+  if (file.ownerId !== userId) {
+    throw createError("Unauthorized to modify this file", 403, "UNAUTHORIZED");
+  }
+
+  const version = await fileRepo.findVersionById(versionId);
+  if (!version || version.fileId !== fileId) {
+    throw createError("Version not found", 404, "VERSION_NOT_FOUND");
+  }
+
+  const versionCount = await fileRepo.findFileVersionCount(fileId);
+  if (versionCount <= 1) {
+    throw createError("Cannot delete the only remaining version of a file", 400, "CANNOT_DELETE_LAST_VERSION");
+  }
+
+  const maxVersion = await prisma.fileVersion.findFirst({
+    where: { fileId },
+    orderBy: { versionNumber: "desc" }
+  });
+  const isCurrentActive = maxVersion && maxVersion.id === versionId;
+
+  // Only delete from Cloudinary if no other file or version references this publicId
+  const referencedElsewhere = await prisma.fileVersion.count({
+    where: {
+      publicId: version.publicId,
+      id: { not: versionId }
+    }
+  }) + await prisma.file.count({
+    where: {
+      publicId: version.publicId,
+      id: { not: fileId }
+    }
+  });
+
+  if (referencedElsewhere === 0 && version.publicId) {
+    try {
+      await deleteFromCloudinary(
+        version.publicId,
+        file.mimeType.startsWith("video") ? "video" : "image"
+      );
+    } catch (err) {
+      console.error(`Failed to delete version asset ${version.publicId} from Cloudinary:`, err);
+    }
+  }
+
+  await fileRepo.deleteVersionById(versionId);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      storageUsed: {
+        decrement: version.size
+      }
+    }
+  });
+
+  let updatedFile;
+  if (isCurrentActive) {
+    const remainingVersions = await fileRepo.getFileVersionsByFileId(fileId);
+    const newActiveVersion = remainingVersions[0];
+
+    updatedFile = await prisma.file.update({
+      where: { id: fileId },
+      data: {
+        url: newActiveVersion.url,
+        publicId: newActiveVersion.publicId,
+        size: newActiveVersion.size,
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          }
+        },
+        versions: true,
+      }
+    });
+  } else {
+    updatedFile = await fileRepo.findFileById(fileId);
+  }
+
+  await createNotificationService(
+    userId,
+    `Version ${version.versionNumber} of file "${file.originalName}" was deleted`
+  );
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_uploaded", updatedFile);
+  }
+
+  return {
+    file: updatedFile,
+    message: `Version ${version.versionNumber} deleted successfully`,
   };
 };

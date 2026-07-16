@@ -888,6 +888,8 @@ const Dashboard = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [folderUsers, setFolderUsers] = useState([]);
   const [onlineUsersList, setOnlineUsersList] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [uploadingFileName, setUploadingFileName] = useState("");
 
   // Toast state
   const [toasts, setToasts] = useState([]);
@@ -1253,11 +1255,20 @@ const Dashboard = () => {
       return;
     }
     try {
-      addToast(`Uploading "${file.name}"…`, 'info');
+      addToast(`Starting upload for "${file.name}"…`, 'info');
+      setUploadProgress(0);
+      setUploadingFileName(file.name);
+
       const formData = new FormData();
       formData.append('file', file);
       if (selectedFolderId) formData.append('folderId', selectedFolderId);
-      const resultAction = await dispatch(uploadNewFile(formData));
+
+      const onUploadProgress = (progressEvent) => {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percent);
+      };
+
+      const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
       if (uploadNewFile.fulfilled.match(resultAction)) {
         loadFiles(selectedFolderId);
         dispatch(fetchProfile());
@@ -1270,6 +1281,8 @@ const Dashboard = () => {
       addToast('Upload failed. Please try again.', 'error');
     } finally {
       e.target.value = '';
+      setUploadProgress(null);
+      setUploadingFileName("");
     }
   };
 
@@ -1289,12 +1302,20 @@ const Dashboard = () => {
         continue;
       }
       try {
-        addToast(`Uploading "${file.name}"…`, 'info');
+        addToast(`Starting upload for "${file.name}"…`, 'info');
+        setUploadProgress(0);
+        setUploadingFileName(file.name);
+
         const formData = new FormData();
         formData.append('file', file);
         if (selectedFolderId) formData.append('folderId', selectedFolderId);
+
+        const onUploadProgress = (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percent);
+        };
         
-        const resultAction = await dispatch(uploadNewFile(formData));
+        const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
         if (uploadNewFile.fulfilled.match(resultAction)) {
           loadFiles(selectedFolderId);
           dispatch(fetchProfile());
@@ -1305,6 +1326,9 @@ const Dashboard = () => {
       } catch (error) {
         console.log(error);
         addToast(`Upload of "${file.name}" failed.`, 'error');
+      } finally {
+        setUploadProgress(null);
+        setUploadingFileName("");
       }
     }
   };
@@ -2019,6 +2043,46 @@ const Dashboard = () => {
         type={confirmConfig.type}
         loading={confirmConfig.loading}
       />
+
+      {/* UPLOAD PROGRESS PANEL */}
+      {uploadProgress !== null && (
+        <div className="fixed bottom-6 left-6 z-50 animate-slide-in">
+          <div className="bg-gray-900 text-white rounded-2xl shadow-2xl p-4 w-80 border border-gray-800 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                <span className="text-sm font-semibold tracking-wide">Uploading...</span>
+              </div>
+              <span className="text-xs text-gray-400 truncate max-w-[150px] font-medium" title={uploadingFileName}>
+                {uploadingFileName}
+              </span>
+            </div>
+
+            {/* ASCII progress bar */}
+            <div className="font-mono text-xs text-emerald-400 tracking-wider">
+              {(() => {
+                const totalBlocks = 15;
+                const filledBlocks = Math.round((uploadProgress / 100) * totalBlocks);
+                const emptyBlocks = totalBlocks - filledBlocks;
+                return "█".repeat(filledBlocks) + "░".repeat(emptyBlocks);
+              })()}
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-400 mt-0.5">
+              <span>{uploadProgress}%</span>
+              <span className="text-[10px] uppercase tracking-wider text-emerald-500 font-bold">Google Drive Upload</span>
+            </div>
+
+            {/* Smooth visual progress bar */}
+            <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

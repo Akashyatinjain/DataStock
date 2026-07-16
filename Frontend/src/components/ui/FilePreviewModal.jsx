@@ -31,6 +31,27 @@ const FilePreviewModal = ({
   const [typingUsers, setTypingUsers] = useState({});
   const typingTimeoutRef = useRef(null);
   const [activeMobileTab, setActiveMobileTab] = useState("preview");
+  const commentsEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (commentsEndRef.current) {
+      commentsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && comments.length > 0) {
+      const timer = setTimeout(scrollToBottom, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [comments, isOpen]);
+
+  useEffect(() => {
+    if (activeMobileTab === "comments") {
+      const timer = setTimeout(scrollToBottom, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeMobileTab]);
 
   useEffect(() => {
     if (isOpen && file?.id) {
@@ -51,7 +72,20 @@ const FilePreviewModal = ({
 
       const handleNewComment = (comment) => {
         setComments((prev) => {
+          // If we already have the comment by ID, ignore
           if (prev.some((c) => c.id === comment.id)) return prev;
+
+          // If we have an optimistic match with the same content and user, swap it
+          const optimisticIndex = prev.findIndex(
+            (c) => c.isOptimistic && c.userId === comment.userId && c.content === comment.content
+          );
+
+          if (optimisticIndex !== -1) {
+            const next = [...prev];
+            next[optimisticIndex] = comment;
+            return next;
+          }
+
           return [...prev, comment];
         });
       };
@@ -149,13 +183,36 @@ const FilePreviewModal = ({
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    const commentText = newComment.trim();
+    if (!commentText) return;
 
     if (isTyping) {
       setIsTyping(false);
       socket.emit("typing_comment", { fileId: file.id, isTyping: false });
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     }
+
+    // Reset input instantly
+    setNewComment("");
+
+    // Create optimistic comment
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment = {
+      id: tempId,
+      content: commentText,
+      userId: user?.id,
+      createdAt: new Date().toISOString(),
+      user: {
+        id: user?.id,
+        username: user?.username || "You",
+        imageUrl: user?.imageUrl || null,
+        email: user?.email || ""
+      },
+      isOptimistic: true
+    };
+
+    // Add instantly to view
+    setComments((prev) => [...prev, optimisticComment]);
 
     try {
       const res = await authFetch(apiUrl("/comments"), {
@@ -165,19 +222,22 @@ const FilePreviewModal = ({
         },
         body: JSON.stringify({
           fileId: file.id,
-          content: newComment,
+          content: commentText,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setNewComment("");
-        // Optimistically add the new comment to local view (with de-duplication)
-        setComments((prev) => {
-          if (prev.some((c) => c.id === data.comment.id)) return prev;
-          return [...prev, data.comment];
-        });
+        // Swap temp comment with official database entry
+        setComments((prev) =>
+          prev.map((c) => (c.id === tempId ? data.comment : c))
+        );
+      } else {
+        // Remove optimistic comment if rejected by server
+        setComments((prev) => prev.filter((c) => c.id !== tempId));
       }
     } catch (err) {
+      // Remove optimistic comment if request failed
+      setComments((prev) => prev.filter((c) => c.id !== tempId));
       console.error("Error submitting comment:", err);
     }
   };
@@ -463,6 +523,7 @@ const FilePreviewModal = ({
                 </div>
               </div>
             )}
+            <div ref={commentsEndRef} />
           </div>
 
           {/* Comment Input Form */}

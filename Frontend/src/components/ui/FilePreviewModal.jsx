@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { socket } from '../../socket';
+import { socket, connectSocket } from '../../socket';
 import { authFetch, apiUrl } from '../../utils/auth';
 
 const FilePreviewModal = ({
@@ -43,7 +43,8 @@ const FilePreviewModal = ({
         .catch((err) => console.error("Error loading comments:", err))
         .finally(() => setLoadingComments(false));
 
-      // Join file comments room
+      // Ensure socket connection is active and join room
+      connectSocket();
       socket.emit("join_file", file.id);
 
       const handleNewComment = (comment) => {
@@ -168,6 +169,11 @@ const FilePreviewModal = ({
       const data = await res.json();
       if (data.success) {
         setNewComment("");
+        // Optimistically add the new comment to local view (with de-duplication)
+        setComments((prev) => {
+          if (prev.some((c) => c.id === data.comment.id)) return prev;
+          return [...prev, data.comment];
+        });
       }
     } catch (err) {
       console.error("Error submitting comment:", err);

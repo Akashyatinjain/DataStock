@@ -66,7 +66,8 @@ import {
   fetchStorageActivity,
   moveFileToFolder,
 } from '../store/slices/filesSlice';
-import { fetchFolders } from '../store/slices/foldersSlice';
+import { fetchFolders, deleteExistingFolder } from '../store/slices/foldersSlice';
+import FolderCard from '../components/dashboard/folders/FolderCard';
 import {
   fetchNotifications,
   readNotification,
@@ -868,11 +869,9 @@ const Dashboard = () => {
   // Share modal state
   const [shareModalFile, setShareModalFile] = useState(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isFolderShare, setIsFolderShare] = useState(false);
 
-  const handleShare = useCallback((file) => {
-    setShareModalFile(file);
-    setIsShareOpen(true);
-  }, []);
+
 
   // Confirm modal state
   const [confirmConfig, setConfirmConfig] = useState({
@@ -924,6 +923,40 @@ const Dashboard = () => {
     dispatch(fetchProfile());
     dispatch(fetchStorageActivity());
   }, [dispatch]);
+
+  const handleShare = useCallback((file) => {
+    setShareModalFile(file);
+    setIsFolderShare(false);
+    setIsShareOpen(true);
+  }, []);
+
+  const handleShareFolder = useCallback((folder) => {
+    setShareModalFile(folder);
+    setIsFolderShare(true);
+    setIsShareOpen(true);
+  }, []);
+
+  const handleDeleteFolder = useCallback(async (e, folderId) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this folder?')) return;
+    try {
+      addToast('Deleting folder…', 'info');
+      const result = await dispatch(deleteExistingFolder(folderId));
+      if (deleteExistingFolder.fulfilled.match(result)) {
+        addToast('Folder deleted successfully', 'success');
+        dispatch(fetchFolders());
+        refreshAllFiles();
+        if (selectedFolderId === folderId) {
+          setActiveTab('my-drive');
+        }
+      } else {
+        addToast(result.payload || 'Failed to delete folder', 'error');
+      }
+    } catch (error) {
+      console.log(error);
+      addToast('Failed to delete folder', 'error');
+    }
+  }, [dispatch, addToast, refreshAllFiles, selectedFolderId]);
 
   useEffect(() => {
     dispatch(fetchFolders());
@@ -1180,7 +1213,8 @@ const Dashboard = () => {
     }
 
     if (activeTab === 'shared') {
-      return sharedWithMe.map(share => ({
+      const sharedFiles = sharedWithMe.files || [];
+      return sharedFiles.map(share => ({
         ...share.file,
         _sharedBy: share.sharedBy,
         _permission: share.permission,
@@ -1198,6 +1232,46 @@ const Dashboard = () => {
 
     return files;
   }, [activeTab, files, allFiles, sharedWithMe, trashFiles]);
+
+  const displayFolders = useMemo(() => {
+    if (activeTab === 'my-drive') {
+      return folders.filter(f => !f.parentId);
+    }
+
+    if (activeTab?.startsWith('folder-')) {
+      return folders.filter(f => f.parentId === selectedFolderId);
+    }
+
+    if (activeTab === 'shared') {
+      const sharedFolders = sharedWithMe.folders || [];
+      return sharedFolders.map(share => ({
+        ...share.folder,
+        _sharedPermission: share.permission,
+        _shareId: share.id,
+        _sharedBy: share.sharedBy,
+        _isDirectlyShared: true,
+      }));
+    }
+
+    return [];
+  }, [activeTab, folders, selectedFolderId, sharedWithMe]);
+
+  const filteredFolders = useMemo(() =>
+    displayFolders.filter(f => f.name?.toLowerCase().includes(searchQuery.toLowerCase())),
+    [displayFolders, searchQuery]
+  );
+
+  const folderPath = useMemo(() => {
+    if (!selectedFolderId) return [];
+    const path = [];
+    let current = folders.find(f => getFolderId(f) === selectedFolderId);
+    while (current) {
+      path.unshift(current);
+      const parentId = current.parentId;
+      current = parentId ? folders.find(f => getFolderId(f) === parentId) : null;
+    }
+    return path;
+  }, [folders, selectedFolderId]);
 
   const { pageTitle, pageSubtitle } = useMemo(() => {
     if (selectedFolder) {
@@ -1223,9 +1297,9 @@ const Dashboard = () => {
   }, [activeTab, selectedFolder]);
 
   const emptyState = useMemo(() => {
-    if (searchQuery) return { title: 'No files match your search', desc: 'Try a different keyword', showUpload: false };
-    if (selectedFolder) return { title: 'This folder is empty', desc: 'Upload a file to add it to this folder', showUpload: true };
-    if (activeTab === 'my-drive') return { title: 'No files in My Drive yet', desc: 'Upload your first file to get started with DataStock', showUpload: true };
+    if (searchQuery) return { title: 'No files or folders match your search', desc: 'Try a different keyword', showUpload: false };
+    if (selectedFolder) return { title: 'This folder is empty', desc: 'Upload a file or create a subfolder to get started', showUpload: true };
+    if (activeTab === 'my-drive') return { title: 'No files in My Drive yet', desc: 'Upload your first file or create a folder to get started', showUpload: true };
     if (activeTab?.startsWith('filter-')) {
       const filterName = activeTab.replace('filter-', '');
       const title = filterName.charAt(0).toUpperCase() + filterName.slice(1);
@@ -1233,11 +1307,11 @@ const Dashboard = () => {
     }
     if (activeTab === 'recent') return { title: 'No recent files', desc: 'Your recently uploaded files will appear here', showUpload: false };
     if (activeTab === 'starred') return { title: 'No starred files', desc: 'Star files to easily find them later', showUpload: false };
-    if (activeTab === 'shared') return { title: 'No shared files', desc: 'Files shared with you by others will appear here', showUpload: false };
+    if (activeTab === 'shared') return { title: 'No shared items', desc: 'Files and folders shared with you by others will appear here', showUpload: false };
     if (activeTab === 'trash') return { title: 'Trash is empty', desc: 'Deleted files will appear here', showUpload: false };
     if (activeTab === 'archive') return { title: 'Archive is empty', desc: 'Archived files will appear here', showUpload: false };
     if (activeTab === 'notifications') return { title: 'All caught up!', desc: 'No new notifications to display', showUpload: false };
-    return { title: 'No files found', desc: 'Get started by uploading a file', showUpload: true };
+    return { title: 'No items found', desc: 'Get started by uploading a file or creating a folder', showUpload: true };
   }, [activeTab, searchQuery, selectedFolder]);
 
   const filteredFiles = useMemo(() =>
@@ -1608,6 +1682,7 @@ const Dashboard = () => {
           if (selectedFolderId === folderId) loadFiles(null);
         }}
         onMoveFile={handleMoveFile}
+        onShareFolder={handleShareFolder}
       />
 
       <main
@@ -1637,10 +1712,43 @@ const Dashboard = () => {
             {/* ── TOP BAR ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
               <div className="min-w-0">
+                {activeTab?.startsWith('folder-') && folderPath.length > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2.5 flex-wrap">
+                    <span
+                      onClick={() => setActiveTab('my-drive')}
+                      className="hover:text-green-600 dark:hover:text-green-400 cursor-pointer transition-colors"
+                    >
+                      My Drive
+                    </span>
+                    {folderPath.map((item, idx) => {
+                      const isLast = idx === folderPath.length - 1;
+                      return (
+                        <React.Fragment key={item.id}>
+                          <span className="text-gray-300 dark:text-gray-700">/</span>
+                          <span
+                            onClick={() => !isLast && setActiveTab(`folder-${item.id}`)}
+                            className={isLast ? "text-gray-505 dark:text-gray-400 font-semibold" : "hover:text-green-600 dark:hover:text-green-400 cursor-pointer transition-colors"}
+                          >
+                            {item.name}
+                          </span>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight truncate">
                     {pageTitle}
                   </h1>
+                  {selectedFolder && (
+                    <button
+                      onClick={() => handleShareFolder(selectedFolder)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-green-600 hover:text-green-700 dark:hover:text-green-400 transition flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs"
+                      title="Share folder"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  )}
 
                   {/* Collaborators currently viewing this folder */}
                   {folderUsers.length > 0 && (
@@ -1802,12 +1910,9 @@ const Dashboard = () => {
 
             {/* ── SECTION HEADER ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                  {searchQuery
-                    ? `Results for "${searchQuery}"`
-                    : pageTitle}{' '}
-                  — {filteredFiles.length}
+              <div className="flex items-center justify-between mb-4 mt-6">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Files — {filteredFiles.length}
                 </h3>
               </div>
             )}
@@ -1821,13 +1926,13 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <p className="text-sm text-gray-400 font-medium">
-                  {activeTab === 'trash' ? 'Loading trash…' : activeTab === 'shared' ? 'Loading shared files…' : 'Loading your files…'}
+                  {activeTab === 'trash' ? 'Loading trash…' : activeTab === 'shared' ? 'Loading shared items…' : 'Loading your files…'}
                 </p>
               </div>
             )}
 
             {/* ── EMPTY STATE ── */}
-            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && (
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && filteredFolders.length === 0 && (
               <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
                 <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-gray-700">
                   {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-gray-600" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />}
@@ -1847,6 +1952,26 @@ const Dashboard = () => {
                     </div>
                   </label>
                 )}
+              </div>
+            )}
+
+            {/* ── FOLDERS GRID ── */}
+            {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
+              <div className="mb-8 animate-fade-up">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Folders</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
+                  {filteredFolders.map(folder => (
+                    <FolderCard
+                      key={folder.id}
+                      folder={folder}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
+                      onShare={handleShareFolder}
+                      onDelete={handleDeleteFolder}
+                      currentUserId={user?.id}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -2035,7 +2160,8 @@ const Dashboard = () => {
 
       {/* SHARE MODAL */}
       <ShareModal
-        file={shareModalFile}
+        item={shareModalFile}
+        isFolder={isFolderShare}
         isOpen={isShareOpen}
         onClose={() => { setIsShareOpen(false); setShareModalFile(null); }}
         onToast={addToast}

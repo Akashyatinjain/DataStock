@@ -138,3 +138,50 @@ export const revokePublicLink = asyncHandler(async (req, res) => {
     message: "Public link revoked successfully",
   });
 });
+
+export const shareFolder = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { folderId, email, permission } = req.body;
+
+  if (!folderId || !email) {
+    return res.status(400).json({
+      success: false,
+      message: "folderId and email are required",
+    });
+  }
+
+  const result = await shareService.shareFolderService(
+    folderId,
+    email,
+    permission,
+    userId
+  );
+
+  return res.status(201).json({
+    success: true,
+    message: "Folder shared successfully",
+    share: result,
+  });
+});
+
+export const getFolderShares = asyncHandler(async (req, res) => {
+  const { folderId } = req.params;
+
+  const shares = await shareService.getFolderSharesService(folderId);
+
+  res.status(200).json({
+    success: true,
+    shares,
+  });
+});
+
+export const removeFolderShare = asyncHandler(async (req, res) => {
+  const { shareId } = req.params;
+
+  await shareService.removeFolderShareService(shareId);
+
+  res.status(200).json({
+    success: true,
+    message: "Access removed successfully",
+  });
+});

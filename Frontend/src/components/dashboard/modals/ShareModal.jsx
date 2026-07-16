@@ -25,6 +25,9 @@ import {
   deletePublicLink,
   clearShareModalState,
   fetchPublicLinkInfo,
+  fetchFolderShares,
+  shareFolderWithUser,
+  removeFolderShareThunk,
 } from '../../../store/slices/shareSlice';
 
 const PermBadge = ({ permission }) => (
@@ -58,7 +61,7 @@ const Avatar = ({ user, size = 8 }) => (
   </div>
 );
 
-const ShareModalContent = ({ file, onClose, onToast }) => {
+const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
   const dispatch = useDispatch();
   const {
     fileShares: shares,
@@ -83,17 +86,21 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
   const [password, setPassword] = useState('');
   const [allowDownload, setAllowDownload] = useState(true);
 
-  const fileId = file.id;
+  const itemId = item.id;
   const linkSettings = useSelector((state) => state.share.publicLinkSettings);
 
   useEffect(() => {
     dispatch(clearShareModalState());
-    dispatch(fetchFileShares(fileId));
-    dispatch(fetchPublicLinkInfo(fileId));
-  }, [dispatch, fileId]);
+    if (isFolder) {
+      dispatch(fetchFolderShares(itemId));
+    } else {
+      dispatch(fetchFileShares(itemId));
+      dispatch(fetchPublicLinkInfo(itemId));
+    }
+  }, [dispatch, itemId, isFolder]);
 
   useEffect(() => {
-    if (linkSettings) {
+    if (linkSettings && !isFolder) {
       setExpirationEnabled(!!linkSettings.expiresAt);
       if (linkSettings.expiresAt) {
         const date = new Date(linkSettings.expiresAt);
@@ -115,23 +122,40 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
       setPassword('');
       setAllowDownload(true);
     }
-  }, [linkSettings]);
+  }, [linkSettings, isFolder]);
 
   const handleShare = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
-    const result = await dispatch(
-      shareFileWithUser({ fileId, email: email.trim(), permission })
-    );
-    if (shareFileWithUser.fulfilled.match(result)) {
-      setEmail('');
-      onToast?.(`Shared with ${email.trim()}`, 'success');
+
+    let result;
+    if (isFolder) {
+      result = await dispatch(
+        shareFolderWithUser({ folderId: itemId, email: email.trim(), permission })
+      );
+      if (shareFolderWithUser.fulfilled.match(result)) {
+        setEmail('');
+        onToast?.(`Shared with ${email.trim()}`, 'success');
+      }
+    } else {
+      result = await dispatch(
+        shareFileWithUser({ fileId: itemId, email: email.trim(), permission })
+      );
+      if (shareFileWithUser.fulfilled.match(result)) {
+        setEmail('');
+        onToast?.(`Shared with ${email.trim()}`, 'success');
+      }
     }
   };
 
   const handleRemove = async (shareId, username) => {
-    const result = await dispatch(removeFileShare(shareId));
-    if (removeFileShare.fulfilled.match(result)) {
+    let result;
+    if (isFolder) {
+      result = await dispatch(removeFolderShareThunk(shareId));
+    } else {
+      result = await dispatch(removeFileShare(shareId));
+    }
+    if (result.meta.requestStatus === 'fulfilled') {
       onToast?.(`Removed access for ${username}`, 'success');
     } else {
       onToast?.('Failed to remove access', 'error');
@@ -193,8 +217,8 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
               <Share2 className="w-5 h-5 text-green-600" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-bold text-gray-900 text-base leading-tight">Share File</h2>
-              <p className="text-sm text-gray-400 truncate mt-0.5">{file.originalName}</p>
+              <h2 className="font-bold text-gray-900 text-base leading-tight">{isFolder ? 'Share Folder' : 'Share File'}</h2>
+              <p className="text-sm text-gray-400 truncate mt-0.5">{isFolder ? item.name : item.originalName}</p>
             </div>
           </div>
           <button
@@ -217,17 +241,19 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
             <Users className="w-4 h-4" />
             People
           </button>
-          <button
-            onClick={() => setTab('link')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
-              tab === 'link'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Link2 className="w-4 h-4" />
-            Public Link
-          </button>
+          {!isFolder && (
+            <button
+              onClick={() => setTab('link')}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
+                tab === 'link'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <Link2 className="w-4 h-4" />
+              Public Link
+            </button>
+          )}
         </div>
 
         <div className="p-6">
@@ -484,13 +510,14 @@ const ShareModalContent = ({ file, onClose, onToast }) => {
   );
 };
 
-const ShareModal = ({ file, isOpen, onClose, onToast }) => {
-  if (!isOpen || !file) return null;
+const ShareModal = ({ item, isFolder, isOpen, onClose, onToast }) => {
+  if (!isOpen || !item) return null;
 
   return (
     <ShareModalContent
-      key={file.id}
-      file={file}
+      key={item.id}
+      item={item}
+      isFolder={isFolder}
       onClose={onClose}
       onToast={onToast}
     />

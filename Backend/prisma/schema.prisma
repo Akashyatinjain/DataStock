@@ -40,6 +40,9 @@ model User {
 
   sharedTo FileShare[] @relation("SharedTo")
 
+  folderSharedBy FolderShare[] @relation("FolderSharedBy")
+  folderSharedTo FolderShare[] @relation("FolderSharedTo")
+
   publicShares PublicShare[]
   comments     Comment[]
 
@@ -108,6 +111,8 @@ model Folder {
   children    Folder[] @relation("FolderHierarchy")
 
   files       File[]
+
+  sharedWith  FolderShare[] @relation("FolderShares")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -213,4 +218,24 @@ model Comment {
 
   @@index([fileId])
   @@index([userId])
+}
+
+model FolderShare {
+  id String @id @default(uuid())
+
+  folderId String
+  folder Folder @relation("FolderShares", fields:[folderId], references:[id], onDelete:Cascade)
+
+  sharedById String
+  sharedBy User @relation("FolderSharedBy", fields: [sharedById], references: [id])
+
+  sharedToId String
+  sharedTo User @relation("FolderSharedTo", fields: [sharedToId], references: [id])
+
+  permission SharePermission @default(VIEW)
+
+  createdAt DateTime @default(now())
+
+  @@unique([folderId, sharedToId])
+  @@index([sharedToId])
 }

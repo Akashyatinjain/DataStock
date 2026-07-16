@@ -59,7 +59,9 @@ export const shareFileService = async (
 };
 
 export const getSharedWithMeService = async (userId) => {
-  return shareRepo.getSharedFiles(userId);
+  const files = await shareRepo.getSharedFiles(userId);
+  const folders = await shareRepo.getSharedFolders(userId);
+  return { files, folders };
 };
 
 export const getFileSharesService = async (fileId) => {
@@ -68,6 +70,64 @@ export const getFileSharesService = async (fileId) => {
 
 export const removeShareService = async (shareId) => {
   return shareRepo.removeShare(shareId);
+};
+
+export const shareFolderService = async (
+  folderId,
+  email,
+  permission,
+  userId
+) => {
+  const folder = await shareRepo.findFolderById(folderId);
+
+  if (!folder) {
+    throw new Error("Folder not found");
+  }
+
+  if (folder.ownerId !== userId) {
+    throw new Error("Unauthorized: you do not own this folder");
+  }
+
+  const receiver = await shareRepo.findUserByEmail(email);
+
+  if (!receiver) {
+    throw new Error("No user found with that email address");
+  }
+
+  if (receiver.id === userId) {
+    throw new Error("You cannot share a folder with yourself");
+  }
+
+  const alreadyShared = await shareRepo.getFolderShareByFolderAndUser(
+    folderId,
+    receiver.id
+  );
+
+  if (alreadyShared) {
+    throw new Error("Folder is already shared with this user");
+  }
+
+  const share = await shareRepo.createFolderShare({
+    folderId,
+    sharedById: userId,
+    sharedToId: receiver.id,
+    permission: permission || "VIEW",
+  });
+
+  await createNotificationService(
+    receiver.id,
+    `Folder "${folder.name}" was shared with you`
+  );
+
+  return share;
+};
+
+export const getFolderSharesService = async (folderId) => {
+  return shareRepo.getFolderShares(folderId);
+};
+
+export const removeFolderShareService = async (shareId) => {
+  return shareRepo.removeFolderShare(shareId);
 };
 
 export const generatePublicLinkService = async (fileId, ownerId, options = {}) => {

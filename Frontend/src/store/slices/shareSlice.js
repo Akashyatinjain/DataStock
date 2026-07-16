@@ -9,6 +9,9 @@ import {
   shareFile,
   getPublicLinkInfo,
   verifyPublicFilePassword,
+  shareFolder,
+  getFolderShares,
+  removeFolderShare,
 } from '../../api/share.api';
 
 const getErrorMessage = (error, fallback) =>
@@ -101,10 +104,40 @@ export const verifyPublicFilePasswordThunk = createAsyncThunk(
   }
 );
 
+export const fetchFolderShares = createAsyncThunk('share/fetchFolderShares', async (folderId, thunkAPI) => {
+  try {
+    const data = await getFolderShares(folderId);
+    return data.shares || [];
+  } catch (error) {
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load folder shares'));
+  }
+});
+
+export const shareFolderWithUser = createAsyncThunk(
+  'share/shareFolderWithUser',
+  async ({ folderId, email, permission = 'VIEW' }, thunkAPI) => {
+    try {
+      const data = await shareFolder(folderId, email, permission);
+      return data.share || data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to share'));
+    }
+  }
+);
+
+export const removeFolderShareThunk = createAsyncThunk('share/removeFolderShare', async (shareId, thunkAPI) => {
+  try {
+    await removeFolderShare(shareId);
+    return shareId;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to remove access'));
+  }
+});
+
 const shareSlice = createSlice({
   name: 'share',
   initialState: {
-    sharedWithMe: [],
+    sharedWithMe: { files: [], folders: [] },
     fileShares: [],
     publicLink: '',
     publicLinkSettings: null,
@@ -271,6 +304,57 @@ const shareSlice = createSlice({
       .addCase(verifyPublicFilePasswordThunk.rejected, (state, action) => {
         state.publicFileLoading = false;
         state.error = action.payload;
+      })
+      // fetchFolderShares
+      .addCase(fetchFolderShares.pending, (state) => {
+        state.fileSharesLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFolderShares.fulfilled, (state, action) => {
+        state.fileSharesLoading = false;
+        state.fileShares = action.payload;
+      })
+      .addCase(fetchFolderShares.rejected, (state, action) => {
+        state.fileSharesLoading = false;
+        state.error = action.payload;
+      })
+      // shareFolderWithUser
+      .addCase(shareFolderWithUser.pending, (state) => {
+        state.sharing = true;
+        state.error = null;
+      })
+      .addCase(shareFolderWithUser.fulfilled, (state, action) => {
+        state.sharing = false;
+        state.fileShares = [...state.fileShares, action.payload];
+      })
+      .addCase(shareFolderWithUser.rejected, (state, action) => {
+        state.sharing = false;
+        state.error = action.payload;
+      })
+      // removeFolderShareThunk
+      .addCase(removeFolderShareThunk.pending, (state, action) => {
+        state.removingId = action.meta.arg;
+        state.error = null;
+        
+        // Optimistic update
+        const shareId = action.meta.arg;
+        state.removedShareBackup = state.fileShares.find((share) => share.id === shareId);
+        state.fileShares = state.fileShares.filter((share) => share.id !== shareId);
+      })
+      .addCase(removeFolderShareThunk.fulfilled, (state) => {
+        state.removingId = null;
+        state.removedShareBackup = null;
+      })
+      .addCase(removeFolderShareThunk.rejected, (state, action) => {
+        state.removingId = null;
+        state.error = action.payload;
+        
+        // Rollback
+        const shareId = action.meta.arg;
+        if (state.removedShareBackup && state.removedShareBackup.id === shareId) {
+          state.fileShares = [...state.fileShares, state.removedShareBackup];
+          state.removedShareBackup = null;
+        }
       });
   },
 });

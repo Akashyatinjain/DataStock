@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Folder, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Folder, Trash2, Loader2, Share2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
 
 export default function SidebarFolders({
@@ -11,6 +11,7 @@ export default function SidebarFolders({
   onDeleteFolder,
   onNewFolder,
   onMoveFile,
+  onShareFolder,
 }) {
   const [dragOverFolderId, setDragOverFolderId] = useState(null);
 
@@ -80,6 +81,16 @@ export default function SidebarFolders({
                   <Folder className="w-5 h-5 text-yellow-500 shrink-0" />
                   <span className="flex-1 text-left truncate">{folder.name}</span>
                   <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShareFolder?.(folder);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-green-600 transition rounded"
+                    title="Share folder"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={(e) => onDeleteFolder(e, id)}
                     className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition rounded"
                     title="Delete folder"
@@ -87,7 +98,7 @@ export default function SidebarFolders({
                     {deletingFolderId === id ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     )}
                   </button>
                 </div>

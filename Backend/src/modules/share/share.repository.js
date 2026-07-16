@@ -108,3 +108,75 @@ export const updatePublicShare = async (id, data) => {
     include: { file: true },
   });
 };
+
+export const createFolderShare = async (data) => {
+  return prisma.folderShare.create({
+    data,
+    include: {
+      sharedTo: {
+        select: { id: true, username: true, email: true, imageUrl: true },
+      },
+    },
+  });
+};
+
+export const getFolderShareByFolderAndUser = async (folderId, sharedToId) => {
+  return prisma.folderShare.findUnique({
+    where: {
+      folderId_sharedToId: { folderId, sharedToId },
+    },
+  });
+};
+
+export const getFolderShares = async (folderId) => {
+  return prisma.folderShare.findMany({
+    where: { folderId },
+    include: {
+      sharedTo: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const removeFolderShare = async (shareId) => {
+  return prisma.folderShare.delete({
+    where: { id: shareId },
+  });
+};
+
+export const getSharedFolders = async (userId) => {
+  return prisma.folderShare.findMany({
+    where: { sharedToId: userId },
+    include: {
+      folder: {
+        include: {
+          owner: {
+            select: { id: true, username: true, email: true, imageUrl: true }
+          }
+        }
+      },
+      sharedBy: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+export const findFolderById = async (folderId) => {
+  return prisma.folder.findUnique({
+    where: { id: folderId },
+  });
+};

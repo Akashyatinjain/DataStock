@@ -5,6 +5,7 @@ import * as fileRepo from "./file.repository.js";
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
 import { getIO } from "../../socket.js";
+import { checkFolderAccess, checkFileAccess } from "../../utils/permission.js";
 
 // ── Helper: create a typed error ──
 const createError = (message, statusCode, code) => {
@@ -22,6 +23,13 @@ export const uploadFileService = async (
 
   if (!file) {
     throw createError("File is required", 400, "NO_FILE_PROVIDED");
+  }
+
+  if (folderId) {
+    const parentAccess = await checkFolderAccess(folderId, userId);
+    if (!parentAccess || parentAccess.permission !== "EDIT") {
+      throw createError("Unauthorized: You do not have edit permission for this folder", 403, "UNAUTHORIZED");
+    }
   }
 
   // ── Storage quota check ──
@@ -180,13 +188,24 @@ export const getUserFilesService =
     userId,
     folderId = null
   ) => {
+    if (folderId) {
+      const access = await checkFolderAccess(folderId, userId);
+      if (!access) {
+        throw createError("Unauthorized to view this folder", 403, "UNAUTHORIZED");
+      }
+      return await prisma.file.findMany({
+        where: {
+          folderId,
+          isTrash: false,
+          isArchived: false
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
+    }
 
-    return await fileRepo.getFilesByUserId(
-
-      userId,
-
-      folderId
-    );
+    return await fileRepo.getFilesByUserId(userId, null);
 };
 
 export const getAllUserFilesService = async (userId) => {
@@ -206,8 +225,9 @@ export const deleteFileService = async (
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  // ownership check
-  if (file.ownerId !== userId) {
+  // ownership/permission check
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
     throw createError(
       "Unauthorized to delete this file",
       403,
@@ -290,7 +310,8 @@ export const toggleStarFileService = async (fileId, userId) => {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  if (file.ownerId !== userId) {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
     throw createError("Unauthorized to update this file", 403, "UNAUTHORIZED");
   }
 
@@ -314,7 +335,8 @@ export const moveToTrashService = async (fileId, userId) => {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  if (file.ownerId !== userId) {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
     throw createError("Unauthorized to trash this file", 403, "UNAUTHORIZED");
   }
 
@@ -348,7 +370,8 @@ export const restoreFromTrashService = async (fileId, userId) => {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  if (file.ownerId !== userId) {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
     throw createError("Unauthorized to restore this file", 403, "UNAUTHORIZED");
   }
 
@@ -461,7 +484,8 @@ export const toggleArchiveFileService = async (fileId, userId) => {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  if (file.ownerId !== userId) {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
     throw createError("Unauthorized to update this file", 403, "UNAUTHORIZED");
   }
 
@@ -494,7 +518,8 @@ export const moveFileService = async (fileId, folderId, userId) => {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  if (file.ownerId !== userId) {
+  const fileAccess = await checkFileAccess(fileId, userId);
+  if (!fileAccess || fileAccess.permission !== "EDIT") {
     throw createError("Unauthorized to move this file", 403, "UNAUTHORIZED");
   }
 
@@ -503,15 +528,8 @@ export const moveFileService = async (fileId, folderId, userId) => {
   }
 
   if (folderId) {
-    const folder = await prisma.folder.findUnique({
-      where: { id: folderId },
-    });
-
-    if (!folder) {
-      throw createError("Target folder not found", 404, "FOLDER_NOT_FOUND");
-    }
-
-    if (folder.ownerId !== userId) {
+    const folderAccess = await checkFolderAccess(folderId, userId);
+    if (!folderAccess || folderAccess.permission !== "EDIT") {
       throw createError("Unauthorized to move to this folder", 403, "UNAUTHORIZED");
     }
   }

@@ -10,6 +10,9 @@ import {
   getPublicFile,
   verifyPublicFilePassword,
   revokePublicLink,
+  shareFolder,
+  getFolderShares,
+  removeFolderShare,
 } from "./share.controller.js";
 
 import {
@@ -17,6 +20,15 @@ import {
 } from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+// Share a folder with another user by email
+router.post("/folder", authenticateUser, shareFolder);
+
+// Get all shares for a specific folder
+router.get("/folder/:folderId", authenticateUser, getFolderShares);
+
+// Remove a specific folder share entry
+router.delete("/folder/:shareId", authenticateUser, removeFolderShare);
 
 // Share a file with another user by email
 router.post("/file", authenticateUser, shareFile);

@@ -86,3 +86,18 @@ export const verifyPublicFilePassword = async (token, password) => {
   const response = await API.post(`/share/public/file/${token}/verify`, { password });
   return response.data;
 };
+
+export const shareFolder = async (folderId, email, permission = 'VIEW') => {
+  const response = await API.post('/share/folder', { folderId, email, permission });
+  return response.data;
+};
+
+export const getFolderShares = async (folderId) => {
+  const response = await API.get(`/share/folder/${folderId}`);
+  return response.data;
+};
+
+export const removeFolderShare = async (shareId) => {
+  const response = await API.delete(`/share/folder/${shareId}`);
+  return response.data;
+};

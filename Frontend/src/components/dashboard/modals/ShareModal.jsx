@@ -208,34 +208,34 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs" onClick={onClose} />
 
-      <div className="relative bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-fade-in">
-        <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-100">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-fade-in">
+        <div className="flex items-start justify-between p-6 pb-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
-              <Share2 className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-green-50 dark:bg-green-950/30 rounded-xl flex items-center justify-center shrink-0">
+              <Share2 className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-bold text-gray-900 text-base leading-tight">{isFolder ? 'Share Folder' : 'Share File'}</h2>
-              <p className="text-sm text-gray-400 truncate mt-0.5">{isFolder ? item.name : item.originalName}</p>
+              <h2 className="font-bold text-gray-900 dark:text-gray-100 text-base leading-tight">{isFolder ? 'Share Folder' : 'Share File'}</h2>
+              <p className="text-sm text-gray-400 dark:text-gray-500 truncate mt-0.5">{isFolder ? item.name : item.originalName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl transition text-gray-400 hover:text-gray-600 shrink-0"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-400 dark:text-gray-550 hover:text-gray-600 dark:hover:text-gray-300 shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex border-b border-gray-100 px-6">
+        <div className="flex border-b border-gray-100 dark:border-gray-800 px-6">
           <button
             onClick={() => setTab('people')}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
               tab === 'people'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
+                ? 'border-green-500 text-green-600 dark:text-green-400'
+                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-350'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -246,8 +246,8 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
               onClick={() => setTab('link')}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
                 tab === 'link'
-                  ? 'border-green-500 text-green-600'
-                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                  ? 'border-green-500 text-green-600 dark:text-green-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-350'
               }`}
             >
               <Link2 className="w-4 h-4" />
@@ -260,7 +260,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
           {tab === 'people' && (
             <div className="space-y-5">
               <form onSubmit={handleShare}>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Share with someone
                 </label>
                 <div className="flex gap-2">
@@ -271,14 +271,14 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter email address…"
-                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white dark:focus:bg-gray-900 text-gray-900 dark:text-gray-100 transition"
                       disabled={sharing}
                     />
                   </div>
                   <select
                     value={permission}
                     onChange={(e) => setPermission(e.target.value)}
-                    className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    className="px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
                     disabled={sharing}
                   >
                     <option value="VIEW">Can View</option>
@@ -299,7 +299,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                 </div>
 
                 {shareError && (
-                  <div className="mt-2 flex items-center gap-2 text-red-600 text-sm bg-red-50 rounded-xl px-3 py-2 border border-red-100">
+                  <div className="mt-2 flex items-center gap-2 text-red-600 text-sm bg-red-50 dark:bg-red-950/20 rounded-xl px-3 py-2 border border-red-100 dark:border-red-900/30">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     {shareError}
                   </div>
@@ -307,7 +307,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
               </form>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                   People with access
                 </label>
 
@@ -317,30 +317,30 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                   </div>
                 ) : shares.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-gray-100">
-                      <Shield className="w-6 h-6 text-gray-300" />
+                    <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-gray-100 dark:border-gray-800">
+                      <Shield className="w-6 h-6 text-gray-300 dark:text-gray-500" />
                     </div>
-                    <p className="text-sm text-gray-400">Only you have access</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">Only you have access</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                     {shares.map((share) => (
                       <div
                         key={share.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
+                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800"
                       >
                         <Avatar user={share.sharedTo} size={8} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                             {share.sharedTo?.username || share.sharedTo?.email}
                           </p>
-                          <p className="text-xs text-gray-400 truncate">{share.sharedTo?.email}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-550 truncate">{share.sharedTo?.email}</p>
                         </div>
                         <PermBadge permission={share.permission} />
                         <button
                           onClick={() => handleRemove(share.id, share.sharedTo?.username)}
                           disabled={removingId === share.id}
-                          className="p-1.5 hover:bg-red-50 rounded-lg text-gray-300 hover:text-red-500 transition ml-1"
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg text-gray-300 dark:text-gray-650 hover:text-red-500 transition ml-1"
                           title="Remove access"
                         >
                           {removingId === share.id ? (
@@ -359,30 +359,30 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
 
           {tab === 'link' && (
             <div className="space-y-5">
-              <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 text-center">
                 <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-950/20 dark:to-blue-950/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Globe className="w-7 h-7 text-sky-500" />
+                  <Globe className="w-7 h-7 text-sky-500 animate-pulse" />
                 </div>
-                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Public Link</h3>
-                <p className="text-sm text-gray-400 dark:text-gray-555 mb-4 leading-relaxed">
+                <h3 className="font-bold text-gray-900 dark:text-gray-105 mb-1">Public Link</h3>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mb-4 leading-relaxed">
                   Anyone with this link can view the file — no login required.
                 </p>
 
                 {publicLink && (
                   <div className="mb-5 space-y-3">
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-2">
+                    <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-2">
                       <input
                         type="text"
                         readOnly
                         value={publicLink}
-                        className="flex-1 text-sm text-gray-700 dark:text-gray-350 bg-transparent outline-none px-2 truncate"
+                        className="flex-1 text-sm text-gray-705 dark:text-gray-300 bg-transparent outline-none px-2 truncate"
                       />
                       <button
                         onClick={handleCopy}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 shrink-0 ${
                           copied
                             ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400'
-                            : 'bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-705 dark:text-gray-300'
+                            : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300'
                         }`}
                       >
                         {copied ? (
@@ -396,17 +396,17 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                 )}
 
                 {/* Configuration Settings */}
-                <div className="text-left bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-4 mb-4 space-y-4 shadow-xs">
+                <div className="text-left bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4 space-y-4 shadow-xs">
                   <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Custom Sharing Options</h4>
                   
                   {/* Expiration Date */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-gray-755 dark:text-gray-350 font-medium select-none cursor-pointer">
                       <input
                         type="checkbox"
                         checked={expirationEnabled}
                         onChange={(e) => setExpirationEnabled(e.target.checked)}
-                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-700 w-4 h-4 dark:bg-gray-950"
                       />
                       <span>Set expiration date</span>
                     </label>
@@ -415,14 +415,14 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                         type="datetime-local"
                         value={expiresAt}
                         onChange={(e) => setExpiresAt(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 dark:text-gray-300"
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-250 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 dark:text-gray-300"
                       />
                     )}
                   </div>
 
                   {/* Password Protection */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-gray-755 dark:text-gray-350 font-medium select-none cursor-pointer">
                       <input
                         type="checkbox"
                         checked={passwordEnabled}
@@ -430,7 +430,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                           setPasswordEnabled(e.target.checked);
                           if (!e.target.checked) setPassword('');
                         }}
-                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-750 w-4 h-4 dark:bg-gray-950"
                       />
                       <span>Password protection</span>
                     </label>
@@ -443,19 +443,19 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                         onFocus={() => {
                           if (password === '••••••••') setPassword('');
                         }}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 dark:text-gray-300"
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-250 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-705 dark:text-gray-300"
                       />
                     )}
                   </div>
 
                   {/* Allow Download Toggle */}
                   <div className="flex items-center justify-between py-1">
-                    <label className="flex items-center gap-2 text-sm text-gray-705 dark:text-gray-300 font-medium select-none cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-gray-755 dark:text-gray-350 font-medium select-none cursor-pointer">
                       <input
                         type="checkbox"
                         checked={allowDownload}
                         onChange={(e) => setAllowDownload(e.target.checked)}
-                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-700 w-4 h-4 dark:bg-slate-800"
+                        className="rounded text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-750 w-4 h-4 dark:bg-gray-950"
                       />
                       <span>Allow downloads for visitors</span>
                     </label>

@@ -920,9 +920,14 @@ const Dashboard = () => {
 
   const refreshAllFiles = useCallback(() => {
     dispatch(fetchAllFiles());
+    dispatch(fetchFolders());
+    dispatch(fetchSharedWithMe());
     dispatch(fetchProfile());
     dispatch(fetchStorageActivity());
-  }, [dispatch]);
+    if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {
+      loadFiles(selectedFolderId);
+    }
+  }, [dispatch, activeTab, selectedFolderId, loadFiles]);
 
   const handleShare = useCallback((file) => {
     setShareModalFile(file);
@@ -990,8 +995,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {
       loadFiles(selectedFolderId);
+      dispatch(fetchFolders());
     }
-  }, [activeTab, selectedFolderId, loadFiles]);
+  }, [activeTab, selectedFolderId, loadFiles, dispatch]);
 
   useEffect(() => {
     if (activeTab === 'notifications' && user?.id) {

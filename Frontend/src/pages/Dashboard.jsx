@@ -1264,12 +1264,18 @@ const Dashboard = () => {
       if (selectedFolderId) formData.append('folderId', selectedFolderId);
 
       const onUploadProgress = (progressEvent) => {
-        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setUploadProgress(percent);
+        if (progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percent >= 100 ? 99 : percent);
+        } else {
+          setUploadProgress((prev) => Math.min((prev || 0) + 10, 99));
+        }
       };
 
       const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
       if (uploadNewFile.fulfilled.match(resultAction)) {
+        setUploadProgress(100);
+        await new Promise((resolve) => setTimeout(resolve, 500));
         loadFiles(selectedFolderId);
         dispatch(fetchProfile());
         addToast(`"${file.name}" uploaded successfully!`, 'success');
@@ -1311,12 +1317,18 @@ const Dashboard = () => {
         if (selectedFolderId) formData.append('folderId', selectedFolderId);
 
         const onUploadProgress = (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent >= 100 ? 99 : percent);
+          } else {
+            setUploadProgress((prev) => Math.min((prev || 0) + 10, 99));
+          }
         };
         
         const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
         if (uploadNewFile.fulfilled.match(resultAction)) {
+          setUploadProgress(100);
+          await new Promise((resolve) => setTimeout(resolve, 500));
           loadFiles(selectedFolderId);
           dispatch(fetchProfile());
           addToast(`"${file.name}" uploaded successfully!`, 'success');
@@ -2051,7 +2063,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />
-                <span className="text-sm font-semibold tracking-wide">Uploading...</span>
+                <span className="text-sm font-semibold tracking-wide">
+                  {uploadProgress >= 99 ? "Finishing..." : "Uploading..."}
+                </span>
               </div>
               <span className="text-xs text-gray-400 truncate max-w-[150px] font-medium" title={uploadingFileName}>
                 {uploadingFileName}

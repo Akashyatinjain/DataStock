@@ -8,9 +8,9 @@ import {
   deleteFromCloudinary
 } from "../../services/cloudinary.js";
 
-import prisma
-from "../../config/db.js";
+import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
+import { getIO } from "../../socket.js";
 export const createFolderService = async (name,userId,parentId = null) => {
 
   if (!name) {
@@ -26,6 +26,12 @@ export const createFolderService = async (name,userId,parentId = null) => {
   });
 
   await createNotificationService(userId, `Folder "${name}" created successfully`);
+
+  // Broadcast folder created event
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${parentId || 'root'}`).emit("folder_created", folder);
+  }
 
   return folder;
 };
@@ -100,6 +106,12 @@ export const deleteFolderService =
     );
 
     await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
+
+    // Broadcast folder deleted event
+    const io = getIO();
+    if (io) {
+      io.to(`folder:${folder.parentId || 'root'}`).emit("folder_deleted", { folderId, parentId: folder.parentId || 'root' });
+    }
 
     return {
       message:

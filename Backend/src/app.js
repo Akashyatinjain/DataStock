@@ -15,6 +15,7 @@ import notificationRoutes from "./modules/notifications/notification.routes.js";
 import shareRoutes from "./modules/share/share.routes.js";
 import paymentRoutes from "./modules/payment/Payment.Route.js";
 import contactRoutes from "./modules/contact/contact.routes.js";
+import commentRoutes from "./modules/comments/comment.routes.js";
 
 // Fix for Prisma BigInt serialization
 BigInt.prototype.toJSON = function () {
@@ -75,6 +76,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/share", shareRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.use(errorHandler);
 

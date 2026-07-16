@@ -4,6 +4,7 @@ import * as fileRepo from "./file.repository.js";
 
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
+import { getIO } from "../../socket.js";
 
 // ── Helper: create a typed error ──
 const createError = (message, statusCode, code) => {
@@ -112,6 +113,20 @@ const savedFile =
     `File "${file.originalname}" uploaded successfully`
   );
 
+  // Broadcast file uploaded event
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${folderId || 'root'}`).emit("file_uploaded", {
+      ...savedFile,
+      owner: {
+        id: userId,
+        username: user?.username || "Someone",
+        imageUrl: user?.imageUrl || null,
+        email: user?.email || ""
+      }
+    });
+  }
+
   return {
     savedFile,
     message: "File uploaded successfully"
@@ -189,6 +204,13 @@ export const deleteFileService = async (
     userId,
     `File "${file.originalName}" deleted successfully`
   );
+
+  // Broadcast file deleted event
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_deleted", { fileId, folderId: file.folderId || 'root' });
+  }
+
   return {
     message: "File deleted successfully"
   };
@@ -240,6 +262,12 @@ export const moveToTrashService = async (fileId, userId) => {
     `File "${file.originalName}" moved to trash`
   );
 
+  // Broadcast file trashing (hides it from the current folder)
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_deleted", { fileId, folderId: file.folderId || 'root' });
+  }
+
   return {
     file: trashedFile,
     message: "File moved to trash",
@@ -267,6 +295,12 @@ export const restoreFromTrashService = async (fileId, userId) => {
     userId,
     `File "${file.originalName}" restored from trash`
   );
+
+  // Broadcast restored file
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${restoredFile.folderId || 'root'}`).emit("file_uploaded", restoredFile);
+  }
 
   return {
     file: restoredFile,
@@ -391,6 +425,15 @@ export const moveFileService = async (fileId, folderId, userId) => {
     userId,
     `File "${file.originalName}" moved successfully`
   );
+
+  // Broadcast file moved to rooms
+  const io = getIO();
+  if (io) {
+    // Notify source folder to remove file
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_deleted", { fileId, folderId: file.folderId || 'root' });
+    // Notify target folder to add file
+    io.to(`folder:${folderId || 'root'}`).emit("file_uploaded", updatedFile);
+  }
 
   return {
     file: updatedFile,

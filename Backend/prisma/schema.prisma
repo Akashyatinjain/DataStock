@@ -41,6 +41,7 @@ model User {
   sharedTo FileShare[] @relation("SharedTo")
 
   publicShares PublicShare[]
+  comments     Comment[]
 
   @@index([email])
 }
@@ -72,6 +73,7 @@ model File {
 
   sharedWith FileShare[] @relation("FileShares")
   publicShares PublicShare[]
+  comments     Comment[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -180,4 +182,18 @@ model PublicShare {
 enum SharePermission {
   VIEW
   EDIT
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fileId])
+  @@index([userId])
 }

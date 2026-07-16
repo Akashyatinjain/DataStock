@@ -886,6 +886,8 @@ const Dashboard = () => {
   });
 
   const [viewMode, setViewMode] = useState('grid');
+  const [folderUsers, setFolderUsers] = useState([]);
+  const [onlineUsersList, setOnlineUsersList] = useState([]);
 
   // Toast state
   const [toasts, setToasts] = useState([]);
@@ -1009,6 +1011,82 @@ const Dashboard = () => {
       };
     }
   }, [user, addToast, dispatch]);
+
+  // Join folder room on the socket
+  useEffect(() => {
+    if (user?.id) {
+      socket.emit("view_folder", selectedFolderId || "root");
+    }
+  }, [selectedFolderId, activeTab, user]);
+
+  // Handle active folder users and global presence updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const handleFolderUsersUpdate = ({ folderId, users }) => {
+      // Show other users currently in this folder
+      setFolderUsers(users.filter(u => u.id !== user.id));
+    };
+
+    const handlePresenceUpdate = (users) => {
+      setOnlineUsersList(users);
+    };
+
+    socket.on("folder_users_update", handleFolderUsersUpdate);
+    socket.on("presence_update", handlePresenceUpdate);
+
+    return () => {
+      socket.off("folder_users_update", handleFolderUsersUpdate);
+      socket.off("presence_update", handlePresenceUpdate);
+    };
+  }, [user]);
+
+  // Handle real-time file and folder updates from other users
+  useEffect(() => {
+    const handleFileUploaded = (file) => {
+      const fileFolderId = file.folderId || null;
+      const currentFolderId = selectedFolderId || null;
+
+      if (fileFolderId === currentFolderId) {
+        dispatch(addUploadedFile(normalizeFile(file)));
+        addToast(`"${file.originalName}" was uploaded by another user`, 'info');
+        loadFiles(currentFolderId);
+        dispatch(fetchStorageActivity());
+      }
+    };
+
+    const handleFileDeleted = ({ fileId, folderId }) => {
+      const fileFolderId = folderId || null;
+      const currentFolderId = selectedFolderId || null;
+
+      if (fileFolderId === currentFolderId) {
+        loadFiles(currentFolderId);
+        dispatch(fetchStorageActivity());
+        addToast("A file was deleted or moved by another user", 'info');
+      }
+    };
+
+    const handleFolderCreated = () => {
+      dispatch(fetchFolders());
+    };
+
+    const handleFolderDeleted = () => {
+      dispatch(fetchFolders());
+      loadFiles(selectedFolderId);
+    };
+
+    socket.on("file_uploaded", handleFileUploaded);
+    socket.on("file_deleted", handleFileDeleted);
+    socket.on("folder_created", handleFolderCreated);
+    socket.on("folder_deleted", handleFolderDeleted);
+
+    return () => {
+      socket.off("file_uploaded", handleFileUploaded);
+      socket.off("file_deleted", handleFileDeleted);
+      socket.off("folder_created", handleFolderCreated);
+      socket.off("folder_deleted", handleFolderDeleted);
+    };
+  }, [selectedFolderId, dispatch, addToast, loadFiles]);
 
   // ── STORAGE (all files: My Drive + every folder) ──
   const totalStorage = Number(user?.storageLimit || 10 * 1024 * 1024 * 1024);
@@ -1523,9 +1601,34 @@ const Dashboard = () => {
             {/* ── TOP BAR ── */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
               <div className="min-w-0">
-                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight truncate">
-                  {pageTitle}
-                </h1>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight truncate">
+                    {pageTitle}
+                  </h1>
+
+                  {/* Collaborators currently viewing this folder */}
+                  {folderUsers.length > 0 && (
+                    <div className="flex items-center -space-x-2 ml-2 sm:ml-4 bg-white dark:bg-gray-900 px-3 py-1 rounded-full border border-gray-100 dark:border-gray-800 shadow-xs">
+                      {folderUsers.map((viewer) => (
+                        <div
+                          key={viewer.id}
+                          className="relative group w-7 h-7 rounded-full border border-white dark:border-gray-900 bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold shadow-xs overflow-hidden cursor-pointer"
+                          title={`${viewer.username} (${viewer.email}) is viewing this folder`}
+                        >
+                          {viewer.imageUrl ? (
+                            <img src={viewer.imageUrl} className="w-full h-full object-cover" alt={viewer.username} />
+                          ) : (
+                            <span>{viewer.username.charAt(0).toUpperCase()}</span>
+                          )}
+                          <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900 animate-pulse" />
+                        </div>
+                      ))}
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 ml-2 font-medium">
+                        {folderUsers.length} viewing now
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <p className="text-gray-400 mt-1 text-sm truncate">
                   {pageSubtitle}
                 </p>
@@ -1627,6 +1730,36 @@ const Dashboard = () => {
                     <p className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-4 tabular-nums">{totalFileCount}</p>
                     <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── ONLINE COLLABORATORS BANNER ── */}
+            {onlineUsersList.length > 0 && (
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 mb-8 shadow-sm flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shrink-0" />
+                  <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                    Online Collaborators ({onlineUsersList.length})
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {onlineUsersList.map((onlineUser) => (
+                    <div
+                      key={onlineUser.id}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 transition hover:shadow-xs"
+                      title={onlineUser.email}
+                    >
+                      <div className="relative w-5 h-5 rounded-full bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold overflow-hidden shrink-0">
+                        {onlineUser.imageUrl ? (
+                          <img src={onlineUser.imageUrl} className="w-full h-full object-cover" alt={onlineUser.username} />
+                        ) : (
+                          <span>{onlineUser.username.charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <span className="truncate max-w-[120px]">{onlineUser.username} {onlineUser.id === user?.id && <span className="text-[10px] text-gray-400 font-normal shrink-0">(you)</span>}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

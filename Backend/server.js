@@ -47,25 +47,109 @@ io.use(async (socket, next) => {
     }
 
     socket.userId = user.id;
+    socket.username = user.username;
+    socket.email = user.email;
+    socket.imageUrl = user.imageUrl;
     next();
   } catch (error) {
     next(new Error("Authentication failed"));
   }
 });
 
+// In-memory maps to track user locations and online presence
+const activeViewers = new Map();
+const onlineUsers = new Map();
+
+const broadcastFolderUsers = (folderId) => {
+  const viewersInFolder = Array.from(activeViewers.values())
+    .filter((viewer) => viewer.folderId === folderId);
+  
+  // De-duplicate users by userId in case they have multiple tabs/sockets open
+  const uniqueViewers = Array.from(new Map(viewersInFolder.map(v => [v.id, v])).values());
+  io.to(`folder:${folderId}`).emit("folder_users_update", {
+    folderId,
+    users: uniqueViewers,
+  });
+};
+
+const broadcastPresenceUpdate = () => {
+  const uniqueOnline = Array.from(new Map(Array.from(onlineUsers.values()).map(u => [u.id, u])).values());
+  io.emit("presence_update", uniqueOnline);
+};
+
 io.on("connection", (socket) => {
   console.log("Authenticated client connected", socket.id, socket.userId);
+
+  // Add user to online list
+  onlineUsers.set(socket.id, {
+    id: socket.userId,
+    username: socket.username,
+    email: socket.email,
+    imageUrl: socket.imageUrl,
+  });
+  broadcastPresenceUpdate();
 
   socket.on("join", (userId) => {
     if (socket.userId !== userId) {
       return;
     }
-
     socket.join(userId);
     console.log(`User ${userId} joined room`);
   });
 
+  // User views a specific folder
+  socket.on("view_folder", (folderId) => {
+    const previous = activeViewers.get(socket.id);
+    if (previous && previous.folderId) {
+      socket.leave(`folder:${previous.folderId}`);
+    }
+
+    const targetFolderId = folderId || "root";
+    socket.join(`folder:${targetFolderId}`);
+
+    activeViewers.set(socket.id, {
+      id: socket.userId,
+      username: socket.username,
+      email: socket.email,
+      imageUrl: socket.imageUrl,
+      folderId: targetFolderId,
+    });
+
+    if (previous && previous.folderId && previous.folderId !== targetFolderId) {
+      broadcastFolderUsers(previous.folderId);
+    }
+    broadcastFolderUsers(targetFolderId);
+  });
+
+  // User previews a file (join comments room)
+  socket.on("join_file", (fileId) => {
+    socket.join(`file:${fileId}`);
+  });
+
+  socket.on("leave_file", (fileId) => {
+    socket.leave(`file:${fileId}`);
+  });
+
+  // Typing indicators inside comments
+  socket.on("typing_comment", ({ fileId, isTyping }) => {
+    socket.to(`file:${fileId}`).emit("typing_comment", {
+      fileId,
+      userId: socket.userId,
+      username: socket.username,
+      isTyping,
+    });
+  });
+
   socket.on("disconnect", () => {
+    const viewer = activeViewers.get(socket.id);
+    onlineUsers.delete(socket.id);
+    activeViewers.delete(socket.id);
+
+    if (viewer && viewer.folderId) {
+      broadcastFolderUsers(viewer.folderId);
+    }
+    broadcastPresenceUpdate();
+
     console.log("Client disconnected", socket.id);
   });
 });

@@ -11,7 +11,8 @@ import {
   FileAudio,
   MessageSquare,
   Trash2,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { socket, connectSocket } from '../../socket';
@@ -29,6 +30,7 @@ const FilePreviewModal = ({
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState({});
   const typingTimeoutRef = useRef(null);
+  const [activeMobileTab, setActiveMobileTab] = useState("preview");
 
   useEffect(() => {
     if (isOpen && file?.id) {
@@ -211,11 +213,11 @@ const FilePreviewModal = ({
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
         
         {/* LEFT COLUMN: PREVIEW + HEADER */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={`flex-1 flex flex-col min-w-0 ${activeMobileTab === "preview" ? "flex" : "hidden md:flex"}`}>
           
-          {/* HEADER */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
-            <div className="min-w-0">
+          {/* LEFT HEADER */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 gap-3">
+            <div className="min-w-0 flex-1">
               <h2 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {file.originalName}
               </h2>
@@ -224,7 +226,22 @@ const FilePreviewModal = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Mobile Toggle Button to view comments */}
+              <button
+                type="button"
+                onClick={() => setActiveMobileTab("comments")}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition md:hidden relative"
+                title="View Comments"
+              >
+                <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                {comments.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                    {comments.length}
+                  </span>
+                )}
+              </button>
+
               <a
                 href={url}
                 target="_blank"
@@ -236,7 +253,7 @@ const FilePreviewModal = ({
               </a>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition md:hidden"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
               >
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
@@ -343,18 +360,33 @@ const FilePreviewModal = ({
         </div>
 
         {/* RIGHT COLUMN: COMMENTS SIDE PANEL */}
-        <div className="w-full md:w-[380px] border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 flex flex-col max-h-[45vh] md:max-h-[92vh] shrink-0">
+        <div className={`w-full md:w-[380px] border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 flex flex-col shrink-0 min-h-0 ${
+          activeMobileTab === "comments" ? "flex flex-1 min-h-[50vh] md:min-h-0 max-h-[80vh] md:max-h-[92vh]" : "hidden md:flex"
+        }`}>
           {/* Comments Panel Header */}
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
+              {/* Back to Preview button visible only on mobile/tablet comments screen */}
+              <button
+                type="button"
+                onClick={() => setActiveMobileTab("preview")}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition md:hidden mr-1"
+                title="Back to Preview"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+              
               <span className="font-semibold text-gray-800 dark:text-gray-200">Comments</span>
               <span className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-900/30">
                 {comments.length}
               </span>
             </div>
+            
+            {/* Exit/Close modal button visible on both desktop & mobile comments screen */}
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition hidden md:block"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+              title="Close Modal"
             >
               <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>

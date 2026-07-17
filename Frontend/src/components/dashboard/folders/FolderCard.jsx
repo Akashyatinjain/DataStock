@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Folder, Share2, Trash2, Users, MoreVertical, Eye, Edit3 } from 'lucide-react';
+import { Folder, Share2, Trash2, Users, MoreVertical, Eye, Edit3, Download, Loader2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
+import { authFetch, apiUrl } from '../../../utils/auth';
 
 export default function FolderCard({
   folder,
@@ -11,6 +12,7 @@ export default function FolderCard({
   currentUserId,
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const id = getFolderId(folder);
   const tabId = `folder-${id}`;
   const isOwner = folder.ownerId === currentUserId || folder._isOwner;
@@ -31,6 +33,30 @@ export default function FolderCard({
     e.stopPropagation();
     setShowMenu(false);
     if (onDelete) onDelete(e, id);
+  };
+
+  const handleDownloadZip = async (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    setIsDownloading(true);
+    try {
+      const res = await authFetch(apiUrl(`/folders/${id}/download`));
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${folder.name}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to download folder ZIP");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -75,6 +101,13 @@ export default function FolderCard({
                     Share Folder
                   </button>
                 )}
+                <button
+                  onClick={handleDownloadZip}
+                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-250 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-500" />
+                  Download ZIP
+                </button>
                 {(isOwner || permission === 'EDIT') && (
                   <button
                     onClick={handleDeleteClick}
@@ -110,6 +143,12 @@ export default function FolderCard({
           )}
         </div>
       </div>
+      {isDownloading && (
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
+          <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
+          <span className="text-xs font-bold text-gray-700 dark:text-gray-250">Zipping Folder…</span>
+        </div>
+      )}
     </div>
   );
 }

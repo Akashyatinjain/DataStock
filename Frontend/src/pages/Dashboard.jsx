@@ -28,6 +28,7 @@ import {
   BarChart2,
   TrendingUp,
   PieChart,
+  Move,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -35,6 +36,7 @@ import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
 import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
+import ActivityLogView from '../components/dashboard/ActivityLogView';
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {
@@ -522,7 +524,7 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
-const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
+const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId, isSelected, onToggleSelect, onExtract, selectedFileIds }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -536,7 +538,11 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
       onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", file.id);
+        if (selectedFileIds && selectedFileIds.has(file.id)) {
+          e.dataTransfer.setData("text/plain", JSON.stringify(Array.from(selectedFileIds)));
+        } else {
+          e.dataTransfer.setData("text/plain", file.id);
+        }
         e.dataTransfer.effectAllowed = "move";
       }}
       className={`
@@ -545,9 +551,25 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
           : 'border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-xl hover:-translate-y-1 shadow-sm'}
+        ${isSelected ? 'border-green-500 ring-2 ring-green-500/20' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
+      {/* Checkbox Overlay */}
+      {!isTrashView && onToggleSelect && (
+        <div 
+          className={`absolute top-3 left-3 z-20 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={!!isSelected}
+            onChange={onToggleSelect}
+            className="w-4.5 h-4.5 text-green-600 bg-white dark:bg-gray-850 border-gray-300 dark:border-gray-700 rounded-md focus:ring-green-500 cursor-pointer shadow-sm focus:ring-2 focus:ring-offset-0"
+          />
+        </div>
+      )}
+
       {isDeleting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
@@ -619,6 +641,15 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
               </>
             ) : (
               <>
+                {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
+                  <button
+                    onClick={e => { e.stopPropagation(); onExtract(file.id, file.originalName); }}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-600 transition"
+                    title="Extract ZIP Here"
+                  >
+                    <Archive className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
                   disabled={isStarring}
@@ -681,7 +712,7 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
   );
 };
 
-const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
+const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId, isSelected, onToggleSelect, onExtract, selectedFileIds }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -695,17 +726,35 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
       onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", file.id);
+        if (selectedFileIds && selectedFileIds.has(file.id)) {
+          e.dataTransfer.setData("text/plain", JSON.stringify(Array.from(selectedFileIds)));
+        } else {
+          e.dataTransfer.setData("text/plain", file.id);
+        }
         e.dataTransfer.effectAllowed = "move";
       }}
       className={`
         grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-gray-800
         hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
+        ${isSelected ? 'bg-green-50/30 dark:bg-green-950/10' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
       <div className="md:col-span-6 flex items-center gap-3 min-w-0">
+        {!isTrashView && onToggleSelect && (
+          <div 
+            className={`mr-1 shrink-0 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={!!isSelected}
+              onChange={onToggleSelect}
+              className="w-4 h-4 text-green-600 bg-white dark:bg-gray-850 border-gray-300 dark:border-gray-700 rounded focus:ring-green-500 cursor-pointer shadow-xs focus:ring-2 focus:ring-offset-0"
+            />
+          </div>
+        )}
         <div className={`w-10 h-10 ${type.bg} rounded-xl flex items-center justify-center shrink-0`}>
           <Icon className={`w-5 h-5 ${type.color}`} />
         </div>
@@ -760,6 +809,15 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
               </>
             ) : (
               <>
+                {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
+                  <button
+                    onClick={e => { e.stopPropagation(); onExtract(file.id, file.originalName); }}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-600 transition"
+                    title="Extract ZIP Here"
+                  >
+                    <Archive className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
                   disabled={isStarring}
@@ -822,7 +880,7 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
 
 const UploadButton = ({ uploading, onChange }) => (
   <label className="cursor-pointer inline-flex max-w-full">
-    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={onChange} />
+    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={onChange} multiple />
     <div className={`
       px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
       ${uploading
@@ -836,6 +894,74 @@ const UploadButton = ({ uploading, onChange }) => (
     </div>
   </label>
 );
+
+const MoveItemsModal = ({ isOpen, onClose, folders, onConfirm }) => {
+  const [selectedFolderId, setSelectedFolderId] = useState(null);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs select-none">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-up text-left">
+        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <Move className="w-5 h-5 text-green-600" />
+          Move Items
+        </h3>
+        <p className="text-xs text-gray-400 mb-4">Select the destination directory to move items:</p>
+        
+        <div className="max-h-60 overflow-y-auto border border-gray-100 dark:border-gray-800 rounded-2xl mb-6 bg-gray-50/50 dark:bg-gray-950/20 p-2 space-y-1">
+          {/* My Drive Option */}
+          <div
+            onClick={() => setSelectedFolderId("root")}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-semibold transition ${
+              selectedFolderId === "root"
+                ? "bg-green-50 dark:bg-green-950/45 text-green-700 dark:text-green-400 border border-green-500/20"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+          >
+            <Folder className="w-5 h-5 text-emerald-500 fill-emerald-500/10 shrink-0" />
+            <span>My Drive (Root)</span>
+          </div>
+
+          {/* Folders List */}
+          {folders.map(folder => {
+            const id = getFolderId(folder);
+            return (
+              <div
+                key={id}
+                onClick={() => setSelectedFolderId(id)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-semibold transition ${
+                  selectedFolderId === id
+                    ? "bg-green-50 dark:bg-green-950/45 text-green-700 dark:text-green-400 border border-green-500/20"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                <Folder className="w-5 h-5 text-yellow-500 fill-yellow-500/10 shrink-0" />
+                <span className="truncate">{folder.name}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-end gap-3.5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-xl text-xs font-bold transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(selectedFolderId === "root" ? null : selectedFolderId)}
+            disabled={!selectedFolderId}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-sm"
+          >
+            Move Here
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -901,6 +1027,10 @@ const Dashboard = () => {
   const [onlineUsersList, setOnlineUsersList] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadingFileName, setUploadingFileName] = useState("");
+
+  // Bulk selection and ZIP operations states
+  const [selectedFileIds, setSelectedFileIds] = useState(new Set());
+  const [showMoveModal, setShowMoveModal] = useState(false);
 
   // Toast state
   const [toasts, setToasts] = useState([]);
@@ -1005,6 +1135,7 @@ const Dashboard = () => {
   }, [reloadProfile]);
 
   useEffect(() => {
+    setSelectedFileIds(new Set());
     if (activeTab === 'my-drive' || activeTab?.startsWith('folder-')) {
       loadFiles(selectedFolderId);
       dispatch(fetchFolders());
@@ -1311,6 +1442,7 @@ const Dashboard = () => {
     if (activeTab === 'archive') return { pageTitle: 'Archive', pageSubtitle: 'Archived files' };
     if (activeTab === 'notifications') return { pageTitle: 'Notifications', pageSubtitle: 'Latest system and file activities' };
     if (activeTab === 'analytics') return { pageTitle: 'Storage Analytics', pageSubtitle: 'Visualize and inspect your workspace storage' };
+    if (activeTab === 'activity-log') return { pageTitle: 'Audit Logs', pageSubtitle: 'Live history of workspace actions and system events' };
     return { pageTitle: 'My Drive', pageSubtitle: 'Files not in any folder' };
   }, [activeTab, selectedFolder]);
 
@@ -1329,6 +1461,7 @@ const Dashboard = () => {
     if (activeTab === 'trash') return { title: 'Trash is empty', desc: 'Deleted files will appear here', showUpload: false };
     if (activeTab === 'archive') return { title: 'Archive is empty', desc: 'Archived files will appear here', showUpload: false };
     if (activeTab === 'notifications') return { title: 'All caught up!', desc: 'No new notifications to display', showUpload: false };
+    if (activeTab === 'activity-log') return { title: 'No activities logged yet', desc: 'Actions like uploads, shares, and deletes will show up here', showUpload: false };
     return { title: 'No items found', desc: 'Get started by uploading a file or creating a folder', showUpload: true };
   }, [activeTab, searchQuery, selectedFolder]);
 
@@ -1341,56 +1474,65 @@ const Dashboard = () => {
   );
 
   const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const validationError = validateUploadFile(file);
-    if (validationError) {
-      addToast(validationError, 'error');
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (activeTab === 'notifications' || activeTab === 'analytics' || activeTab === 'trash' || activeTab === 'activity-log') {
+      addToast('Cannot upload files in this view', 'error');
       e.target.value = '';
       return;
     }
-    try {
-      addToast(`Starting upload for "${file.name}"…`, 'info');
-      setUploadProgress(0);
-      setUploadingFileName(file.name);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      if (selectedFolderId) formData.append('folderId', selectedFolderId);
-
-      const onUploadProgress = (progressEvent) => {
-        if (progressEvent.total) {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent >= 100 ? 99 : percent);
-        } else {
-          setUploadProgress((prev) => Math.min((prev || 0) + 10, 99));
-        }
-      };
-
-      const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
-      if (uploadNewFile.fulfilled.match(resultAction)) {
-        setUploadProgress(100);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        loadFiles(selectedFolderId);
-        dispatch(fetchProfile());
-        addToast(`"${file.name}" uploaded successfully!`, 'success');
-      } else {
-        addToast(resultAction.payload || 'Upload failed. Please try again.', 'error');
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const validationError = validateUploadFile(file);
+      if (validationError) {
+        addToast(`${file.name}: ${validationError}`, 'error');
+        continue;
       }
-    } catch (error) {
-      console.log(error);
-      addToast('Upload failed. Please try again.', 'error');
-    } finally {
-      e.target.value = '';
-      setUploadProgress(null);
-      setUploadingFileName("");
+      try {
+        addToast(`Starting upload for "${file.name}"…`, 'info');
+        setUploadProgress(0);
+        setUploadingFileName(file.name);
+
+        const formData = new FormData();
+        formData.append('file', file);
+        if (selectedFolderId) formData.append('folderId', selectedFolderId);
+
+        const onUploadProgress = (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent >= 100 ? 99 : percent);
+          } else {
+            setUploadProgress((prev) => Math.min((prev || 0) + 10, 99));
+          }
+        };
+
+        const resultAction = await dispatch(uploadNewFile({ formData, onUploadProgress }));
+        if (uploadNewFile.fulfilled.match(resultAction)) {
+          setUploadProgress(100);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          loadFiles(selectedFolderId);
+          dispatch(fetchProfile());
+          addToast(`"${file.name}" uploaded successfully!`, 'success');
+        } else {
+          addToast(resultAction.payload || `Upload of "${file.name}" failed.`, 'error');
+        }
+      } catch (error) {
+        console.log(error);
+        addToast(`Upload of "${file.name}" failed.`, 'error');
+      } finally {
+        setUploadProgress(null);
+        setUploadingFileName("");
+      }
     }
+    e.target.value = '';
   };
 
   const uploadDroppedFiles = async (droppedFiles) => {
     if (!droppedFiles || droppedFiles.length === 0) return;
     
-    if (activeTab === 'notifications' || activeTab === 'analytics' || activeTab === 'trash') {
+    if (activeTab === 'notifications' || activeTab === 'analytics' || activeTab === 'trash' || activeTab === 'activity-log') {
       addToast('Cannot upload files in this view', 'error');
       return;
     }
@@ -1540,6 +1682,140 @@ const Dashboard = () => {
       addToast('Failed to move file. Please try again.', 'error');
     }
   }, [dispatch, allFiles, files, folders, selectedFolderId, loadFiles, refreshAllFiles, addToast]);
+
+  const handleToggleSelectFile = useCallback((e, fileId) => {
+    e.stopPropagation();
+    setSelectedFileIds(prev => {
+      const next = new Set(prev);
+      if (next.has(fileId)) next.delete(fileId);
+      else next.add(fileId);
+      return next;
+    });
+  }, []);
+
+  const handleBulkTrash = async () => {
+    try {
+      const fileIds = Array.from(selectedFileIds);
+      addToast("Moving items to trash…", "info");
+      const res = await authFetch(apiUrl('/files/bulk-trash'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileIds })
+      });
+      if (res.ok) {
+        addToast("Items moved to trash successfully!", "success");
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+        setSelectedFileIds(new Set());
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to move items to trash.", "error");
+    }
+  };
+
+  const handleBulkStar = async () => {
+    try {
+      const fileIds = Array.from(selectedFileIds);
+      addToast("Updating stars…", "info");
+      const res = await authFetch(apiUrl('/files/bulk-star'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileIds, isStarred: true })
+      });
+      if (res.ok) {
+        addToast("Items starred successfully!", "success");
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+        setSelectedFileIds(new Set());
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to update stars.", "error");
+    }
+  };
+
+  const handleBulkMove = async (targetFolderId) => {
+    try {
+      const fileIds = Array.from(selectedFileIds);
+      addToast("Moving items…", "info");
+      const res = await authFetch(apiUrl('/files/bulk-move'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileIds, folderId: targetFolderId })
+      });
+      if (res.ok) {
+        addToast("Items moved successfully!", "success");
+        setShowMoveModal(false);
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+        setSelectedFileIds(new Set());
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to move items.", "error");
+    }
+  };
+
+  const handleBulkCompress = async () => {
+    const zipName = prompt("Enter ZIP archive name:", "Archive");
+    if (!zipName) return;
+    try {
+      const fileIds = Array.from(selectedFileIds);
+      addToast("Creating ZIP archive…", "info");
+      const res = await authFetch(apiUrl('/files/compress'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileIds, zipName, parentFolderId: selectedFolderId })
+      });
+      if (res.ok) {
+        addToast("ZIP archive created successfully!", "success");
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+        setSelectedFileIds(new Set());
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to compress items.", "error");
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    const fileIds = Array.from(selectedFileIds);
+    addToast("Starting downloads…", "info");
+    const filesToDownload = files.filter(f => fileIds.includes(f.id));
+    for (let i = 0; i < filesToDownload.length; i++) {
+      const file = filesToDownload[i];
+      const a = document.createElement('a');
+      a.href = file.url;
+      a.download = file.originalName;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      await new Promise(r => setTimeout(r, 400));
+    }
+    setSelectedFileIds(new Set());
+  };
+
+  const handleExtractZip = async (fileId, originalName) => {
+    try {
+      addToast(`Extracting "${originalName}"…`, "info");
+      const res = await authFetch(apiUrl(`/files/${fileId}/extract`), {
+        method: 'POST'
+      });
+      if (res.ok) {
+        addToast("Archive extracted successfully!", "success");
+        refreshAllFiles();
+        loadFiles(selectedFolderId);
+      } else {
+        addToast("Failed to extract ZIP archive.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to extract ZIP archive.", "error");
+    }
+  };
 
   const handleDelete = async (fileId) => {
     const file = allFiles.find(f => f.id === fileId) || files.find(f => f.id === fileId);
@@ -1966,7 +2242,7 @@ const Dashboard = () => {
                 </p>
                 {emptyState.showUpload && (
                   <label className="cursor-pointer inline-flex">
-                    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} />
+                    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
                     <div className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
                       <Plus className="w-4 h-4" />
                       Upload a file
@@ -2015,6 +2291,10 @@ const Dashboard = () => {
                     isTrashView={isTrashView}
                     onRestore={handleRestore}
                     restoringId={restoringId}
+                    isSelected={selectedFileIds.has(file.id)}
+                    onToggleSelect={(e) => handleToggleSelectFile(e, file.id)}
+                    onExtract={handleExtractZip}
+                    selectedFileIds={selectedFileIds}
                   />
                 ))}
               </div>
@@ -2045,6 +2325,10 @@ const Dashboard = () => {
                     isTrashView={isTrashView}
                     onRestore={handleRestore}
                     restoringId={restoringId}
+                    isSelected={selectedFileIds.has(file.id)}
+                    onToggleSelect={(e) => handleToggleSelectFile(e, file.id)}
+                    onExtract={handleExtractZip}
+                    selectedFileIds={selectedFileIds}
                   />
                 ))}
               </div>
@@ -2170,6 +2454,11 @@ const Dashboard = () => {
               />
             )}
 
+            {/* ── AUDIT LOGS / ACTIVITY STREAM VIEW ── */}
+            {activeTab === 'activity-log' && (
+              <ActivityLogView />
+            )}
+
 
           </div>
       </main>
@@ -2179,6 +2468,8 @@ const Dashboard = () => {
         file={previewFile}
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
+        onToast={addToast}
+        loadFiles={() => loadFiles(selectedFolderId)}
       />
 
       {/* SHARE MODAL */}
@@ -2246,6 +2537,41 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* BULK ACTIONS FLOATING TOOLBAR */}
+      {selectedFileIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 dark:bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl px-6 py-3.5 shadow-2xl flex items-center gap-6 text-white animate-fade-up text-xs font-semibold">
+          <span className="text-emerald-400 shrink-0">{selectedFileIds.size} file(s) selected</span>
+          <div className="w-px h-5 bg-slate-800" />
+          <div className="flex items-center gap-3">
+            <button onClick={handleBulkDownload} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+              <Download className="w-3.5 h-3.5" /> Download
+            </button>
+            <button onClick={handleBulkStar} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" /> Star
+            </button>
+            <button onClick={() => setShowMoveModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+              <Move className="w-3.5 h-3.5" /> Move
+            </button>
+            <button onClick={handleBulkCompress} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-650 hover:bg-emerald-700 transition text-white">
+              <Archive className="w-3.5 h-3.5" /> Compress to ZIP
+            </button>
+            <button onClick={handleBulkTrash} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 text-red-400 border border-red-900/50 hover:bg-red-950/65 transition">
+              <Trash2 className="w-3.5 h-3.5" /> Move to Trash
+            </button>
+          </div>
+          <div className="w-px h-5 bg-slate-800" />
+          <button onClick={() => setSelectedFileIds(new Set())} className="text-gray-400 hover:text-white transition">Cancel</button>
+        </div>
+      )}
+
+      {/* MOVE ITEMS MODAL */}
+      <MoveItemsModal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        folders={folders}
+        onConfirm={handleBulkMove}
+      />
     </div>
   );
 };

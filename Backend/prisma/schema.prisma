@@ -45,6 +45,7 @@ model User {
 
   publicShares PublicShare[]
   comments     Comment[]
+  activities   Activity[]
 
   @@index([email])
 }
@@ -239,4 +240,14 @@ model FolderShare {
 
   @@unique([folderId, sharedToId])
   @@index([sharedToId])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  message   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

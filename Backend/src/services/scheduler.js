@@ -93,6 +93,12 @@ export const startScheduler = () => {
       for (const file of filesToPurge) {
         try {
           await purgeFilePermanently(file);
+          await prisma.activity.create({
+            data: {
+              userId: file.ownerId,
+              message: `System auto-purged "${file.originalName}" from Trash (older than 30 days)`
+            }
+          });
           console.log(`[Scheduler] Successfully purged file: ${file.originalName} (${file.id})`);
         } catch (fileErr) {
           console.error(`[Scheduler] Error purging file ${file.id}:`, fileErr);

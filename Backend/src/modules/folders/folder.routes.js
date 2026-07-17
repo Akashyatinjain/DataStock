@@ -3,7 +3,8 @@ import express from "express";
 import {
   createFolder,
   getFolders,
-  deleteFolder
+  deleteFolder,
+  downloadFolder
 } from "./folder.controller.js";
 
 import {
@@ -11,6 +12,12 @@ import {
 } from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.get(
+  "/:id/download",
+  authenticateUser,
+  downloadFolder
+);
 
 
 

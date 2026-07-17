@@ -7,6 +7,7 @@ import {
   Archive,
   Bell,
   BarChart2,
+  Activity,
 } from 'lucide-react';
 
 export const NAV_ITEMS = [
@@ -14,6 +15,7 @@ export const NAV_ITEMS = [
   { id: 'shared', label: 'Shared', icon: Users },
   { id: 'recent', label: 'Recent', icon: Clock },
   { id: 'starred', label: 'Starred', icon: Star },
+  { id: 'activity-log', label: 'Audit Logs', icon: Activity },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'analytics', label: 'Storage Activity', icon: BarChart2 },
 ];

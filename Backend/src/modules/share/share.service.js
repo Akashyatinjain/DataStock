@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 
 import * as shareRepo from "./share.repository.js";
 import * as fileRepo from "../files/file.repository.js";
+import { logActivity } from "../../utils/activityLogger.js";
 
 import {
   createNotificationService,
@@ -53,6 +54,11 @@ export const shareFileService = async (
   await createNotificationService(
     receiver.id,
     `"${file.originalName}" was shared with you`
+  );
+
+  await logActivity(
+    userId,
+    `You shared File "${file.originalName}" with ${email}`
   );
 
   return share;
@@ -119,6 +125,11 @@ export const shareFolderService = async (
     `Folder "${folder.name}" was shared with you`
   );
 
+  await logActivity(
+    userId,
+    `You shared Folder "${folder.name}" with ${email}`
+  );
+
   return share;
 };
 
@@ -153,6 +164,7 @@ export const generatePublicLinkService = async (fileId, ownerId, options = {}) =
     if (password !== undefined) {
       updateData.password = password ? await bcrypt.hash(password, 10) : null;
     }
+    await logActivity(ownerId, `You updated settings for public link of file "${file.originalName}"`);
     return await shareRepo.updatePublicShare(existing.id, updateData);
   }
 
@@ -170,6 +182,7 @@ export const generatePublicLinkService = async (fileId, ownerId, options = {}) =
     data.password = await bcrypt.hash(password, 10);
   }
 
+  await logActivity(ownerId, `You generated a public link for file "${file.originalName}"`);
   return shareRepo.createPublicShare(data);
 };
 
@@ -243,5 +256,6 @@ export const revokePublicLinkService = async (token, userId) => {
     throw new Error("Unauthorized: you did not create this link");
   }
 
+  await logActivity(userId, `You revoked the public link for file "${share.file.originalName}"`);
   return shareRepo.revokePublicShare(token);
 };

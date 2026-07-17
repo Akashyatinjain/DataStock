@@ -24,7 +24,9 @@ import { authFetch, apiUrl } from '../../utils/auth';
 const FilePreviewModal = ({
   file,
   isOpen,
-  onClose
+  onClose,
+  onToast,
+  loadFiles
 }) => {
   const user = useSelector((state) => state.auth.user);
   const [activeFile, setActiveFile] = useState(file);
@@ -45,12 +47,49 @@ const FilePreviewModal = ({
   const fileInputRef = useRef(null);
   const commentsEndRef = useRef(null);
 
+  // --- NEW STATES FOR ADVANCED DOCUMENT & MEDIA TOOLS ---
+  const [editorContent, setEditorContent] = useState("");
+  const [originalContent, setOriginalContent] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState("preview"); // "preview" or "editor"
+
+  const [annotationMode, setAnnotationMode] = useState(null); // null, "draw", "highlight", "comment"
+  const [annotations, setAnnotations] = useState([]);
+  const [canvasWidth, setCanvasWidth] = useState(800);
+  const [canvasHeight, setCanvasHeight] = useState(600);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [savedTime, setSavedTime] = useState(0);
+
+  // --- VERSION COMPARE STATES ---
+  const [compareVersion, setCompareVersion] = useState(null);
+  const [compareTextA, setCompareTextA] = useState("");
+  const [compareTextB, setCompareTextB] = useState("");
+  const [loadingCompare, setLoadingCompare] = useState(false);
+
+  const mediaRef = useRef(null);
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+
   const fileId = activeFile?.id || activeFile?._id || file?.id || file?._id;
   const maxVersionNumber = versions.length > 0 ? Math.max(...versions.map(ver => ver.versionNumber)) : 0;
+
+  const addToast = (msg, type) => {
+    if (onToast) onToast(msg, type);
+    else console.log(`[Toast] [${type}] ${msg}`);
+  };
 
   useEffect(() => {
     if (file) {
       setActiveFile(file);
+      setIsEditing(false);
+      setViewMode("preview");
+      setAnnotationMode(null);
+      setAnnotations([]);
+      setShowResumePrompt(false);
+      setCompareVersion(null);
     }
   }, [file]);
 
@@ -275,10 +314,8 @@ const FilePreviewModal = ({
     }
   }, [isOpen, fileId]);
 
-  if (!isOpen || !activeFile) return null;
-
-  const mime = activeFile.mimeType || '';
-  const url = activeFile.url;
+  const mime = activeFile?.mimeType || '';
+  const url = activeFile?.url;
 
   // FILE TYPES
   const isImage = mime.includes('image');
@@ -292,7 +329,9 @@ const FilePreviewModal = ({
     mime.includes('javascript') ||
     mime.includes('html') ||
     mime.includes('css') ||
-    mime.includes('xml');
+    mime.includes('xml') ||
+    activeFile?.originalName?.endsWith('.md') ||
+    activeFile?.originalName?.endsWith('.markdown');
 
   const isOffice =
     mime.includes('word') ||
@@ -305,6 +344,237 @@ const FilePreviewModal = ({
     mime.includes('zip') ||
     mime.includes('rar') ||
     mime.includes('7z');
+
+  // --- AUDIO / VIDEO PLAYBACK POSITION TRACKING ---
+  useEffect(() => {
+    if (isOpen && fileId && (isVideo || isAudio)) {
+      const stored = localStorage.getItem(`datastock-playback-${fileId}`);
+      if (stored) {
+        const time = parseFloat(stored);
+        if (time > 3) {
+          setSavedTime(time);
+          setShowResumePrompt(true);
+        }
+      }
+    } else {
+      setShowResumePrompt(false);
+    }
+  }, [isOpen, fileId, isVideo, isAudio]);
+
+  const handleResumePlayback = () => {
+    if (mediaRef.current) {
+      mediaRef.current.currentTime = savedTime;
+      mediaRef.current.play().catch(() => {});
+    }
+    setShowResumePrompt(false);
+  };
+
+  const handleTimeUpdate = () => {
+    if (mediaRef.current && fileId) {
+      const curr = mediaRef.current.currentTime;
+      const duration = mediaRef.current.duration;
+      if (curr > 3 && duration && duration - curr > 5) {
+        localStorage.setItem(`datastock-playback-${fileId}`, curr.toString());
+      } else if (duration && duration - curr <= 5) {
+        localStorage.removeItem(`datastock-playback-${fileId}`);
+      }
+    }
+  };
+
+  const formatPlaybackTime = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // --- CODE & MARKDOWN EDITOR ---
+  useEffect(() => {
+    if (isOpen && isText && url) {
+      setPreviewLoading(true);
+      fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error("Network response not ok");
+          return res.text();
+        })
+        .then((text) => {
+          setEditorContent(text);
+          setOriginalContent(text);
+          setPreviewLoading(false);
+        })
+        .catch((err) => {
+          console.error("Error loading text file content:", err);
+          setPreviewLoading(false);
+        });
+    }
+  }, [isOpen, fileId, isText, url]);
+
+  const handleSaveContent = async () => {
+    if (editorContent === originalContent) {
+      addToast("No changes to save.", "info");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const blob = new Blob([editorContent], { type: mime || "text/plain" });
+      const fileObj = new File([blob], activeFile.originalName, { type: mime || "text/plain" });
+      
+      const formData = new FormData();
+      formData.append("file", fileObj);
+      formData.append("fileId", fileId);
+
+      const res = await authFetch(apiUrl("/files"), {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOriginalContent(editorContent);
+        setActiveFile(data.file);
+        addToast("Changes saved successfully!", "success");
+        setIsEditing(false);
+        if (loadFiles) loadFiles();
+        loadVersions();
+      } else {
+        addToast(data.message || "Failed to save changes.", "error");
+      }
+    } catch (error) {
+      console.error("Error saving file content:", error);
+      addToast("Failed to save changes.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const renderMarkdown = (text) => {
+    if (!text) return <p className="text-gray-400 italic">Empty markdown document</p>;
+    let html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    
+    // Bold / Italics
+    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+    
+    // Headers
+    html = html.replace(/^### (.*?)$/gm, "<h4 class='text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2'>$1</h4>");
+    html = html.replace(/^## (.*?)$/gm, "<h3 class='text-xl font-bold text-gray-900 dark:text-white mt-5 mb-2'>$1</h3>");
+    html = html.replace(/^# (.*?)$/gm, "<h2 class='text-2xl font-black text-gray-900 dark:text-white mt-6 mb-3'>$1</h2>");
+    
+    // Code blocks
+    html = html.replace(/```([\s\S]*?)```/g, "<pre class='bg-gray-50 dark:bg-gray-900 p-4 rounded-xl font-mono text-xs my-4 overflow-x-auto border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200'>$1</pre>");
+    html = html.replace(/`(.*?)`/g, "<code class='bg-gray-150 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono text-xs text-red-650 dark:text-red-400'>$1</code>");
+    
+    // Links
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' target='_blank' rel='noreferrer' class='text-emerald-600 dark:text-emerald-450 hover:underline'>$1</a>");
+    
+    // Unordered lists
+    html = html.replace(/^\s*-\s+(.*?)$/gm, "<li class='list-disc ml-5 my-1 text-gray-700 dark:text-gray-300'>$1</li>");
+    
+    // Line breaks
+    html = html.split('\n').map(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('<li') || trimmed.startsWith('<h') || trimmed.startsWith('<pre') || trimmed.startsWith('</pre') || trimmed === '') {
+        return line;
+      }
+      return line + '<br/>';
+    }).join('\n');
+
+    return (
+      <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-250 p-6 leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: html }} />
+    );
+  };
+
+  // --- PDF INTERACTIVE ANNOTATION CANVAS ---
+  useEffect(() => {
+    if (annotationMode && containerRef.current) {
+      setCanvasWidth(containerRef.current.clientWidth);
+      setCanvasHeight(containerRef.current.clientHeight);
+    }
+  }, [annotationMode, activeFile]);
+
+  useEffect(() => {
+    if (canvasRef.current && annotationMode) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      annotations.forEach(ann => {
+        ctx.beginPath();
+        ctx.strokeStyle = ann.color;
+        ctx.lineWidth = ann.width;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        if (ann.points.length > 0) {
+          ctx.moveTo(ann.points[0].x, ann.points[0].y);
+          for (let i = 1; i < ann.points.length; i++) {
+            ctx.lineTo(ann.points[i].x, ann.points[i].y);
+          }
+          ctx.stroke();
+        }
+      });
+    }
+  }, [annotations, annotationMode, canvasWidth, canvasHeight]);
+
+  const startDrawing = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDrawing(true);
+    const newAnn = {
+      type: annotationMode === 'highlight' ? 'highlight' : 'draw',
+      color: annotationMode === 'highlight' ? 'rgba(253, 224, 71, 0.45)' : '#10b981',
+      width: annotationMode === 'highlight' ? 18 : 3,
+      points: [{ x, y }]
+    };
+    setAnnotations([...annotations, newAnn]);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const newAnns = [...annotations];
+    const currentAnn = newAnns[newAnns.length - 1];
+    if (currentAnn) {
+      currentAnn.points.push({ x, y });
+      setAnnotations(newAnns);
+    }
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const handleCompareClick = (v) => {
+    setCompareVersion(v);
+    if (isText) {
+      setLoadingCompare(true);
+      Promise.all([
+        fetch(v.url).then((res) => res.text()),
+        fetch(activeFile.url).then((res) => res.text())
+      ])
+        .then(([textA, textB]) => {
+          setCompareTextA(textA);
+          setCompareTextB(textB);
+          setLoadingCompare(false);
+        })
+        .catch((err) => {
+          console.error("Error loading diff files:", err);
+          addToast("Failed to load text content for comparison.", "error");
+          setLoadingCompare(false);
+          setCompareVersion(null);
+        });
+    }
+  };
 
   // FILE ICON
   const getFileIcon = () => {
@@ -420,6 +690,8 @@ const FilePreviewModal = ({
     return date.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
+  if (!isOpen || !activeFile) return null;
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
@@ -482,111 +754,291 @@ const FilePreviewModal = ({
               </div>
             )}
 
-            {/* IMAGE */}
-            {isImage && (
-              <img
-                src={url}
-                alt={file.originalName}
-                className="max-h-full max-w-full object-contain"
-                onLoad={() => setPreviewLoading(false)}
-                onError={() => setPreviewLoading(false)}
-              />
-            )}
-
-            {/* VIDEO */}
-            {isVideo && (
-              <video
-                controls
-                className="max-h-full max-w-full rounded-xl"
-                onLoadedData={() => setPreviewLoading(false)}
-                onError={() => setPreviewLoading(false)}
-              >
-                <source src={url} type={mime} />
-              </video>
-            )}
-
-            {/* AUDIO */}
-            {isAudio && (
-              <div className="bg-white dark:bg-gray-900 p-10 rounded-2xl shadow-lg text-center border border-gray-100 dark:border-gray-800">
-                <FileAudio className="w-24 h-24 mx-auto text-pink-500 mb-4" />
-                <p className="text-lg font-semibold mb-5 text-gray-900 dark:text-gray-100">
-                  Audio Preview
-                </p>
-                <audio
-                  controls
-                  className="w-full"
-                  onLoadedData={() => setPreviewLoading(false)}
-                  onError={() => setPreviewLoading(false)}
-                >
-                  <source src={url} type={mime} />
-                </audio>
-              </div>
-            )}
-
-            {/* PDF */}
-            {isPdf && (
-              <div className="w-full h-[78vh] flex flex-col">
-                <div className="bg-emerald-50 dark:bg-emerald-950/20 border-b border-emerald-100 dark:border-emerald-900/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 text-sm">
-                  <div className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold text-emerald-800 dark:text-emerald-400">💡 Tip:</span> If the preview below says "No preview available", your Cloudinary account is blocking PDF delivery. You can enable it in your <strong className="text-emerald-950 dark:text-emerald-300">Cloudinary Console &gt; Settings &gt; Security &gt; Allow delivery of PDF and ZIP files</strong>.
+            {/* VERSION COMPARE VIEW */}
+            {compareVersion ? (
+              <div className="w-full h-full flex flex-col bg-white dark:bg-gray-950 animate-fade-in">
+                {/* Compare Toolbar */}
+                <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shrink-0 text-xs border-b border-slate-800 select-none">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-400">Comparing:</span>
+                    <span className="text-slate-350">Version {compareVersion.versionNumber} vs Current Version</span>
                   </div>
-                  <a
-                     href={url}
-                     target="_blank"
-                     rel="noreferrer"
-                     className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition inline-flex items-center gap-1 shrink-0 justify-center whitespace-nowrap"
+                  <button
+                    onClick={() => setCompareVersion(null)}
+                    className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold transition flex items-center gap-1"
                   >
-                    Open PDF in New Tab
-                  </a>
+                    Back to Preview
+                  </button>
                 </div>
-                <iframe
-                  src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
-                  title={file.originalName}
-                  className="w-full flex-1 border-0 bg-white"
-                  onLoad={() => setPreviewLoading(false)}
-                />
+
+                <div className="flex-1 overflow-hidden h-full">
+                  {isImage && (
+                    <div className="flex h-full w-full divide-x divide-gray-200 dark:divide-slate-800 bg-white dark:bg-slate-950 p-6 gap-6 overflow-auto">
+                      <div className="flex-1 flex flex-col items-center justify-center min-w-0">
+                        <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Version {compareVersion.versionNumber}</span>
+                        <div className="border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-2 bg-gray-50/50 dark:bg-gray-900/50 max-h-[50vh] flex items-center justify-center">
+                          <img src={compareVersion.url} className="max-h-full max-w-full object-contain rounded-xl" />
+                        </div>
+                        <span className="text-[10px] text-gray-400 mt-2 select-none">Uploaded {new Date(compareVersion.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center justify-center min-w-0 pl-6">
+                        <span className="text-xs font-bold text-emerald-500 dark:text-emerald-450 uppercase tracking-wider mb-3">Current Version</span>
+                        <div className="border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-2 bg-gray-50/50 dark:bg-gray-900/50 max-h-[50vh] flex items-center justify-center">
+                          <img src={activeFile.url} className="max-h-full max-w-full object-contain rounded-xl" />
+                        </div>
+                        <span className="text-[10px] text-gray-455 mt-2 select-none">Uploaded {new Date(activeFile.updatedAt || activeFile.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {isText && (
+                    loadingCompare ? (
+                      <div className="flex flex-col items-center justify-center h-full gap-2">
+                        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                        <span className="text-xs text-gray-450">Comparing file differences…</span>
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full divide-x divide-slate-800 bg-slate-950 font-mono text-xs overflow-auto select-text text-left">
+                        {/* Version A (Past) */}
+                        <div className="flex-1 overflow-auto p-4 space-y-0.5 leading-relaxed min-w-[50%]">
+                          <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider border-b border-slate-850 pb-2 mb-2 select-none">Version {compareVersion.versionNumber}</div>
+                          {compareTextA.split('\n').map((line, idx) => {
+                            const otherLine = compareTextB.split('\n')[idx];
+                            const isDiff = line !== otherLine;
+                            return (
+                              <div key={idx} className={`flex ${isDiff ? 'bg-red-950/40 text-red-305 border-l-2 border-red-500 pl-1.5' : 'text-slate-450 pl-2'}`}>
+                                <span className="w-6 shrink-0 text-right pr-2 text-slate-600 select-none">{idx + 1}</span>
+                                <span className="whitespace-pre overflow-x-auto">{line || ' '}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Version B (Current) */}
+                        <div className="flex-1 overflow-auto p-4 space-y-0.5 leading-relaxed pl-4 min-w-[50%]">
+                          <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-850 pb-2 mb-2 select-none">Current Version</div>
+                          {compareTextB.split('\n').map((line, idx) => {
+                            const otherLine = compareTextA.split('\n')[idx];
+                            const isDiff = line !== otherLine;
+                            return (
+                              <div key={idx} className={`flex ${isDiff ? 'bg-emerald-950/45 text-emerald-305 border-l-2 border-emerald-500 pl-1.5' : 'text-slate-350 pl-2'}`}>
+                                <span className="w-6 shrink-0 text-right pr-2 text-slate-600 select-none">{idx + 1}</span>
+                                <span className="whitespace-pre overflow-x-auto">{line || ' '}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Media Playback Resume Prompt */}
+                {showResumePrompt && (
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 dark:bg-slate-950/95 backdrop-blur-md border border-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 z-30 shadow-lg text-xs animate-fade-down">
+                    <span className="font-medium">Resume from {formatPlaybackTime(savedTime)}?</span>
+                    <div className="flex gap-2">
+                      <button onClick={handleResumePlayback} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded">Yes</button>
+                      <button onClick={() => setShowResumePrompt(false)} className="bg-slate-700 hover:bg-slate-650 text-slate-300 px-2.5 py-1 rounded">No</button>
+                    </div>
+                  </div>
+                )}
 
-            {/* TEXT / CODE FILES */}
-            {isText && (
-              <iframe
-                src={url}
-                title={file.originalName}
-                className="w-full h-[78vh] bg-white border-0"
-                onLoad={() => setPreviewLoading(false)}
-              />
-            )}
+                {/* IMAGE */}
+                {isImage && (
+                  <img
+                    src={url}
+                    alt={file.originalName}
+                    className="max-h-full max-w-full object-contain animate-fade-in"
+                    onLoad={() => setPreviewLoading(false)}
+                    onError={() => setPreviewLoading(false)}
+                  />
+                )}
 
-            {/* OFFICE FILES */}
-            {isOffice && (
-              <iframe
-                src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
-                title={file.originalName}
-                className="w-full h-[78vh] border-0"
-                onLoad={() => setPreviewLoading(false)}
-              />
-            )}
+                {/* VIDEO */}
+                {isVideo && (
+                  <video
+                    ref={mediaRef}
+                    controls
+                    onTimeUpdate={handleTimeUpdate}
+                    className="max-h-full max-w-full rounded-xl shadow-md"
+                    onLoadedData={() => setPreviewLoading(false)}
+                    onError={() => setPreviewLoading(false)}
+                  >
+                    <source src={url} type={mime} />
+                  </video>
+                )}
 
-            {/* OTHER FILES */}
-            {!isImage && !isVideo && !isAudio && !isPdf && !isText && !isOffice && (
-              <div className="text-center p-10">
-                {getFileIcon()}
-                <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-4">
-                  Preview not available
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                  This file type cannot be previewed directly.
-                </p>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-6 inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
-                >
-                  Open / Download File
-                </a>
-              </div>
+                {/* AUDIO */}
+                {isAudio && (
+                  <div className="bg-white dark:bg-gray-900 p-10 rounded-2xl shadow-lg text-center border border-gray-100 dark:border-gray-800 w-80 max-w-full">
+                    <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4 animate-bounce" style={{ animationDuration: '3s' }} />
+                    <p className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-250 truncate">
+                      {activeFile.originalName}
+                    </p>
+                    <audio
+                      ref={mediaRef}
+                      controls
+                      onTimeUpdate={handleTimeUpdate}
+                      className="w-full"
+                      onLoadedData={() => setPreviewLoading(false)}
+                      onError={() => setPreviewLoading(false)}
+                    >
+                      <source src={url} type={mime} />
+                    </audio>
+                  </div>
+                )}
+
+                {/* PDF WITH MARKUP ANNOTATIONS */}
+                {isPdf && (
+                  <div className="w-full h-[78vh] flex flex-col relative" ref={containerRef}>
+                    {/* Annotation toolbar */}
+                    <div className="bg-slate-900 text-white px-4 py-2 flex flex-wrap gap-2 items-center shrink-0 text-xs border-b border-slate-800 z-10 select-none">
+                      <span className="font-semibold text-slate-450 mr-2">PDF Tool:</span>
+                      <button 
+                        onClick={() => setAnnotationMode(annotationMode === 'draw' ? null : 'draw')} 
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                      >
+                        ✏️ Draw
+                      </button>
+                      <button 
+                        onClick={() => setAnnotationMode(annotationMode === 'highlight' ? null : 'highlight')} 
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                      >
+                        🟨 Highlight
+                      </button>
+                      {annotations.length > 0 && (
+                        <button 
+                          onClick={() => setAnnotations([])} 
+                          className="px-2.5 py-1 bg-red-650/15 text-red-400 hover:bg-red-650/20 rounded font-bold transition ml-auto"
+                        >
+                          Clear Markup
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Main PDF iframe */}
+                    <iframe
+                      src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+                      title={file.originalName}
+                      className="w-full flex-1 border-0 bg-white"
+                      onLoad={() => setPreviewLoading(false)}
+                    />
+
+                    {/* Drawing/Highlight Canvas Overlay */}
+                    {annotationMode && (
+                      <canvas
+                        ref={canvasRef}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        className="absolute inset-x-0 bottom-0 z-20 cursor-crosshair"
+                        style={{ top: '33px' }}
+                        width={canvasWidth}
+                        height={canvasHeight - 33}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* TEXT & CODE IN-BROWSER WORKSPACE EDITOR */}
+                {isText && (
+                  <div className="w-full h-[78vh] flex flex-col bg-slate-950 select-none">
+                    {/* Editor Header Toolbar */}
+                    <div className="bg-slate-900 border-b border-slate-800/80 px-4 py-2 flex items-center justify-between shrink-0">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setViewMode("preview")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "preview" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`}
+                        >
+                          👁️ Preview
+                        </button>
+                        <button
+                          onClick={() => setViewMode("editor")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "editor" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`}
+                        >
+                          ✏️ Edit Code
+                        </button>
+                      </div>
+                      {viewMode === "editor" && (
+                        <button
+                          onClick={handleSaveContent}
+                          disabled={isSaving || editorContent === originalContent}
+                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm"
+                        >
+                          {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                          Save Changes
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex-1 overflow-auto relative">
+                      {viewMode === "preview" ? (
+                        activeFile.originalName?.endsWith('.md') || activeFile.originalName?.endsWith('.markdown') ? (
+                          <div className="h-full overflow-y-auto bg-white dark:bg-slate-950 text-left">
+                            {renderMarkdown(editorContent)}
+                          </div>
+                        ) : (
+                          <iframe
+                            src={url}
+                            title={file.originalName}
+                            className="w-full h-full bg-white border-0"
+                            onLoad={() => setPreviewLoading(false)}
+                          />
+                        )
+                      ) : (
+                        <div className="flex h-full font-mono text-sm leading-relaxed text-slate-350 select-text text-left">
+                          {/* Fake Line Numbers */}
+                          <div className="px-3 py-4 text-slate-650 bg-slate-900 border-r border-slate-850 select-none text-right min-w-[3.5rem] leading-relaxed">
+                            {Array.from({ length: editorContent.split('\n').length || 1 }).map((_, i) => (
+                              <div key={i}>{i + 1}</div>
+                            ))}
+                          </div>
+                          <textarea
+                            value={editorContent}
+                            onChange={(e) => setEditorContent(e.target.value)}
+                            className="flex-1 p-4 bg-slate-950 text-slate-200 font-mono text-sm outline-none resize-none h-full border-0 select-text leading-relaxed font-normal whitespace-pre overflow-auto"
+                            placeholder="Write your code or text here..."
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* OFFICE FILES */}
+                {isOffice && (
+                  <iframe
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+                    title={file.originalName}
+                    className="w-full h-[78vh] border-0"
+                    onLoad={() => setPreviewLoading(false)}
+                  />
+                )}
+
+                {/* OTHER FILES */}
+                {!isImage && !isVideo && !isAudio && !isPdf && !isText && !isOffice && (
+                  <div className="text-center p-10">
+                    {getFileIcon()}
+                    <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-4">
+                      Preview not available
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">
+                      This file type cannot be previewed directly.
+                    </p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-6 inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
+                    >
+                      Open / Download File
+                    </a>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>        {/* RIGHT COLUMN: DETAIL/COMMENTS/VERSIONS SIDE PANEL */}
@@ -826,6 +1278,16 @@ const FilePreviewModal = ({
                             <Download className="w-3.5 h-3.5 mr-1" />
                             Download
                           </a>
+
+                          {!isCurrent && (isImage || isText) && (
+                            <button
+                              onClick={() => handleCompareClick(v)}
+                              className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-650 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-emerald-400 dark:hover:bg-gray-850 transition select-none"
+                              title="Compare this version side-by-side with current version"
+                            >
+                              Compare
+                            </button>
+                          )}
 
                           {!isCurrent && (
                             <>

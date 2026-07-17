@@ -10,6 +10,7 @@ import {
 
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
+import { logActivity } from "../../utils/activityLogger.js";
 import { getIO } from "../../socket.js";
 import { checkFolderAccess } from "../../utils/permission.js";
 
@@ -35,6 +36,8 @@ export const createFolderService = async (name,userId,parentId = null) => {
   });
 
   await createNotificationService(userId, `Folder "${name}" created successfully`);
+
+  await logActivity(userId, `You created Folder "${name}"`);
 
   // Broadcast folder created event
   const io = getIO();
@@ -207,6 +210,8 @@ export const deleteFolderService =
     );
 
     await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
+
+    await logActivity(userId, `You deleted Folder "${folder.name}"`);
 
     // Broadcast folder deleted event
     const io = getIO();

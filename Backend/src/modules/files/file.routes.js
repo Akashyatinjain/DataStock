@@ -13,6 +13,12 @@ import {
   getFileVersions,
   restoreVersion,
   deleteVersion,
+  bulkTrashFiles,
+  bulkStarFiles,
+  bulkMoveFiles,
+  bulkDeleteFiles,
+  compressFiles,
+  extractZip,
 } from "./file.controller.js";
 
 import {
@@ -41,6 +47,13 @@ const handleUpload = (req, res, next) => {
 router.post("/upload", authenticateUser, handleUpload, validateUploadedFileSize, uploadFile);
 
 router.get("/", authenticateUser, getUserFiles);
+
+router.post("/bulk-trash", authenticateUser, bulkTrashFiles);
+router.post("/bulk-star", authenticateUser, bulkStarFiles);
+router.post("/bulk-move", authenticateUser, bulkMoveFiles);
+router.post("/bulk-delete", authenticateUser, bulkDeleteFiles);
+router.post("/compress", authenticateUser, compressFiles);
+router.post("/:id/extract", authenticateUser, extractZip);
 
 // Trash routes — must be before /:id to avoid "trash" being parsed as an id
 router.get("/trash", authenticateUser, getTrashFiles);

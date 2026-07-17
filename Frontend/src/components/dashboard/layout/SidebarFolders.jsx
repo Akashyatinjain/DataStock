@@ -28,9 +28,20 @@ export default function SidebarFolders({
   const handleDrop = (e, folderId) => {
     e.preventDefault();
     setDragOverFolderId(null);
-    const fileId = e.dataTransfer.getData("text/plain");
-    if (fileId && onMoveFile) {
-      onMoveFile(fileId, folderId);
+    const rawData = e.dataTransfer.getData("text/plain");
+    if (!rawData || !onMoveFile) return;
+
+    try {
+      if (rawData.startsWith("[") && rawData.endsWith("]")) {
+        const fileIds = JSON.parse(rawData);
+        if (Array.isArray(fileIds)) {
+          fileIds.forEach((fileId) => onMoveFile(fileId, folderId));
+        }
+      } else {
+        onMoveFile(rawData, folderId);
+      }
+    } catch (err) {
+      onMoveFile(rawData, folderId);
     }
   };
 

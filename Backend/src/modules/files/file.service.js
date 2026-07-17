@@ -2,6 +2,7 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudin
 
 import * as fileRepo from "./file.repository.js";
 import { extractText } from "../../utils/ocr.js";
+import { logActivity } from "../../utils/activityLogger.js";
 
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
@@ -172,6 +173,13 @@ export const uploadFileService = async (
       : `File "${file.originalname}" uploaded successfully`
   );
 
+  await logActivity(
+    userId,
+    isNewVersion
+      ? `You uploaded version ${savedFile.versions.length} of file "${file.originalname}"`
+      : `You uploaded file "${file.originalname}"`
+  );
+
   // Broadcast file uploaded event
   const io = getIO();
   if (io) {
@@ -303,6 +311,11 @@ export const deleteFileService = async (
     `File "${file.originalName}" deleted permanently`
   );
 
+  await logActivity(
+    userId,
+    `You permanently deleted file "${file.originalName}"`
+  );
+
   // Broadcast file deleted event
   const io = getIO();
   if (io) {
@@ -362,6 +375,11 @@ export const moveToTrashService = async (fileId, userId) => {
     `File "${file.originalName}" moved to trash`
   );
 
+  await logActivity(
+    userId,
+    `You moved file "${file.originalName}" to Trash`
+  );
+
   // Broadcast file trashing (hides it from the current folder)
   const io = getIO();
   if (io) {
@@ -395,6 +413,11 @@ export const restoreFromTrashService = async (fileId, userId) => {
   await createNotificationService(
     userId,
     `File "${file.originalName}" restored from trash`
+  );
+
+  await logActivity(
+    userId,
+    `You restored file "${file.originalName}" from Trash`
   );
 
   // Broadcast restored file
@@ -480,6 +503,11 @@ export const emptyTrashService = async (userId) => {
   await createNotificationService(
     userId,
     `Trash emptied — ${trashedFiles.length} file(s) permanently deleted`
+  );
+
+  await logActivity(
+    userId,
+    `You emptied the Trash (${trashedFiles.length} file(s) permanently deleted)`
   );
 
   return {

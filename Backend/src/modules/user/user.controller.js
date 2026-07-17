@@ -1,4 +1,5 @@
 import * as userService from "./user.service.js";
+import prisma from "../../config/db.js";
 import {
   uploadOnCloudinary,
   deleteFromCloudinary,
@@ -124,6 +125,20 @@ export const getStorageActivity = async (req, res) => {
     const userId = req.user.userId;
     const data = await userService.getStorageActivity(userId);
     res.json({ message: "Storage activity", data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserActivities = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const activities = await prisma.activity.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    res.json({ success: true, activities });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -522,7 +522,7 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(1) + ' TB';
 };
 
-const FileCard = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
+const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -572,9 +572,16 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, on
       )}
 
       <div className="p-4">
-        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 ${type.bg} ${type.color}`}>
-          {type.label}
-        </span>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}>
+            {type.label}
+          </span>
+          {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50" title="Found in file contents">
+              🔍 Content Match
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-1.5 mb-1 min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm leading-snug flex-1">
@@ -674,7 +681,7 @@ const FileCard = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, on
   );
 };
 
-const FileRow = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
+const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggleArchive, onShare, deletingId, starringId, archivingId, isTrashView, onRestore, restoringId }) => {
   const type = getFileType(file.mimeType);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
@@ -707,6 +714,11 @@ const FileRow = ({ file, onDelete, onPreview, onToggleStar, onToggleArchive, onS
             <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{file.originalName}</p>
             {isStarred && !isTrashView && (
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+            )}
+            {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 shrink-0" title="Found in file contents">
+                🔍 Content Match
+              </span>
             )}
           </div>
           <p className="text-[11px] text-gray-400 truncate">{file.url}</p>
@@ -1321,7 +1333,10 @@ const Dashboard = () => {
   }, [activeTab, searchQuery, selectedFolder]);
 
   const filteredFiles = useMemo(() =>
-    displayFiles.filter(f => f.originalName?.toLowerCase().includes(searchQuery.toLowerCase())),
+    displayFiles.filter(f => 
+      f.originalName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.ocrText?.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
     [displayFiles, searchQuery]
   );
 
@@ -1988,6 +2003,7 @@ const Dashboard = () => {
                   <FileCard
                     key={file.id}
                     file={file}
+                    searchQuery={searchQuery}
                     onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}
@@ -2017,6 +2033,7 @@ const Dashboard = () => {
                   <FileRow
                     key={file.id}
                     file={file}
+                    searchQuery={searchQuery}
                     onDelete={isTrashView ? handleDeleteForever : handleDelete}
                     onPreview={handlePreview}
                     onToggleStar={handleToggleStar}

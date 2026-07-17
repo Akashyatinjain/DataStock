@@ -64,6 +64,7 @@ model File {
   isStarred     Boolean  @default(false)
   isTrash       Boolean  @default(false)
   isArchived    Boolean  @default(false)
+  ocrText       String?
 
   ownerId       String
   owner         User @relation(fields: [ownerId], references: [id], onDelete: Cascade)

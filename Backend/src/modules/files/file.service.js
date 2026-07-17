@@ -1,6 +1,7 @@
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.js";
 
 import * as fileRepo from "./file.repository.js";
+import { extractText } from "../../utils/ocr.js";
 
 import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
@@ -62,6 +63,14 @@ export const uploadFileService = async (
     );
   }
 
+  // ── OCR & Content Indexing ──
+  let ocrText = null;
+  try {
+    ocrText = await extractText(file.path, file.mimetype);
+  } catch (ocrErr) {
+    console.error("OCR Extraction failed:", ocrErr);
+  }
+
   // ── Upload to Cloudinary ──
   let uploadedFile;
   try {
@@ -117,6 +126,7 @@ export const uploadFileService = async (
         url: uploadedFile.secure_url,
         publicId: uploadedFile.public_id,
         size: uploadedFile.bytes,
+        ocrText: ocrText,
       },
       include: {
         owner: {
@@ -138,7 +148,8 @@ export const uploadFileService = async (
       mimeType: file.mimetype,
       size: uploadedFile.bytes,
       ownerId: userId,
-      folderId: folderId || null
+      folderId: folderId || null,
+      ocrText: ocrText
     });
   }
 

@@ -168,17 +168,27 @@ const Sidebar = ({
             onNewFolder={() => setShowNewFolder(true)}
             onMoveFile={onMoveFile}
             onShareFolder={onShareFolder}
+            onNavigate={closeMobile}
           />
         )}
 
         {expanded && (
-          <SidebarFilters files={statsFiles} activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarFilters
+            files={statsFiles}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onNavigate={closeMobile}
+          />
         )}
 
         {expanded && <SidebarStorage storageData={storageData} files={statsFiles} />}
 
         {expanded && (
-          <SidebarMore activeTab={activeTab} setActiveTab={setActiveTab} />
+          <SidebarMore
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onNavigate={closeMobile}
+          />
         )}
       </div>
     </div>

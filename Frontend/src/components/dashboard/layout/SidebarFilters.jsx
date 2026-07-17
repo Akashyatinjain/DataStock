@@ -1,6 +1,6 @@
 import { QUICK_FILTERS, countByFilter } from '../../../utils/filters';
 
-export default function SidebarFilters({ files, activeTab, setActiveTab }) {
+export default function SidebarFilters({ files, activeTab, setActiveTab, onNavigate }) {
   return (
     <>
       <div className="my-5 border-t border-gray-200 dark:border-gray-800" />
@@ -16,7 +16,10 @@ export default function SidebarFilters({ files, activeTab, setActiveTab }) {
             return (
               <button
                 key={filter.name}
-                onClick={() => setActiveTab(tabId)}
+                onClick={() => {
+                  setActiveTab(tabId);
+                  onNavigate?.();
+                }}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-sm
                   ${activeTab === tabId

@@ -12,6 +12,7 @@ export default function SidebarFolders({
   onNewFolder,
   onMoveFile,
   onShareFolder,
+  onNavigate,
 }) {
   const [dragOverFolderId, setDragOverFolderId] = useState(null);
 
@@ -66,7 +67,10 @@ export default function SidebarFolders({
               return (
                 <div
                   key={id}
-                  onClick={() => setActiveTab(tabId)}
+                  onClick={() => {
+                    setActiveTab(tabId);
+                    onNavigate?.();
+                  }}
                   onDragOver={(e) => handleDragOver(e, id)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, id)}

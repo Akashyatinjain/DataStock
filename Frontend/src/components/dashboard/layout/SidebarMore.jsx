@@ -1,6 +1,6 @@
 import { MORE_ITEMS } from '../../../utils/constants';
 
-export default function SidebarMore({ activeTab, setActiveTab }) {
+export default function SidebarMore({ activeTab, setActiveTab, onNavigate }) {
   return (
     <>
       <div className="my-5 border-t border-gray-200 dark:border-gray-800" />
@@ -14,7 +14,10 @@ export default function SidebarMore({ activeTab, setActiveTab }) {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  onNavigate?.();
+                }}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-sm
                   ${activeTab === item.id

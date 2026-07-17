@@ -10,17 +10,5 @@ export function ThemeProvider({ children }) {
     applyTheme(theme);
   }, [theme]);
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      const stored = localStorage.getItem(THEME_KEY);
-      if (!stored) {
-        dispatch(setTheme(e.matches ? 'dark' : 'light'));
-      }
-    };
-    media.addEventListener('change', handleChange);
-    return () => media.removeEventListener('change', handleChange);
-  }, [dispatch]);
-
   return children;
 }

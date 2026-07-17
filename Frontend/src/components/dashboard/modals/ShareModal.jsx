@@ -415,14 +415,14 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                         type="datetime-local"
                         value={expiresAt}
                         onChange={(e) => setExpiresAt(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#0F172A] border border-gray-250 dark:border-[#334155] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] text-gray-700 dark:text-[#94A3B8]"
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] text-gray-700 dark:text-[#94A3B8]"
                       />
                     )}
                   </div>
 
                   {/* Password Protection */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm text-gray-755 dark:text-[#94A3B8] font-medium select-none cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-[#94A3B8] font-medium select-none cursor-pointer">
                       <input
                         type="checkbox"
                         checked={passwordEnabled}
@@ -443,14 +443,14 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                         onFocus={() => {
                           if (password === '••••••••') setPassword('');
                         }}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#0F172A] border border-gray-250 dark:border-[#334155] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] text-gray-705 dark:text-[#94A3B8]"
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] text-gray-700 dark:text-[#94A3B8]"
                       />
                     )}
                   </div>
 
                   {/* Allow Download Toggle */}
                   <div className="flex items-center justify-between py-1">
-                    <label className="flex items-center gap-2 text-sm text-gray-755 dark:text-[#94A3B8] font-medium select-none cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-[#94A3B8] font-medium select-none cursor-pointer">
                       <input
                         type="checkbox"
                         checked={allowDownload}

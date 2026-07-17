@@ -3,10 +3,10 @@ import { createSlice } from '@reduxjs/toolkit';
 export const THEME_KEY = 'datastock-theme';
 
 export function getStoredTheme() {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark';
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'dark' || stored === 'light') return stored;
-  return 'light';
+  return 'dark';
 }
 
 export function applyTheme(theme) {

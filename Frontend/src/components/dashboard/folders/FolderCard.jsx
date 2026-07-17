@@ -95,7 +95,7 @@ export default function FolderCard({
                 {isOwner && (
                   <button
                     onClick={handleShareClick}
-                    className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-250 hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
                   >
                     <Share2 className="w-3.5 h-3.5 text-[#3B82F6]" />
                     Share Folder
@@ -103,7 +103,7 @@ export default function FolderCard({
                 )}
                 <button
                   onClick={handleDownloadZip}
-                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-250 hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
                 >
                   <Download className="w-3.5 h-3.5 text-amber-500" />
                   Download ZIP
@@ -136,7 +136,7 @@ export default function FolderCard({
             </span>
           )}
           {isShared && (
-            <span className="flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-[#3B82F6] dark:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 px-1.5 py-0.5 rounded-full shrink-0">
+            <span className="flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-[#3B82F6] bg-blue-50 dark:text-[#3B82F6] dark:bg-[#3B82F6]/10 px-1.5 py-0.5 rounded-full shrink-0">
               {permission === 'EDIT' ? <Edit3 className="w-2 h-2" /> : <Eye className="w-2 h-2" />}
               {permission === 'EDIT' ? 'Edit' : 'View'}
             </span>
@@ -146,7 +146,7 @@ export default function FolderCard({
       {isDownloading && (
         <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
           <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
-          <span className="text-xs font-bold text-gray-700 dark:text-gray-250">Zipping Folder…</span>
+          <span className="text-xs font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
         </div>
       )}
     </div>

@@ -245,7 +245,7 @@ const HomePage = () => {
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center space-x-2 bg-white px-4 py-2 rounded-full border border-blue-100 shadow-sm mb-8 animate-fade-in-up">
+            <div className="inline-flex items-center space-x-2 bg-white dark:bg-[#1E293B] px-4 py-2 rounded-full border border-blue-100 dark:border-[#334155] shadow-sm mb-8 animate-fade-in-up">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3B82F6] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3B82F6]"></span>
@@ -253,12 +253,12 @@ const HomePage = () => {
               <span className="text-sm font-medium text-[#3B82F6]">Introducing DataStock</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight mb-8 leading-[1.1]">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight mb-8 leading-[1.1]">
               The intelligent home for your <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-[#3B82F6] to-[#60A5FA]">digital life.</span>
             </h1>
 
-            <p className="text-xl sm:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl sm:text-2xl text-gray-600 dark:text-[#94A3B8] mb-10 max-w-2xl mx-auto leading-relaxed">
               Never lose a file again. Store, organize, and securely share your documents, photos, and projects from anywhere.
             </p>
 
@@ -270,12 +270,12 @@ const HomePage = () => {
                 <span>Start for free</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 rounded-2xl font-semibold text-lg border border-gray-200 hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all duration-200 shadow-sm flex items-center justify-center space-x-2 group">
+              <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] rounded-2xl font-semibold text-lg border border-gray-200 dark:border-[#334155] hover:border-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition-all duration-200 shadow-sm flex items-center justify-center space-x-2 group">
                 <Play className="w-5 h-5 fill-current text-[#3B82F6]" />
                 <span>See how it works</span>
               </button>
             </div>
-            <p className="mt-6 text-sm text-gray-500">No credit card required. 10GB free forever.</p>
+            <p className="mt-6 text-sm text-gray-500 dark:text-[#94A3B8]">No credit card required. 10GB free forever.</p>
           </div>
 
           {/* Interactive UI Preview */}

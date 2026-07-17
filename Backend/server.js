@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import cookie from "cookie";
 import { verifyAccessToken } from "./src/utils/token.utils.js";
 import { validateAccessPayload } from "./src/utils/authSession.utils.js";
+import { startScheduler } from "./src/services/scheduler.js";
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
@@ -158,6 +159,9 @@ async function StartServer() {
   try {
     await prisma.$connect();
     console.log("Database Connected");
+
+    // Start background automated jobs scheduler
+    startScheduler();
 
     httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

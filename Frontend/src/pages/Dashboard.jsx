@@ -2541,28 +2541,84 @@ const Dashboard = () => {
 
       {/* BULK ACTIONS FLOATING TOOLBAR */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 dark:bg-[#0F172A]/95 backdrop-blur-md border border-slate-800 rounded-2xl px-6 py-3.5 shadow-2xl flex items-center gap-6 text-white animate-fade-up text-xs font-semibold">
-          <span className="text-[#3B82F6] shrink-0">{selectedFileIds.size} file(s) selected</span>
-          <div className="w-px h-5 bg-slate-800" />
-          <div className="flex items-center gap-3">
-            <button onClick={handleBulkDownload} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
-              <Download className="w-3.5 h-3.5" /> Download
-            </button>
-            <button onClick={handleBulkStar} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
-              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" /> Star
-            </button>
-            <button onClick={() => setShowMoveModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
-              <Move className="w-3.5 h-3.5" /> Move
-            </button>
-            <button onClick={handleBulkCompress} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-650 hover:bg-emerald-700 transition text-white">
-              <Archive className="w-3.5 h-3.5" /> Compress to ZIP
-            </button>
-            <button onClick={handleBulkTrash} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 text-red-400 border border-red-900/50 hover:bg-red-950/65 transition">
-              <Trash2 className="w-3.5 h-3.5" /> Move to Trash
+        <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-[48rem] bg-slate-900/95 dark:bg-[#0F172A]/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3 shadow-2xl text-white animate-fade-up text-xs font-semibold sm:bottom-5 sm:inset-x-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-start">
+              <span className="min-w-0 truncate text-[#3B82F6]">
+                {selectedFileIds.size} file(s) selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedFileIds(new Set())}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-slate-800 hover:text-white sm:hidden"
+                aria-label="Cancel selection"
+                title="Cancel"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="hidden h-5 w-px shrink-0 bg-slate-800 sm:block" />
+
+            <div className="grid min-w-0 flex-1 grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
+              <button
+                type="button"
+                onClick={handleBulkDownload}
+                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
+                title="Download"
+              >
+                <Download className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Download</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkStar}
+                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
+                title="Star"
+              >
+                <Star className="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
+                <span className="truncate">Star</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMoveModal(true)}
+                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
+                title="Move"
+              >
+                <Move className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Move</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkCompress}
+                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-2.5 py-2 text-white transition hover:bg-emerald-700 sm:px-3 sm:py-1.5"
+                title="Compress to ZIP"
+              >
+                <Archive className="h-3.5 w-3.5 shrink-0" />
+                <span className="hidden min-[380px]:inline sm:hidden">ZIP</span>
+                <span className="hidden sm:inline">Compress to ZIP</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkTrash}
+                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-red-900/50 bg-red-950/40 px-2.5 py-2 text-red-400 transition hover:bg-red-950/65 sm:px-3 sm:py-1.5"
+                title="Move to Trash"
+              >
+                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                <span className="hidden min-[380px]:inline sm:hidden">Trash</span>
+                <span className="hidden sm:inline">Move to Trash</span>
+              </button>
+            </div>
+
+            <div className="hidden h-5 w-px shrink-0 bg-slate-800 sm:block" />
+            <button
+              type="button"
+              onClick={() => setSelectedFileIds(new Set())}
+              className="hidden shrink-0 rounded-lg px-2 py-1 text-gray-400 transition hover:bg-slate-800 hover:text-white sm:inline-flex"
+            >
+              Cancel
             </button>
           </div>
-          <div className="w-px h-5 bg-slate-800" />
-          <button onClick={() => setSelectedFileIds(new Set())} className="text-gray-400 hover:text-white transition">Cancel</button>
         </div>
       )}
 

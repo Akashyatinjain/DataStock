@@ -47,6 +47,7 @@ import {
 import { QUICK_FILTERS } from '../utils/filters';
 import { getErrorMessage } from '../utils/errorMessage';
 import { ALLOWED_UPLOAD_ACCEPT, validateUploadFile } from '../utils/uploadValidation';
+import { authFetch, apiUrl } from '../utils/auth';
 
 import { connectSocket, socket } from "../socket";
 

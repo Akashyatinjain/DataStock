@@ -92,7 +92,7 @@ const FileView = ({
     if (['jpg', 'png', 'gif', 'svg'].includes(ext)) return 'bg-blue-50 text-blue-600';
     if (['mp4', 'mov', 'avi'].includes(ext)) return 'bg-purple-50 text-purple-600';
     if (['pdf'].includes(ext)) return 'bg-red-50 text-red-600';
-    if (['xlsx', 'xls'].includes(ext)) return 'bg-green-50 text-green-600';
+    if (['xlsx', 'xls'].includes(ext)) return 'bg-blue-50 text-[#3B82F6]';
     if (['docx', 'doc'].includes(ext)) return 'bg-blue-50 text-blue-600';
     return 'bg-gray-100 text-gray-600';
   };
@@ -118,7 +118,7 @@ const FileView = ({
       {/* Success Popup */}
       {showSuccessPopup && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in">
-          <div className="bg-white rounded-lg shadow-lg border border-green-200 p-4 flex items-start space-x-3 min-w-[300px]">
+          <div className="bg-white rounded-lg shadow-lg border border-blue-200 p-4 flex items-start space-x-3 min-w-[300px]">
             <div className="flex-shrink-0">
               <CheckCircle2 className="w-5 h-5 text-green-500" />
             </div>
@@ -148,7 +148,7 @@ const FileView = ({
                 type="checkbox"
                 checked={selectedFiles.length === files.length && files.length > 0}
                 onChange={selectAll}
-                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                className="w-4 h-4 rounded border-gray-300 text-[#3B82F6] focus:ring-[#3B82F6]"
               />
               <span className="text-sm text-gray-600">
                 {selectedFiles.length > 0 ? `${selectedFiles.length} selected` : 'Select all'}
@@ -162,7 +162,7 @@ const FileView = ({
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded transition ${
                 viewMode === 'grid' 
-                  ? 'bg-white text-green-600 shadow-sm' 
+                  ? 'bg-white text-[#3B82F6] shadow-sm' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -172,7 +172,7 @@ const FileView = ({
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded transition ${
                 viewMode === 'list' 
-                  ? 'bg-white text-green-600 shadow-sm' 
+                  ? 'bg-white text-[#3B82F6] shadow-sm' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -183,16 +183,16 @@ const FileView = ({
           {/* Batch Actions */}
           {selectedFiles.length > 0 && (
             <div className="flex items-center space-x-1 ml-2">
-              <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded-lg transition" title="Download">
+              <button className="p-2 text-gray-600 hover:text-[#3B82F6] hover:bg-gray-100 rounded-lg transition" title="Download">
                 <Download className="w-4 h-4" />
               </button>
-              <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded-lg transition" title="Share">
+              <button className="p-2 text-gray-600 hover:text-[#3B82F6] hover:bg-gray-100 rounded-lg transition" title="Share">
                 <Share2 className="w-4 h-4" />
               </button>
               <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                 <Trash2 className="w-4 h-4" />
               </button>
-              <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded-lg transition" title="Move">
+              <button className="p-2 text-gray-600 hover:text-[#3B82F6] hover:bg-gray-100 rounded-lg transition" title="Move">
                 <Move className="w-4 h-4" />
               </button>
             </div>
@@ -219,7 +219,7 @@ const FileView = ({
               disabled={isUploading}
             />
           </label>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center space-x-2 text-sm shadow-sm">
+          <button className="px-4 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition flex items-center space-x-2 text-sm shadow-sm">
             <Folder className="w-4 h-4" />
             <span>New folder</span>
           </button>
@@ -242,14 +242,14 @@ const FileView = ({
                   onClick={() => toggleFileSelection(file.id)}
                   className={`relative p-3 rounded-lg border transition-all cursor-pointer group ${
                     isSelected 
-                      ? 'border-green-500 bg-green-50 shadow-sm' 
+                      ? 'border-[#3B82F6] bg-blue-50 shadow-sm' 
                       : 'border-gray-200 hover:border-green-300 hover:shadow-md'
                   }`}
                 >
                   {/* Checkbox */}
                   <div className={`absolute top-2 right-2 z-10 w-5 h-5 rounded border-2 transition-all ${
                     isSelected 
-                      ? 'bg-green-600 border-green-600' 
+                      ? 'bg-[#3B82F6] border-green-600' 
                       : 'border-gray-300 bg-white opacity-0 group-hover:opacity-100'
                   }`}>
                     {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
@@ -311,7 +311,7 @@ const FileView = ({
                     key={file.id}
                     onClick={() => toggleFileSelection(file.id)}
                     className={`grid grid-cols-12 gap-4 px-4 py-3 items-center transition-all cursor-pointer rounded-lg ${
-                      isSelected ? 'bg-green-50' : 'hover:bg-gray-50'
+                      isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="col-span-5 flex items-center space-x-3">
@@ -319,7 +319,7 @@ const FileView = ({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => {}}
-                        className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        className="w-4 h-4 rounded border-gray-300 text-[#3B82F6] focus:ring-[#3B82F6]"
                       />
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconColor}`}>
                         <Icon className="w-4 h-4" />
@@ -354,7 +354,7 @@ const FileView = ({
             <h3 className="text-lg font-medium text-gray-900 mb-1">This folder is empty</h3>
             <p className="text-gray-500 mb-4">Upload files or create a new folder to get started</p>
             <div className="flex items-center justify-center space-x-3">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+              <button className="px-4 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition text-sm">
                 Upload Files
               </button>
               <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm">

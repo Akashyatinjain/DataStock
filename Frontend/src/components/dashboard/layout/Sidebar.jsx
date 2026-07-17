@@ -134,7 +134,7 @@ const Sidebar = ({
         <div className="relative" data-newmenu>
           <button
             onClick={() => setShowNewMenu((p) => !p)}
-            className="w-full bg-green-600 hover:bg-green-700 text-white rounded-2xl py-3 flex items-center justify-center gap-2 transition font-medium shadow-sm"
+            className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-2xl py-3 flex items-center justify-center gap-2 transition font-medium shadow-sm"
           >
             <Plus className="w-5 h-5" />
             {expanded && <span>New</span>}

@@ -457,19 +457,19 @@ const FilePreviewModal = ({
     html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
     
     // Headers
-    html = html.replace(/^### (.*?)$/gm, "<h4 class='text-lg font-bold text-gray-900 dark:text-white mt-4 mb-2'>$1</h4>");
-    html = html.replace(/^## (.*?)$/gm, "<h3 class='text-xl font-bold text-gray-900 dark:text-white mt-5 mb-2'>$1</h3>");
-    html = html.replace(/^# (.*?)$/gm, "<h2 class='text-2xl font-black text-gray-900 dark:text-white mt-6 mb-3'>$1</h2>");
+    html = html.replace(/^### (.*?)$/gm, "<h4 class='text-lg font-bold text-gray-900 dark:text-[#F8FAFC] mt-4 mb-2'>$1</h4>");
+    html = html.replace(/^## (.*?)$/gm, "<h3 class='text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mt-5 mb-2'>$1</h3>");
+    html = html.replace(/^# (.*?)$/gm, "<h2 class='text-2xl font-black text-gray-900 dark:text-[#F8FAFC] mt-6 mb-3'>$1</h2>");
     
     // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, "<pre class='bg-gray-50 dark:bg-gray-900 p-4 rounded-xl font-mono text-xs my-4 overflow-x-auto border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200'>$1</pre>");
-    html = html.replace(/`(.*?)`/g, "<code class='bg-gray-150 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono text-xs text-red-650 dark:text-red-400'>$1</code>");
+    html = html.replace(/```([\s\S]*?)```/g, "<pre class='bg-gray-50 dark:bg-[#1E293B] p-4 rounded-xl font-mono text-xs my-4 overflow-x-auto border border-gray-200 dark:border-[#334155] text-gray-800 dark:text-[#F8FAFC]'>$1</pre>");
+    html = html.replace(/`(.*?)`/g, "<code class='bg-gray-150 dark:bg-[#334155] px-1.5 py-0.5 rounded font-mono text-xs text-red-650 dark:text-red-400'>$1</code>");
     
     // Links
     html = html.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' target='_blank' rel='noreferrer' class='text-emerald-600 dark:text-emerald-450 hover:underline'>$1</a>");
     
     // Unordered lists
-    html = html.replace(/^\s*-\s+(.*?)$/gm, "<li class='list-disc ml-5 my-1 text-gray-700 dark:text-gray-300'>$1</li>");
+    html = html.replace(/^\s*-\s+(.*?)$/gm, "<li class='list-disc ml-5 my-1 text-gray-700 dark:text-[#94A3B8]'>$1</li>");
     
     // Line breaks
     html = html.split('\n').map(line => {
@@ -694,18 +694,18 @@ const FilePreviewModal = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
+      <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
         
         {/* LEFT COLUMN: PREVIEW + HEADER */}
         <div className={`flex-1 flex flex-col min-w-0 ${activeMobileTab === "preview" ? "flex" : "hidden md:flex"}`}>
           
           {/* LEFT HEADER */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 gap-3">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shrink-0 gap-3">
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+              <h2 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
                 {file.originalName}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-[#94A3B8]">
                 {mime}
               </p>
             </div>
@@ -715,12 +715,12 @@ const FilePreviewModal = ({
               <button
                 type="button"
                 onClick={() => setActiveMobileTab("comments")}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition md:hidden relative"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition md:hidden relative"
                 title="View Comments"
               >
-                <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <MessageSquare className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
                 {comments.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-[#3B82F6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                     {comments.length}
                   </span>
                 )}
@@ -731,36 +731,36 @@ const FilePreviewModal = ({
                 target="_blank"
                 rel="noreferrer"
                 download
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
               >
-                <Download className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <Download className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
               </a>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
               >
-                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <X className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
               </button>
             </div>
           </div>
 
           {/* CONTENT PREVIEW */}
-          <div className="bg-gray-100 dark:bg-gray-950 flex-1 flex items-center justify-center overflow-auto min-h-[45vh] md:min-h-0 relative">
+          <div className="bg-gray-100 dark:bg-[#0F172A] flex-1 flex items-center justify-center overflow-auto min-h-[45vh] md:min-h-0 relative">
             {/* PREVIEW LOADER OVERLAY */}
             {previewLoading && (
-              <div className="absolute inset-0 bg-white/70 dark:bg-gray-950/70 backdrop-blur-xs flex flex-col items-center justify-center z-20 transition-all duration-200">
+              <div className="absolute inset-0 bg-white/70 dark:bg-[#0F172A]/70 backdrop-blur-xs flex flex-col items-center justify-center z-20 transition-all duration-200">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-2" />
-                <span className="text-xs font-semibold text-gray-550 dark:text-gray-400 animate-pulse select-none">Loading preview...</span>
+                <span className="text-xs font-semibold text-gray-550 dark:text-[#94A3B8] animate-pulse select-none">Loading preview...</span>
               </div>
             )}
 
             {/* VERSION COMPARE VIEW */}
             {compareVersion ? (
-              <div className="w-full h-full flex flex-col bg-white dark:bg-gray-950 animate-fade-in">
+              <div className="w-full h-full flex flex-col bg-white dark:bg-[#0F172A] animate-fade-in">
                 {/* Compare Toolbar */}
                 <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shrink-0 text-xs border-b border-slate-800 select-none">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-emerald-400">Comparing:</span>
+                    <span className="font-bold text-[#3B82F6]">Comparing:</span>
                     <span className="text-slate-350">Version {compareVersion.versionNumber} vs Current Version</span>
                   </div>
                   <button
@@ -773,17 +773,17 @@ const FilePreviewModal = ({
 
                 <div className="flex-1 overflow-hidden h-full">
                   {isImage && (
-                    <div className="flex h-full w-full divide-x divide-gray-200 dark:divide-slate-800 bg-white dark:bg-slate-950 p-6 gap-6 overflow-auto">
+                    <div className="flex h-full w-full divide-x divide-gray-200 dark:divide-slate-800 bg-white dark:bg-[#0F172A] p-6 gap-6 overflow-auto">
                       <div className="flex-1 flex flex-col items-center justify-center min-w-0">
-                        <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Version {compareVersion.versionNumber}</span>
-                        <div className="border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-2 bg-gray-50/50 dark:bg-gray-900/50 max-h-[50vh] flex items-center justify-center">
+                        <span className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider mb-3">Version {compareVersion.versionNumber}</span>
+                        <div className="border border-dashed border-gray-200 dark:border-[#334155] rounded-2xl p-2 bg-gray-50/50 dark:bg-[#1E293B]/50 max-h-[50vh] flex items-center justify-center">
                           <img src={compareVersion.url} className="max-h-full max-w-full object-contain rounded-xl" />
                         </div>
                         <span className="text-[10px] text-gray-400 mt-2 select-none">Uploaded {new Date(compareVersion.createdAt).toLocaleDateString()}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center justify-center min-w-0 pl-6">
                         <span className="text-xs font-bold text-emerald-500 dark:text-emerald-450 uppercase tracking-wider mb-3">Current Version</span>
-                        <div className="border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-2 bg-gray-50/50 dark:bg-gray-900/50 max-h-[50vh] flex items-center justify-center">
+                        <div className="border border-dashed border-gray-200 dark:border-[#334155] rounded-2xl p-2 bg-gray-50/50 dark:bg-[#1E293B]/50 max-h-[50vh] flex items-center justify-center">
                           <img src={activeFile.url} className="max-h-full max-w-full object-contain rounded-xl" />
                         </div>
                         <span className="text-[10px] text-gray-455 mt-2 select-none">Uploaded {new Date(activeFile.updatedAt || activeFile.createdAt).toLocaleDateString()}</span>
@@ -815,7 +815,7 @@ const FilePreviewModal = ({
                         </div>
                         {/* Version B (Current) */}
                         <div className="flex-1 overflow-auto p-4 space-y-0.5 leading-relaxed pl-4 min-w-[50%]">
-                          <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-850 pb-2 mb-2 select-none">Current Version</div>
+                          <div className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-wider border-b border-slate-850 pb-2 mb-2 select-none">Current Version</div>
                           {compareTextB.split('\n').map((line, idx) => {
                             const otherLine = compareTextA.split('\n')[idx];
                             const isDiff = line !== otherLine;
@@ -836,7 +836,7 @@ const FilePreviewModal = ({
               <>
                 {/* Media Playback Resume Prompt */}
                 {showResumePrompt && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 dark:bg-slate-950/95 backdrop-blur-md border border-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 z-30 shadow-lg text-xs animate-fade-down">
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 dark:bg-[#0F172A]/95 backdrop-blur-md border border-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 z-30 shadow-lg text-xs animate-fade-down">
                     <span className="font-medium">Resume from {formatPlaybackTime(savedTime)}?</span>
                     <div className="flex gap-2">
                       <button onClick={handleResumePlayback} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded">Yes</button>
@@ -872,7 +872,7 @@ const FilePreviewModal = ({
 
                 {/* AUDIO */}
                 {isAudio && (
-                  <div className="bg-white dark:bg-gray-900 p-10 rounded-2xl shadow-lg text-center border border-gray-100 dark:border-gray-800 w-80 max-w-full">
+                  <div className="bg-white dark:bg-[#1E293B] p-10 rounded-2xl shadow-lg text-center border border-gray-100 dark:border-[#334155] w-80 max-w-full">
                     <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4 animate-bounce" style={{ animationDuration: '3s' }} />
                     <p className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-250 truncate">
                       {activeFile.originalName}
@@ -977,7 +977,7 @@ const FilePreviewModal = ({
                     <div className="flex-1 overflow-auto relative">
                       {viewMode === "preview" ? (
                         activeFile.originalName?.endsWith('.md') || activeFile.originalName?.endsWith('.markdown') ? (
-                          <div className="h-full overflow-y-auto bg-white dark:bg-slate-950 text-left">
+                          <div className="h-full overflow-y-auto bg-white dark:bg-[#0F172A] text-left">
                             {renderMarkdown(editorContent)}
                           </div>
                         ) : (
@@ -1022,17 +1022,17 @@ const FilePreviewModal = ({
                 {!isImage && !isVideo && !isAudio && !isPdf && !isText && !isOffice && (
                   <div className="text-center p-10">
                     {getFileIcon()}
-                    <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-4">
+                    <p className="text-xl font-semibold text-gray-700 dark:text-[#94A3B8] mt-4">
                       Preview not available
                     </p>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">
+                    <p className="text-gray-500 dark:text-[#94A3B8] mt-2">
                       This file type cannot be previewed directly.
                     </p>
                     <a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-6 inline-block px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
+                      className="mt-6 inline-block px-6 py-3 bg-[#3B82F6] text-white rounded-xl hover:bg-[#2563EB] transition"
                     >
                       Open / Download File
                     </a>
@@ -1042,39 +1042,39 @@ const FilePreviewModal = ({
             )}
           </div>
         </div>        {/* RIGHT COLUMN: DETAIL/COMMENTS/VERSIONS SIDE PANEL */}
-        <div className={`w-full md:w-[380px] border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 flex flex-col shrink-0 min-h-0 ${
+        <div className={`w-full md:w-[380px] border-t md:border-t-0 md:border-l border-gray-200 dark:border-[#334155] bg-gray-50 dark:bg-[#0F172A]/40 flex flex-col shrink-0 min-h-0 ${
           activeMobileTab === "comments" ? "flex flex-1 min-h-[50vh] md:min-h-0 max-h-[80vh] md:max-h-[92vh]" : "hidden md:flex"
         }`}>
           {/* Panel Header with Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col shrink-0">
+          <div className="border-b border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] flex flex-col shrink-0">
             <div className="px-6 pt-4 pb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveMobileTab("preview")}
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition md:hidden mr-1"
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition md:hidden mr-1"
                   title="Back to Preview"
                 >
-                  <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-[#94A3B8]" />
                 </button>
                 <span className="font-semibold text-gray-800 dark:text-gray-250">File Details</span>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
                 title="Close Modal"
               >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <X className="w-5 h-5 text-gray-500 dark:text-[#94A3B8]" />
               </button>
             </div>
             {/* Tabs */}
-            <div className="flex px-4 border-t border-gray-100 dark:border-gray-800/60">
+            <div className="flex px-4 border-t border-gray-100 dark:border-[#334155]/60">
               <button
                 onClick={() => setActiveRightTab("comments")}
                 className={`flex-1 py-2.5 text-xs font-semibold border-b-2 text-center transition outline-none ${
                   activeRightTab === "comments"
-                    ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    ? "border-emerald-500 text-emerald-600 dark:text-[#3B82F6]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-[#F8FAFC]"
                 }`}
               >
                 Comments ({comments.length})
@@ -1083,8 +1083,8 @@ const FilePreviewModal = ({
                 onClick={() => setActiveRightTab("versions")}
                 className={`flex-1 py-2.5 text-xs font-semibold border-b-2 text-center transition outline-none ${
                   activeRightTab === "versions"
-                    ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    ? "border-emerald-500 text-emerald-600 dark:text-[#3B82F6]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-[#F8FAFC]"
                 }`}
               >
                 Versions
@@ -1103,18 +1103,18 @@ const FilePreviewModal = ({
                   </div>
                 ) : comments.length === 0 ? (
                   <div className="text-center py-12 px-4">
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MessageSquare className="w-6 h-6 text-gray-400 dark:text-gray-550" />
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-[#1E293B] rounded-full flex items-center justify-center mx-auto mb-3">
+                      <MessageSquare className="w-6 h-6 text-gray-400 dark:text-[#94A3B8]" />
                     </div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">No comments yet</h4>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start the conversation by typing below.</p>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-[#94A3B8]">No comments yet</h4>
+                    <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1">Start the conversation by typing below.</p>
                   </div>
                 ) : (
                   comments.map((c) => {
                     const isMyComment = c.userId === user?.id;
                     const canDelete = isMyComment || activeFile.ownerId === user?.id;
                     return (
-                      <div key={c.id} className="bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800 shadow-xs group relative transition-colors duration-200">
+                      <div key={c.id} className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-gray-100 dark:border-[#334155] shadow-xs group relative transition-colors duration-200">
                         <div className="flex items-start gap-2.5">
                           <div className="w-7 h-7 rounded-full bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[11px] font-bold overflow-hidden shrink-0">
                             {c.user?.imageUrl ? (
@@ -1128,11 +1128,11 @@ const FilePreviewModal = ({
                               <span className="text-xs font-semibold text-gray-800 dark:text-gray-250 truncate">
                                 {c.user?.username}
                               </span>
-                              <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
+                              <span className="text-[10px] text-gray-400 dark:text-[#94A3B8] shrink-0">
                                 {formatCommentTime(c.createdAt)}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 break-words leading-relaxed">
+                            <p className="text-xs text-gray-600 dark:text-[#94A3B8] mt-1 break-words leading-relaxed">
                               {c.content}
                             </p>
                           </div>
@@ -1153,15 +1153,15 @@ const FilePreviewModal = ({
 
                 {/* Bouncing Dots Typing Indicator */}
                 {Object.keys(typingUsers).length > 0 && (
-                  <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 italic bg-white dark:bg-gray-900 p-2.5 rounded-xl border border-dashed border-gray-200 dark:border-gray-850">
-                    <span className="font-medium text-emerald-600 dark:text-emerald-400 truncate max-w-[120px]">
+                  <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-[#94A3B8] italic bg-white dark:bg-[#1E293B] p-2.5 rounded-xl border border-dashed border-gray-200 dark:border-[#334155]">
+                    <span className="font-medium text-emerald-600 dark:text-[#3B82F6] truncate max-w-[120px]">
                       {Object.values(typingUsers).join(", ")}
                     </span>
                     <span>{Object.keys(typingUsers).length > 1 ? "are" : "is"} typing...</span>
                     <div className="flex gap-1 items-center ml-1 shrink-0">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
+                      <span className="w-1.5 h-1.5 bg-[#3B82F6] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1.5 h-1.5 bg-[#3B82F6] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1.5 h-1.5 bg-[#3B82F6] rounded-full animate-bounce" />
                     </div>
                   </div>
                 )}
@@ -1169,14 +1169,14 @@ const FilePreviewModal = ({
               </div>
 
               {/* Comment Input Form */}
-              <form onSubmit={handleCommentSubmit} className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+              <form onSubmit={handleCommentSubmit} className="p-4 border-t border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shrink-0">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={newComment}
                     onChange={handleCommentChange}
                     placeholder="Add a comment..."
-                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-955 text-xs border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-emerald-500 focus:bg-white dark:focus:bg-gray-900 focus:border-transparent outline-none transition"
+                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-955 text-xs border border-gray-200 dark:border-[#334155] rounded-lg text-gray-900 dark:text-[#F8FAFC] focus:ring-1 focus:ring-emerald-500 focus:bg-white dark:focus:bg-gray-900 focus:border-transparent outline-none transition"
                   />
                   <button
                     type="submit"
@@ -1191,8 +1191,8 @@ const FilePreviewModal = ({
           ) : (
             <>
               {/* Version Management Action Panel */}
-              <div className="p-4 border-b border-gray-200/60 dark:border-gray-850 bg-white dark:bg-gray-900/40 shrink-0 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 select-none">Keep track of edits & revisions</span>
+              <div className="p-4 border-b border-gray-200/60 dark:border-[#334155] bg-white dark:bg-[#1E293B]/40 shrink-0 flex items-center justify-between">
+                <span className="text-[11px] font-medium text-gray-500 dark:text-[#94A3B8] select-none">Keep track of edits & revisions</span>
                 <button
                   onClick={handleUploadVersionClick}
                   disabled={uploadingVersion || restoringVersionId !== null || deletingVersionId !== null}
@@ -1227,11 +1227,11 @@ const FilePreviewModal = ({
                   </div>
                 ) : versions.length === 0 ? (
                   <div className="text-center py-12 px-4">
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <History className="w-6 h-6 text-gray-400 dark:text-gray-550" />
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-[#1E293B] rounded-full flex items-center justify-center mx-auto mb-3">
+                      <History className="w-6 h-6 text-gray-400 dark:text-[#94A3B8]" />
                     </div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">No version history found</h4>
-                    <p className="text-xs text-gray-450 dark:text-gray-550 mt-1">Files uploaded with matching names will show revisions here.</p>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-[#94A3B8]">No version history found</h4>
+                    <p className="text-xs text-gray-450 dark:text-[#94A3B8] mt-1">Files uploaded with matching names will show revisions here.</p>
                   </div>
                 ) : (
                   versions.map((v) => {
@@ -1242,7 +1242,7 @@ const FilePreviewModal = ({
                         className={`p-3.5 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 ${
                           isCurrent
                             ? "bg-emerald-50/20 dark:bg-emerald-950/10 border-emerald-500/35 shadow-xs"
-                            : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800"
+                            : "bg-white dark:bg-[#1E293B] border-gray-100 dark:border-[#334155]"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -1252,27 +1252,27 @@ const FilePreviewModal = ({
                                 Version {v.versionNumber}
                               </span>
                               {isCurrent && (
-                                <span className="bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 select-none">
+                                <span className="bg-[#3B82F6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 select-none">
                                   Current
                                 </span>
                               )}
                             </div>
-                            <p className="text-[10px] text-gray-450 dark:text-gray-500 mt-1 select-none">
+                            <p className="text-[10px] text-gray-450 dark:text-[#94A3B8] mt-1 select-none">
                               Uploaded {new Date(v.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
-                          <span className="text-xs font-semibold text-gray-550 dark:text-gray-400 shrink-0 select-none">
+                          <span className="text-xs font-semibold text-gray-550 dark:text-[#94A3B8] shrink-0 select-none">
                             {formatBytes(v.size)}
                           </span>
                         </div>
                         
-                        <div className="flex items-center justify-end gap-1.5 mt-1 pt-2 border-t border-gray-100/50 dark:border-gray-800/50">
+                        <div className="flex items-center justify-end gap-1.5 mt-1 pt-2 border-t border-gray-100/50 dark:border-[#334155]/50">
                           <a
                             href={v.url}
                             target="_blank"
                             rel="noreferrer"
                             download
-                            className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-emerald-400 dark:hover:bg-gray-800 transition select-none"
+                            className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-[#94A3B8] dark:hover:text-[#3B82F6] dark:hover:bg-[#334155] transition select-none"
                             title="Download this specific version"
                           >
                             <Download className="w-3.5 h-3.5 mr-1" />
@@ -1282,7 +1282,7 @@ const FilePreviewModal = ({
                           {!isCurrent && (isImage || isText) && (
                             <button
                               onClick={() => handleCompareClick(v)}
-                              className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-650 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-emerald-400 dark:hover:bg-gray-850 transition select-none"
+                              className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-650 hover:bg-gray-100 dark:text-[#94A3B8] dark:hover:text-[#3B82F6] dark:hover:bg-gray-850 transition select-none"
                               title="Compare this version side-by-side with current version"
                             >
                               Compare
@@ -1294,7 +1294,7 @@ const FilePreviewModal = ({
                               <button
                                 onClick={() => handleRestoreVersion(v.id)}
                                 disabled={uploadingVersion || restoringVersionId !== null || deletingVersionId !== null}
-                                className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-emerald-400 dark:hover:bg-gray-800 transition select-none disabled:opacity-40"
+                                className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-[#94A3B8] dark:hover:text-[#3B82F6] dark:hover:bg-[#334155] transition select-none disabled:opacity-40"
                                 title="Restore this version as the active file version"
                               >
                                 {restoringVersionId === v.id ? (
@@ -1314,7 +1314,7 @@ const FilePreviewModal = ({
                                 <button
                                   onClick={() => handleDeleteVersion(v.id)}
                                   disabled={uploadingVersion || restoringVersionId !== null || deletingVersionId !== null}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-450 hover:bg-red-50 hover:text-red-500 dark:text-gray-550 dark:hover:bg-red-950/20 dark:hover:text-red-400 transition disabled:opacity-40"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-450 hover:bg-red-50 hover:text-red-500 dark:text-[#94A3B8] dark:hover:bg-red-950/20 dark:hover:text-red-400 transition disabled:opacity-40"
                                   title="Delete version permanently"
                                 >
                                   {deletingVersionId === v.id ? (

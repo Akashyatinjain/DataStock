@@ -70,19 +70,19 @@ export default function ActivityLogView() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 mb-6">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+    <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
+      <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-[#334155] mb-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC] flex items-center gap-2.5">
           <div className="relative">
             <Activity className="w-5 h-5 text-emerald-600 animate-pulse" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#3B82F6] rounded-full animate-ping" />
           </div>
           Audit Logs & Activity Stream
         </h2>
         <button
           onClick={() => fetchActivities(true)}
           disabled={loading || refreshing}
-          className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white disabled:opacity-50 flex items-center gap-1.5 text-xs font-semibold"
+          className="p-2 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl transition text-gray-500 dark:text-[#94A3B8] hover:text-gray-700 dark:hover:text-[#F8FAFC] disabled:opacity-50 flex items-center gap-1.5 text-xs font-semibold"
           title="Refresh activities"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
@@ -97,31 +97,31 @@ export default function ActivityLogView() {
         </div>
       ) : activities.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Activity className="w-8 h-8 text-gray-300 dark:text-gray-600" />
+          <div className="w-16 h-16 bg-gray-50 dark:bg-[#334155] border border-gray-100 dark:border-[#334155] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Activity className="w-8 h-8 text-gray-300 dark:text-[#94A3B8]" />
           </div>
-          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">No activities logged yet</h3>
+          <h3 className="text-base font-bold text-gray-900 dark:text-[#F8FAFC] mb-1">No activities logged yet</h3>
           <p className="text-xs text-gray-400">Perform actions like uploads, shares, and deletes to see audit logs!</p>
         </div>
       ) : (
-        <div className="relative border-l-2 border-gray-100 dark:border-gray-800 ml-4 pl-6 space-y-6">
+        <div className="relative border-l-2 border-gray-100 dark:border-[#334155] ml-4 pl-6 space-y-6">
           {activities.map((act) => (
             <div key={act.id} className="relative group transition-all duration-300">
               {/* Dot decoration on timeline */}
-              <div className="absolute -left-[35px] top-1.5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 group-hover:border-emerald-500 w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-300">
-                <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-600 group-hover:bg-emerald-500 rounded-full transition-colors duration-300" />
+              <div className="absolute -left-[35px] top-1.5 bg-white dark:bg-[#1E293B] border-2 border-gray-200 dark:border-[#334155] group-hover:border-emerald-500 w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-300">
+                <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-600 group-hover:bg-[#3B82F6] rounded-full transition-colors duration-300" />
               </div>
 
-              <div className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-105/50 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-850/10 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-xs transition duration-200">
+              <div className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-105/50 dark:border-[#334155] bg-gray-50/30 dark:bg-[#1E293B]/10 hover:bg-gray-50 dark:hover:bg-[#334155]/40 hover:shadow-xs transition duration-200">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-850 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-300">
                     {getActivityIcon(act.message)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-normal select-text">
+                    <p className="text-sm font-medium text-gray-800 dark:text-[#F8FAFC] leading-normal select-text">
                       {act.message}
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-450 dark:text-gray-500 mt-1.5 font-medium">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-450 dark:text-[#94A3B8] mt-1.5 font-medium">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{formatTime(act.createdAt)}</span>
                     </div>

@@ -99,7 +99,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
             onClick={() => inputRef.current?.click()}
             className={`
               border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition mb-4
-              ${dragging ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-gray-50'}
+              ${dragging ? 'border-[#3B82F6] bg-blue-50' : 'border-gray-200 hover:border-[#3B82F6] hover:bg-gray-50'}
             `}
           >
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -111,7 +111,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
             ) : (
               <div>
                 <p className="text-sm text-gray-500">
-                  Drop a file or <span className="text-green-600 font-medium">browse</span>
+                  Drop a file or <span className="text-[#3B82F6] font-medium">browse</span>
                 </p>
                 <p className="text-xs text-gray-400 mt-1">{UPLOAD_LIMIT_HINT}</p>
               </div>
@@ -140,7 +140,7 @@ export default function UploadModal({ onClose, onUploaded, toast, folderId = nul
             <button
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-[#3B82F6] hover:bg-[#2563EB] text-white transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {uploading && <Loader2 className="w-4 h-4 animate-spin" />}
               Upload

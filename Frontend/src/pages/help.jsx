@@ -197,7 +197,7 @@ const SUPPORT_EMAIL = 'support@datastock.app';
 
 const Toast = ({ message, onClose }) => (
   <div className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/30 bg-gray-900/95 text-sm font-medium text-white min-w-[280px] animate-slide-in">
-    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+    <CheckCircle2 className="w-5 h-5 text-[#3B82F6] shrink-0" />
     <span className="flex-1 text-gray-100">{message}</span>
     <button onClick={onClose} className="text-gray-500 hover:text-white transition">
       <X className="w-4 h-4" />
@@ -212,38 +212,38 @@ const ArticleModal = ({ article, onClose }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-2xl max-h-[85vh] overflow-hidden animate-fade-up">
-        <div className="flex items-start justify-between gap-4 p-6 border-b border-gray-100 dark:border-gray-800">
+      <div className="relative bg-white dark:bg-[#1E293B] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] w-full max-w-2xl max-h-[85vh] overflow-hidden animate-fade-up">
+        <div className="flex items-start justify-between gap-4 p-6 border-b border-gray-100 dark:border-[#334155]">
           <div className="flex items-start gap-4 min-w-0">
-            <div className="w-11 h-11 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center shrink-0">
-              <Icon className="w-5 h-5 text-green-600" />
+            <div className="w-11 h-11 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center shrink-0">
+              <Icon className="w-5 h-5 text-[#3B82F6]" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-[#3B82F6] dark:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 px-2 py-0.5 rounded-full">
                 {article.category}
               </span>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-2">{article.title}</h2>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{article.readTime}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mt-2">{article.title}</h2>
+              <p className="text-sm text-gray-400 dark:text-[#94A3B8] mt-1">{article.readTime}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition shrink-0"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)] space-y-4">
           {article.content.map((paragraph, i) => (
-            <p key={i} className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            <p key={i} className="text-sm text-gray-600 dark:text-[#94A3B8] leading-relaxed">
               {paragraph}
             </p>
           ))}
         </div>
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/40 flex justify-end">
+        <div className="p-4 border-t border-gray-100 dark:border-[#334155] bg-gray-50/50 dark:bg-[#0F172A]/40 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition"
+            className="px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-sm font-semibold transition"
           >
             Got it
           </button>
@@ -270,59 +270,59 @@ const ContactModal = ({ onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-md overflow-hidden animate-fade-up">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
+      <div className="relative bg-white dark:bg-[#1E293B] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#334155] w-full max-w-md overflow-hidden animate-fade-up">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-[#334155]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-[#3B82F6]" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 dark:text-gray-100">Contact Support</h2>
-              <p className="text-xs text-gray-400 dark:text-gray-500">We typically reply within 4 hours</p>
+              <h2 className="font-bold text-gray-900 dark:text-[#F8FAFC]">Contact Support</h2>
+              <p className="text-xs text-gray-400 dark:text-[#94A3B8]">We typically reply within 4 hours</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 dark:hover:text-gray-200">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 dark:hover:text-gray-200">
             <X className="w-5 h-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Name</label>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider mb-1.5">Name</label>
             <input
               type="text"
               required
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-200 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6]"
               placeholder="Your name"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider mb-1.5">Email</label>
             <input
               type="email"
               required
               value={form.email}
               onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-200 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6]"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Message</label>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider mb-1.5">Message</label>
             <textarea
               required
               rows={4}
               value={form.message}
               onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
-              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 resize-none"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-200 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] resize-none"
               placeholder="Describe your issue..."
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition"
+            className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-60 text-white rounded-xl text-sm font-semibold transition"
           >
             {submitting ? 'Sending…' : 'Send Message'}
           </button>
@@ -409,7 +409,7 @@ const HelpPage = () => {
 };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">
+    <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] transition-colors duration-200">
       <style>{`
         @keyframes slide-in {
           from { opacity: 0; transform: translateX(2rem); }
@@ -438,20 +438,20 @@ const HelpPage = () => {
               {isLoggedIn && (
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="flex items-center gap-1.5 text-sm font-medium text-green-600 hover:text-green-700 mb-2 transition"
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#3B82F6] hover:text-[#3B82F6] mb-2 transition"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   Back to Dashboard
                 </button>
               )}
-              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Help Center</h1>
-              <p className="text-gray-400 dark:text-gray-500 mt-1 text-sm">Find answers, guides, and support for DataStock</p>
+              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight">Help Center</h1>
+              <p className="text-gray-400 dark:text-[#94A3B8] mt-1 text-sm">Find answers, guides, and support for DataStock</p>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm" />
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/40 border border-green-100 dark:border-green-900/50 rounded-xl">
-                <LifeBuoy className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-400">Support Hub</span>
+              <ThemeToggle className="border border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-sm" />
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-[#3B82F6]/10 border border-blue-100 dark:border-[#3B82F6]/20 rounded-xl">
+                <LifeBuoy className="w-4 h-4 text-[#3B82F6]" />
+                <span className="text-sm font-medium text-[#3B82F6] dark:text-[#3B82F6]">Support Hub</span>
               </div>
             </div>
           </div>
@@ -463,10 +463,10 @@ const HelpPage = () => {
                 isMobileMenuOpen ? 'block' : 'hidden'
               } lg:block w-full lg:w-72 shrink-0`}
             >
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden sticky top-20">
-                <div className="p-4 border-b border-gray-50 dark:border-gray-800">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl shadow-sm overflow-hidden sticky top-20">
+                <div className="p-4 border-b border-gray-50 dark:border-[#334155]">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Categories</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{HELP_ARTICLES.length} articles available</p>
+                  <p className="text-sm text-gray-500 dark:text-[#94A3B8]">{HELP_ARTICLES.length} articles available</p>
                 </div>
 
                 <nav className="p-3">
@@ -483,15 +483,15 @@ const HelpPage = () => {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition mb-1 text-sm font-medium ${
                           isActive
-                            ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6]'
+                            : 'text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155]'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className={`w-4 h-4 ${isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`} />
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-[#3B82F6] dark:text-[#3B82F6]' : 'text-gray-400 dark:text-[#94A3B8]'}`} />
                           <span>{category.name}</span>
                         </div>
-                        <span className={`text-xs ${isActive ? 'text-green-500 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                        <span className={`text-xs ${isActive ? 'text-green-500 dark:text-[#3B82F6]' : 'text-gray-400 dark:text-[#94A3B8]'}`}>
                           {count}
                         </span>
                       </button>
@@ -499,14 +499,14 @@ const HelpPage = () => {
                   })}
                 </nav>
 
-                <div className="m-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="m-4 p-4 bg-gray-50 dark:bg-[#334155] rounded-xl border border-gray-100 dark:border-[#334155]">
                   <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Response Time</span>
+                    <MessageCircle className="w-4 h-4 text-[#3B82F6]" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-[#94A3B8]">Response Time</span>
                   </div>
-                  <p className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">&lt; 4 hrs</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Average for all plans</p>
-                  <div className="mt-3 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <p className="text-2xl font-extrabold text-gray-900 dark:text-[#F8FAFC]">&lt; 4 hrs</p>
+                  <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1">Average for all plans</p>
+                  <div className="mt-3 h-2 bg-gray-200 dark:bg-[#334155] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -522,14 +522,14 @@ const HelpPage = () => {
             {/* Main content */}
             <main className="flex-1 min-w-0 space-y-6">
               {/* Hero search */}
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 sm:p-8 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
-                    <HelpCircle className="w-6 h-6 text-green-600" />
+                  <div className="w-11 h-11 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center">
+                    <HelpCircle className="w-6 h-6 text-[#3B82F6]" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">How can we help you?</h2>
-                    <p className="text-sm text-gray-400 dark:text-gray-500">Search guides, FAQs, and troubleshooting tips</p>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC]">How can we help you?</h2>
+                    <p className="text-sm text-gray-400 dark:text-[#94A3B8]">Search guides, FAQs, and troubleshooting tips</p>
                   </div>
                 </div>
                 <div className="relative max-w-xl">
@@ -539,7 +539,7 @@ const HelpPage = () => {
                     placeholder="Search help articles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 transition"
+                    className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-[#0F172A] border border-gray-200 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] transition"
                   />
                   {searchQuery && (
                     <button
@@ -558,9 +558,9 @@ const HelpPage = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                      <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Popular guides</h2>
+                      <h2 className="text-sm font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider">Popular guides</h2>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Most viewed</span>
+                    <span className="text-xs text-gray-400 dark:text-[#94A3B8]">Most viewed</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {popularArticles.map((article) => {
@@ -569,19 +569,19 @@ const HelpPage = () => {
                         <button
                           key={article.id}
                           onClick={() => setSelectedArticle(article)}
-                          className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 text-left hover:border-green-200 hover:shadow-md transition-all group"
+                          className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-4 text-left hover:border-blue-200 hover:shadow-md transition-all group"
                         >
                           <div className="flex items-start justify-between mb-3">
-                            <div className="w-10 h-10 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center group-hover:bg-green-100 dark:group-hover:bg-green-950/60 transition">
-                              <Icon className="w-5 h-5 text-green-600" />
+                            <div className="w-10 h-10 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-green-950/60 transition">
+                              <Icon className="w-5 h-5 text-[#3B82F6]" />
                             </div>
-                            <Clock className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" />
+                            <Clock className="w-3.5 h-3.5 text-gray-300 dark:text-[#94A3B8]" />
                           </div>
-                          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">{article.title}</h3>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">{article.description}</p>
+                          <h3 className="font-semibold text-gray-900 dark:text-[#F8FAFC] text-sm mb-1 line-clamp-2">{article.title}</h3>
+                          <p className="text-xs text-gray-400 dark:text-[#94A3B8] line-clamp-2">{article.description}</p>
                           <div className="flex items-center justify-between mt-3">
-                            <span className="text-xs text-gray-400 dark:text-gray-500">{article.readTime}</span>
-                            <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-green-600 dark:group-hover:text-green-400 group-hover:translate-x-0.5 transition" />
+                            <span className="text-xs text-gray-400 dark:text-[#94A3B8]">{article.readTime}</span>
+                            <ArrowRight className="w-4 h-4 text-gray-300 dark:text-[#94A3B8] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition" />
                           </div>
                         </button>
                       );
@@ -593,7 +593,7 @@ const HelpPage = () => {
               {/* Articles grid */}
               <div>
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <h2 className="text-sm font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider">
                     {searchQuery
                       ? `Results for "${searchQuery}"`
                       : activeCategory === 'all'
@@ -605,7 +605,7 @@ const HelpPage = () => {
                   {activeCategory !== 'all' && (
                     <button
                       onClick={() => setActiveCategory('all')}
-                      className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1 font-medium"
+                      className="text-xs text-[#3B82F6] hover:text-[#3B82F6] flex items-center gap-1 font-medium"
                     >
                       Clear filter <X className="w-3 h-3" />
                     </button>
@@ -613,16 +613,16 @@ const HelpPage = () => {
                 </div>
 
                 {filteredArticles.length === 0 ? (
-                  <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center">
+                  <div className="bg-white dark:bg-[#1E293B] border border-dashed border-gray-200 dark:border-[#334155] rounded-2xl p-12 text-center">
                     <FileQuestion className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-gray-700 dark:text-gray-200 font-semibold">No articles found</h3>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Try a different search term or browse categories</p>
+                    <h3 className="text-gray-700 dark:text-[#F8FAFC] font-semibold">No articles found</h3>
+                    <p className="text-sm text-gray-400 dark:text-[#94A3B8] mt-1">Try a different search term or browse categories</p>
                     <button
                       onClick={() => {
                         setSearchQuery('');
                         setActiveCategory('all');
                       }}
-                      className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition"
+                      className="mt-4 px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-sm font-semibold transition"
                     >
                       Reset filters
                     </button>
@@ -635,23 +635,23 @@ const HelpPage = () => {
                         <button
                           key={article.id}
                           onClick={() => setSelectedArticle(article)}
-                          className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 text-left hover:border-green-200 hover:shadow-md transition-all group"
+                          className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-4 text-left hover:border-blue-200 hover:shadow-md transition-all group"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center group-hover:bg-green-50 dark:group-hover:bg-green-950/40 transition shrink-0">
-                              <Icon className="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400" />
+                            <div className="w-10 h-10 bg-gray-50 dark:bg-[#334155] rounded-xl flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-green-950/40 transition shrink-0">
+                              <Icon className="w-5 h-5 text-gray-500 dark:text-[#94A3B8] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6]" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
+                                <span className="text-xs font-semibold text-[#3B82F6] dark:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 px-2 py-0.5 rounded-full">
                                   {article.category}
                                 </span>
-                                <span className="text-xs text-gray-400 dark:text-gray-500">{article.readTime}</span>
+                                <span className="text-xs text-gray-400 dark:text-[#94A3B8]">{article.readTime}</span>
                               </div>
-                              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{article.title}</h3>
-                              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{article.description}</p>
+                              <h3 className="font-semibold text-gray-900 dark:text-[#F8FAFC] mb-1">{article.title}</h3>
+                              <p className="text-sm text-gray-500 dark:text-[#94A3B8] line-clamp-2">{article.description}</p>
                             </div>
-                            <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-green-600 dark:group-hover:text-green-400 shrink-0 mt-1 transition" />
+                            <ArrowRight className="w-4 h-4 text-gray-300 dark:text-[#94A3B8] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] shrink-0 mt-1 transition" />
                           </div>
                         </button>
                       );
@@ -661,11 +661,11 @@ const HelpPage = () => {
               </div>
 
               {/* FAQ */}
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/40">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 dark:border-[#334155] bg-gray-50/50 dark:bg-[#0F172A]/40">
                   <div className="flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5 text-green-600" />
-                    <h2 className="font-semibold text-gray-900 dark:text-gray-100">Frequently asked questions</h2>
+                    <HelpCircle className="w-5 h-5 text-[#3B82F6]" />
+                    <h2 className="font-semibold text-gray-900 dark:text-[#F8FAFC]">Frequently asked questions</h2>
                   </div>
                 </div>
                 <div className="divide-y divide-gray-50 dark:divide-gray-800">
@@ -673,17 +673,17 @@ const HelpPage = () => {
                     <div key={idx} className="px-6 py-4">
                       <button
                         onClick={() => toggleFaq(idx)}
-                        className="w-full flex items-center justify-between text-left font-medium text-gray-900 dark:text-gray-100 hover:text-green-700 dark:hover:text-green-400 transition gap-4"
+                        className="w-full flex items-center justify-between text-left font-medium text-gray-900 dark:text-[#F8FAFC] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition gap-4"
                       >
                         <span className="text-sm">{item.question}</span>
                         {openFaqIndex === idx ? (
-                          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                          <ChevronDown className="w-4 h-4 text-gray-400 dark:text-[#94A3B8] shrink-0" />
                         ) : (
-                          <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-gray-400 dark:text-[#94A3B8] shrink-0" />
                         )}
                       </button>
                       {openFaqIndex === idx && (
-                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-l-2 border-green-200 dark:border-green-900 pl-4">
+                        <p className="mt-3 text-sm text-gray-500 dark:text-[#94A3B8] leading-relaxed border-l-2 border-blue-200 dark:border-green-900 pl-4">
                           {item.answer}
                         </p>
                       )}
@@ -693,28 +693,28 @@ const HelpPage = () => {
               </div>
 
               {/* Contact support */}
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 shadow-sm">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-green-600" />
+                    <div className="w-11 h-11 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-[#3B82F6]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">Still need help?</h3>
-                      <p className="text-gray-400 dark:text-gray-500 text-sm">Our support team is ready to assist you</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-[#F8FAFC]">Still need help?</h3>
+                      <p className="text-gray-400 dark:text-[#94A3B8] text-sm">Our support team is ready to assist you</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleEmailSupport}
-                      className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 transition flex items-center gap-2"
+                      className="px-4 py-2.5 bg-gray-50 dark:bg-[#334155] hover:bg-gray-100 dark:hover:bg-[#334155] border border-gray-200 dark:border-[#334155] rounded-xl text-sm font-semibold text-gray-700 dark:text-[#F8FAFC] transition flex items-center gap-2"
                     >
                       <Mail className="w-4 h-4" />
                       Email Support
                     </button>
                     <button
                       onClick={() => setShowContactModal(true)}
-                      className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm"
+                      className="px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm"
                     >
                       <MessageCircle className="w-4 h-4" />
                       Contact Us
@@ -734,12 +734,12 @@ const HelpPage = () => {
                   <button
                     key={label}
                     onClick={action}
-                    className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl hover:border-green-200 hover:shadow-sm transition text-center"
+                    className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl hover:border-blue-200 hover:shadow-sm transition text-center"
                   >
-                    <div className="w-9 h-9 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center">
-                      {React.createElement(Icon, { className: 'w-4 h-4 text-green-600' })}
+                    <div className="w-9 h-9 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-xl flex items-center justify-center">
+                      {React.createElement(Icon, { className: 'w-4 h-4 text-[#3B82F6]' })}
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{label}</span>
+                    <span className="text-xs font-semibold text-gray-700 dark:text-[#94A3B8]">{label}</span>
                   </button>
                 ))}
               </div>
@@ -748,10 +748,10 @@ const HelpPage = () => {
         </div>
 
         {/* Footer */}
-        <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 mt-4">
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+        <footer className="border-t border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] mt-4">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500 dark:text-[#94A3B8]">
             <div className="flex items-center gap-2">
-              <Cloud className="w-3.5 h-3.5 text-green-600" />
+              <Cloud className="w-3.5 h-3.5 text-[#3B82F6]" />
               <span>© 2026 DataStock. All rights reserved.</span>
             </div>
             <div className="flex gap-4">

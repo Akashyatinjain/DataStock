@@ -47,7 +47,7 @@ export default function SidebarFolders({
 
   return (
     <>
-      <div className="my-5 border-t border-gray-200 dark:border-gray-800" />
+      <div className="my-5 border-t border-gray-200 dark:border-[#334155]" />
       <div>
         <div className="flex items-center justify-between mb-3 px-2">
           <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
@@ -55,7 +55,7 @@ export default function SidebarFolders({
           </p>
           <button
             onClick={onNewFolder}
-            className="text-green-600 hover:text-green-700"
+            className="text-[#3B82F6] hover:text-[#3B82F6]"
             title="New folder"
           >
             <Plus className="w-4 h-4" />
@@ -88,9 +88,9 @@ export default function SidebarFolders({
                   className={`
                     group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm cursor-pointer
                     ${activeTab === tabId
-                      ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 font-medium'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}
-                    ${isDragOver ? 'bg-green-100 dark:bg-green-950/60 border border-green-500 scale-105 shadow-md font-bold' : ''}
+                      ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-medium'
+                      : 'text-gray-700 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]'}
+                    ${isDragOver ? 'bg-blue-100 dark:bg-green-950/60 border border-[#3B82F6] scale-105 shadow-md font-bold' : ''}
                   `}
                 >
                   <Folder className="w-5 h-5 text-yellow-500 shrink-0" />
@@ -100,7 +100,7 @@ export default function SidebarFolders({
                       e.stopPropagation();
                       onShareFolder?.(folder);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-green-600 transition rounded"
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-[#3B82F6] transition rounded"
                     title="Share folder"
                   >
                     <Share2 className="w-3.5 h-3.5" />

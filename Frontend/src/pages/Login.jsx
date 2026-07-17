@@ -144,22 +144,22 @@ const handleOtpVerification = async (e) => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 font-['Inter'] transition-colors duration-200">
+    <div className="min-h-screen bg-white dark:bg-[#0F172A] font-['Inter'] transition-colors duration-200">
       {/* Simple Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-gray-800">
+      <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-[#334155]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex items-center justify-center">
                 <Cloud className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-black dark:text-white">DataStock</span>
+              <span className="font-bold text-xl text-black dark:text-[#F8FAFC]">DataStock</span>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <a 
                 href="/signup" 
-                className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition flex items-center space-x-1 text-sm"
+                className="text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC] transition flex items-center space-x-1 text-sm"
               >
                 <span className="hidden sm:inline">Need an account?</span>
                 <ArrowRight className="w-4 h-4" />
@@ -174,31 +174,31 @@ const handleOtpVerification = async (e) => {
         <div className="max-w-md mx-auto w-full">
           {/* Success State */}
           {step === 'success' ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 shadow-xl text-center">
-              <div className="w-20 h-20 bg-green-100 dark:bg-green-950/40 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-200 dark:border-[#334155] p-8 shadow-xl text-center">
+              <div className="w-20 h-20 bg-blue-100 dark:bg-[#3B82F6]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-10 h-10 text-[#3B82F6]" />
               </div>
-              <h2 className="text-2xl font-bold text-black dark:text-white mb-2">Login Successful!</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Redirecting you to your dashboard...</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-green-600 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+              <h2 className="text-2xl font-bold text-black dark:text-[#F8FAFC] mb-2">Login Successful!</h2>
+              <p className="text-gray-600 dark:text-[#94A3B8] mb-6">Redirecting you to your dashboard...</p>
+              <div className="w-full bg-gray-200 dark:bg-[#334155] h-2 rounded-full overflow-hidden">
+                <div className="h-full bg-[#3B82F6] rounded-full animate-pulse" style={{ width: '100%' }}></div>
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-xl">
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-200 dark:border-[#334155] p-6 sm:p-8 shadow-xl">
               {/* Header */}
               <div className="text-center mb-8">
                 {step === 'otp-verification' && (
                   <button 
                     onClick={() => setStep('login')}
-                    className="absolute top-6 left-6 text-gray-400 hover:text-black dark:hover:text-white transition"
+                    className="absolute top-6 left-6 text-gray-400 hover:text-black dark:hover:text-[#F8FAFC] transition"
                   >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                 )}
-                <div className="inline-flex items-center bg-green-50 dark:bg-green-950/40 px-4 py-2 rounded-full mb-4">
-                  <Shield className="w-4 h-4 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-green-600 dark:text-green-400">Secure Login</span>
+                <div className="inline-flex items-center bg-blue-50 dark:bg-[#3B82F6]/10 px-4 py-2 rounded-full mb-4">
+                  <Shield className="w-4 h-4 text-[#3B82F6] mr-2" />
+                  <span className="text-sm font-medium text-[#3B82F6] dark:text-[#3B82F6]">Secure Login</span>
                 </div>
                 {/* <h2 className="text-2xl font-bold text-black  mb-2">
                   {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
@@ -208,11 +208,11 @@ const handleOtpVerification = async (e) => {
                     ? `We've sent a 6-digit code to ${email}`
                     : 'Choose your preferred login method'}
                 </p> */}
-                <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
+                <h2 className="text-2xl font-bold text-black dark:text-[#F8FAFC] mb-2">
   {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
 </h2>
 
-<p className="text-gray-600 dark:text-gray-400">
+<p className="text-gray-600 dark:text-[#94A3B8]">
   {step === 'otp-verification'
     ? `We've sent a 6-digit code to ${email}`
     : 'Choose your preferred login method'}
@@ -224,7 +224,7 @@ const handleOtpVerification = async (e) => {
                 <form onSubmit={handleOtpVerification} className="space-y-6">
                   {/* OTP Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-3 text-center">
                       Enter 6-digit OTP
                     </label>
                     <div className="flex justify-center space-x-2">
@@ -238,7 +238,7 @@ const handleOtpVerification = async (e) => {
                           value={digit}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition"
+                          className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-[#334155] rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition"
                         />
                       ))}
                     </div>
@@ -249,12 +249,12 @@ const handleOtpVerification = async (e) => {
 
                   {/* Resend OTP */}
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
                       Didn't receive code?{' '}
                       <button
                         type="button"
                         onClick={handleResendOtp}
-                        className="text-green-600 font-medium hover:underline"
+                        className="text-[#3B82F6] font-medium hover:underline"
                       >
                         Resend OTP
                       </button>
@@ -265,7 +265,7 @@ const handleOtpVerification = async (e) => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-black dark:bg-green-600 text-white py-3 rounded-xl hover:bg-green-600 dark:hover:bg-green-500 transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-black dark:bg-[#3B82F6] text-white py-3 rounded-xl hover:bg-[#2563EB] dark:hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>
@@ -292,7 +292,7 @@ const handleOtpVerification = async (e) => {
 
                   <button
   onClick={handleGoogleLogin}
-  className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-700 rounded-xl py-3 px-4 mb-6 text-gray-900 dark:text-gray-100 hover:border-green-600 hover:text-green-600 dark:hover:text-green-400 transition font-medium"
+  className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-[#334155] rounded-xl py-3 px-4 mb-6 text-gray-900 dark:text-[#F8FAFC] hover:border-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition font-medium"
 >
   {/* Google Icon */}
   <svg width="18" height="18" viewBox="0 0 48 48">
@@ -306,13 +306,13 @@ const handleOtpVerification = async (e) => {
 </button>
 
                   {/* Login Method Toggle */}
-                  <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6">
+                  <div className="flex bg-gray-100 dark:bg-[#334155] p-1 rounded-xl mb-6">
                     <button
                       onClick={() => setLoginMethod('password')}
                       className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${
                         loginMethod === 'password' 
-                          ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow' 
-                          : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                          ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow' 
+                          : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
                       }`}
                     >
                       <Key className="w-4 h-4" />
@@ -322,8 +322,8 @@ const handleOtpVerification = async (e) => {
                       onClick={() => setLoginMethod('otp')}
                       className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${
                         loginMethod === 'otp' 
-                          ? 'bg-white dark:bg-gray-900 text-black dark:text-white shadow' 
-                          : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                          ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow' 
+                          : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
                       }`}
                     >
                       <Smartphone className="w-4 h-4" />
@@ -335,7 +335,7 @@ const handleOtpVerification = async (e) => {
                   <form onSubmit={loginMethod === 'password' ? handlePasswordLogin : handleOtpRequest} className="space-y-5">
                     {/* Email Field (Common for both methods) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-1">
                         Email Address
                       </label>
                       <div className="relative">
@@ -344,7 +344,7 @@ const handleOtpVerification = async (e) => {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                          className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-[#334155]'} rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
                           placeholder="you@example.com"
                         />
                       </div>
@@ -356,7 +356,7 @@ const handleOtpVerification = async (e) => {
                     {/* Password Field (Only for password method) */}
                     {loginMethod === 'password' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-1">
                           Password
                         </label>
                         <div className="relative">
@@ -365,7 +365,7 @@ const handleOtpVerification = async (e) => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className={`w-full pl-10 pr-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-xl bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600 transition`}
+                            className={`w-full pl-10 pr-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-[#334155]'} rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
                             placeholder="••••••••"
                           />
                         </div>
@@ -383,11 +383,11 @@ const handleOtpVerification = async (e) => {
                             type="checkbox"
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
-                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-600"
+                            className="w-4 h-4 text-[#3B82F6] border-gray-300 rounded focus:ring-[#3B82F6]"
                           />
-                          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                          <span className="ml-2 text-sm text-gray-600 dark:text-[#94A3B8]">Remember me</span>
                         </label>
-                        <a href="#" className="text-sm text-green-600 hover:underline">
+                        <a href="#" className="text-sm text-[#3B82F6] hover:underline">
                           Forgot password?
                         </a>
                       </div>
@@ -397,7 +397,7 @@ const handleOtpVerification = async (e) => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full bg-black dark:bg-green-600 text-white py-3 rounded-xl hover:bg-green-600 dark:hover:bg-green-500 transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-black dark:bg-[#3B82F6] text-white py-3 rounded-xl hover:bg-[#2563EB] dark:hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
                         <>
@@ -428,9 +428,9 @@ const handleOtpVerification = async (e) => {
                   </div>
 
                   {/* Signup Link for Mobile */}
-                  <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-6 text-center text-sm text-gray-600 dark:text-[#94A3B8]">
                     Don't have an account?{' '}
-                    <a href="/signup" className="text-green-600 font-medium hover:underline">
+                    <a href="/signup" className="text-[#3B82F6] font-medium hover:underline">
                       Sign up free
                     </a>
                   </p>
@@ -448,10 +448,10 @@ const handleOtpVerification = async (e) => {
                 { icon: Key, text: 'Encrypted' }
               ].map((item, index) => (
                 <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full mb-2">
-                    <item.icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-[#334155] rounded-full mb-2">
+                    <item.icon className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">{item.text}</p>
+                  <p className="text-xs text-gray-600 dark:text-[#94A3B8]">{item.text}</p>
                 </div>
               ))}
             </div>

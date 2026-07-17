@@ -55,10 +55,10 @@ const PLANS = [
     ],
     popular: true,
     icon: Zap,
-    gradient: "from-emerald-500 to-green-600",
+    gradient: "from-[#3B82F6] to-[#2563EB]",
     buttonStyle:
-      "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30",
-    cardBorder: "border-emerald-500/50",
+      "bg-[#3B82F6] text-white hover:bg-[#2563EB] shadow-lg shadow-[#3B82F6]/30",
+    cardBorder: "border-[#3B82F6]/50",
     badge: "Most Popular",
   },
   {
@@ -151,7 +151,7 @@ export default function Pricing() {
       <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMjMzNDQiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-20 pointer-events-none" />
 
       {/* NAVBAR */}
-      <nav className="relative z-20 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/60">
+      <nav className="relative z-20 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200 dark:border-[#334155]/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div
@@ -161,7 +161,7 @@ export default function Pricing() {
               <div className="w-10 h-10 bg-linear-to-br from-emerald-400 to-cyan-400 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-emerald-500/20">
                 <Cloud className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-slate-900 dark:text-white">
+              <span className="font-bold text-2xl tracking-tight text-slate-900 dark:text-[#F8FAFC]">
                 DataStock
               </span>
             </div>
@@ -172,7 +172,7 @@ export default function Pricing() {
                 <button
                   onClick={refreshUserAndSubscription}
                   disabled={subscriptionLoading}
-                  className="hidden sm:inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-white font-medium transition-colors disabled:opacity-60"
+                  className="hidden sm:inline-flex items-center gap-2 text-sm text-slate-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] font-medium transition-colors disabled:opacity-60"
                 >
                   {subscriptionLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -184,7 +184,7 @@ export default function Pricing() {
               )}
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-green-600 dark:hover:text-white font-medium transition-colors group"
+                className="flex items-center gap-2 text-sm text-slate-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] font-medium transition-colors group"
               >
                 <ArrowLeft
                   size={18}
@@ -199,24 +199,24 @@ export default function Pricing() {
 
       {/* MAIN CONTENT */}
       <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-300 h-150 bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-300 h-150 bg-[#3B82F6]/10 rounded-full blur-[150px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative">
           {/* Header */}
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center space-x-2 bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-lg mb-6">
-              <Shield className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            <div className="inline-flex items-center space-x-2 bg-white/90 dark:bg-[#334155]/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-[#334155] shadow-lg mb-6">
+              <Shield className="w-4 h-4 text-emerald-500 dark:text-[#3B82F6]" />
+              <span className="text-sm font-medium text-emerald-600 dark:text-[#3B82F6]">
                 30-day money back guarantee
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-[#F8FAFC] mb-6 tracking-tight leading-tight">
               Simple pricing.{" "}
               <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-400">
                 No surprises.
               </span>
             </h1>
-            <p className="text-xl text-slate-600 dark:text-slate-400">
+            <p className="text-xl text-slate-600 dark:text-[#94A3B8]">
               Start for free, upgrade when you need more space.
             </p>
           </div>
@@ -230,21 +230,21 @@ export default function Pricing() {
 
           {/* Storage usage widget (if logged in) */}
           {isLoggedIn && currentPlan && (
-            <div className="max-w-3xl mx-auto mb-12 bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6 shadow-xl">
+            <div className="max-w-3xl mx-auto mb-12 bg-white/90 dark:bg-[#334155]/60 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-[#334155]/50 p-6 shadow-xl">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500/10 rounded-lg">
-                    <Database className="w-5 h-5 text-emerald-400" />
+                  <div className="p-2 bg-[#3B82F6]/10 rounded-lg">
+                    <Database className="w-5 h-5 text-[#3B82F6]" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Your storage</p>
-                    <p className="font-medium text-slate-900 dark:text-white">
+                    <p className="text-sm text-slate-600 dark:text-[#94A3B8]">Your storage</p>
+                    <p className="font-medium text-slate-900 dark:text-[#F8FAFC]">
                       {usedStorage} used of {currentPlan.storage}
                     </p>
                   </div>
                 </div>
                 <div className="flex-1 min-w-50">
-                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-200 dark:bg-[#334155] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-linear-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-700"
                       style={{ width: `${Math.min(usagePercentage, 100)}%` }}
@@ -256,8 +256,8 @@ export default function Pricing() {
                     <span>100%</span>
                   </div>
                 </div>
-                <div className="text-sm text-slate-600 dark:text-slate-400">
-                  Plan: <span className="text-emerald-400 font-medium">{currentPlan.name}</span>
+                <div className="text-sm text-slate-600 dark:text-[#94A3B8]">
+                  Plan: <span className="text-[#3B82F6] font-medium">{currentPlan.name}</span>
                 </div>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function Pricing() {
               return (
                 <div
                   key={plan.key}
-                  className={`relative group bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm rounded-3xl p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
+                  className={`relative group bg-white/90 dark:bg-[#334155]/60 backdrop-blur-sm rounded-3xl p-8 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
                     isCurrentPlan
                       ? "border-emerald-400/60 shadow-emerald-200/30 dark:shadow-emerald-900/30 shadow-xl"
                       : plan.popular
@@ -287,7 +287,7 @@ export default function Pricing() {
                   {/* Badges */}
                   {plan.popular && !isCurrentPlan && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <span className="bg-linear-to-r from-emerald-500 to-cyan-500 text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-emerald-500/30 flex items-center gap-1">
+                      <span className="bg-linear-to-r from-emerald-500 to-cyan-500 text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#3B82F6]/30 flex items-center gap-1">
                         <Sparkles className="w-4 h-4" />
                         Most Popular
                       </span>
@@ -296,7 +296,7 @@ export default function Pricing() {
 
                   {isCurrentPlan && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1">
+                      <span className="bg-white dark:bg-[#1E293B] text-slate-900 dark:text-[#F8FAFC] text-sm font-bold px-5 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1">
                         <CheckCircle2 className="w-4 h-4" />
                         Current Plan
                       </span>
@@ -310,29 +310,29 @@ export default function Pricing() {
                     <PlanIcon className="w-7 h-7 text-white" />
                   </div>
 
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-[#F8FAFC] mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">{plan.description}</p>
+                  <p className="text-slate-600 dark:text-[#94A3B8] text-sm mb-6">{plan.description}</p>
 
                   <div className="flex items-end mb-6">
-                    <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <span className="text-5xl font-extrabold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
                       {plan.price}
                     </span>
-                    <span className="text-slate-600 dark:text-slate-400 ml-2 mb-1">{plan.period}</span>
+                    <span className="text-slate-600 dark:text-[#94A3B8] ml-2 mb-1">{plan.period}</span>
                   </div>
 
-                  <div className="bg-slate-100 dark:bg-slate-900/60 rounded-xl p-4 mb-8 border border-slate-200 dark:border-slate-700/50 flex items-center justify-between">
-                    <span className="text-emerald-400 font-bold text-xl">
+                  <div className="bg-slate-100 dark:bg-[#1E293B]/60 rounded-xl p-4 mb-8 border border-slate-200 dark:border-[#334155]/50 flex items-center justify-between">
+                    <span className="text-[#3B82F6] font-bold text-xl">
                       {plan.storage}
                     </span>
-                    <span className="text-slate-600 dark:text-slate-400 text-sm">secure storage</span>
+                    <span className="text-slate-600 dark:text-[#94A3B8] text-sm">secure storage</span>
                   </div>
 
                   <ul className="space-y-4 mb-10">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start text-slate-700 dark:text-slate-300">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-3 shrink-0 mt-0.5" />
+                      <li key={feature} className="flex items-start text-slate-700 dark:text-[#94A3B8]">
+                        <CheckCircle2 className="w-5 h-5 text-[#3B82F6] mr-3 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -371,21 +371,21 @@ export default function Pricing() {
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-20 flex flex-wrap justify-center gap-8 text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
-              <Shield className="w-5 h-5 text-emerald-400" />
+          <div className="mt-20 flex flex-wrap justify-center gap-8 text-slate-500 dark:text-[#94A3B8]">
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-[#334155]/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-[#334155]/30">
+              <Shield className="w-5 h-5 text-[#3B82F6]" />
               <span className="text-sm font-medium">256-bit AES encryption</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
-              <HardDrive className="w-5 h-5 text-emerald-400" />
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-[#334155]/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-[#334155]/30">
+              <HardDrive className="w-5 h-5 text-[#3B82F6]" />
               <span className="text-sm font-medium">99.9% uptime SLA</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
-              <Clock className="w-5 h-5 text-emerald-400" />
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-[#334155]/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-[#334155]/30">
+              <Clock className="w-5 h-5 text-[#3B82F6]" />
               <span className="text-sm font-medium">Cancel anytime</span>
             </div>
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700/30">
-              <Users className="w-5 h-5 text-emerald-400" />
+            <div className="flex items-center gap-2 bg-white/80 dark:bg-[#334155]/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-[#334155]/30">
+              <Users className="w-5 h-5 text-[#3B82F6]" />
               <span className="text-sm font-medium">24/7 support</span>
             </div>
           </div>
@@ -393,9 +393,9 @@ export default function Pricing() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800/60 py-8">
+      <footer className="relative z-10 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-t border-slate-200 dark:border-[#334155]/60 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <p className="text-slate-500 dark:text-[#94A3B8] text-sm">
             © {new Date().getFullYear()} DataStock Inc. All rights reserved.
           </p>
         </div>

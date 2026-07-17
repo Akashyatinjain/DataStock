@@ -2,6 +2,21 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* DataStock Dark Theme Palette */
+:root {
+  --ds-bg: #0F172A;
+  --ds-bg-secondary: #1E293B;
+  --ds-card: #1E293B;
+  --ds-border: #334155;
+  --ds-text-primary: #F8FAFC;
+  --ds-text-secondary: #94A3B8;
+  --ds-blue: #3B82F6;
+  --ds-blue-hover: #2563EB;
+  --ds-success: #22C55E;
+  --ds-warning: #F59E0B;
+  --ds-error: #EF4444;
+}
+
 /* Optional global styles */
 
 *, *::before, *::after {
@@ -21,7 +36,8 @@ body {
 }
 
 .dark body {
-  @apply bg-gray-950 text-gray-100;
+  background-color: var(--ds-bg);
+  color: var(--ds-text-primary);
 }
 
 .dark {

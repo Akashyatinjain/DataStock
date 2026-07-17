@@ -44,7 +44,7 @@ export default function ConfirmModal({
 
       {/* Modal Container */}
       <div 
-        className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 p-6 w-full max-w-md transform transition-all duration-300 scale-100 opacity-100 flex flex-col gap-4 animate-fade-up"
+        className="relative bg-white dark:bg-[#1E293B] rounded-3xl shadow-2xl border border-gray-100 dark:border-[#334155] p-6 w-full max-w-md transform transition-all duration-300 scale-100 opacity-100 flex flex-col gap-4 animate-fade-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -53,17 +53,17 @@ export default function ConfirmModal({
             <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC] truncate">
               {title}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+            <p className="text-sm text-gray-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
               {message}
             </p>
           </div>
           <button 
             disabled={loading}
             onClick={onClose} 
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition disabled:opacity-50"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -75,7 +75,7 @@ export default function ConfirmModal({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-[#334155] hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-700 dark:text-[#94A3B8] transition disabled:opacity-50"
           >
             {cancelText}
           </button>

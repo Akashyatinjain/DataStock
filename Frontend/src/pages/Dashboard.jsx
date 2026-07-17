@@ -79,7 +79,7 @@ import {
 import { fetchSharedWithMe } from '../store/slices/shareSlice';
 
 const ToastIcon = ({ type }) => {
-  if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
+  if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-[#3B82F6] shrink-0" />;
   if (type === 'error')   return <XCircle      className="w-5 h-5 text-red-400    shrink-0" />;
   return                         <AlertCircle  className="w-5 h-5 text-amber-400  shrink-0" />;
 };
@@ -162,8 +162,8 @@ const ANALYTICS_CATEGORIES = [
     key: 'others',
     label: 'Others',
     icon: Folder,
-    text: 'text-slate-600 dark:text-slate-400',
-    bg: 'bg-slate-50 dark:bg-slate-900',
+    text: 'text-slate-600 dark:text-[#94A3B8]',
+    bg: 'bg-slate-50 dark:bg-[#1E293B]',
     bar: 'bg-slate-500',
   },
 ];
@@ -200,7 +200,7 @@ const StorageAnalyticsView = ({
   if (analyticsLoading || activityLoading) {
     return (
       <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+        <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl shadow-sm">
           <Loader2 className="w-10 h-10 animate-spin text-green-500" />
           <p className="text-sm text-gray-400 font-medium">Loading storage analytics...</p>
         </div>
@@ -211,9 +211,9 @@ const StorageAnalyticsView = ({
   if (!analytics && !storageActivity) {
     return (
       <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
-        <div className="text-center py-20 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+        <div className="text-center py-20 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl shadow-sm">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Failed to load analytics</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">Failed to load analytics</h3>
           <p className="text-sm text-gray-400 mt-1">Please try again later.</p>
         </div>
       </div>
@@ -223,7 +223,7 @@ const StorageAnalyticsView = ({
   return (
     <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
       <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6">
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center gap-6">
             <div
               className="w-40 h-40 rounded-full mx-auto lg:mx-0 shrink-0 p-3"
@@ -231,8 +231,8 @@ const StorageAnalyticsView = ({
                 background: `conic-gradient(${analyticsPercent >= 85 ? '#ef4444' : '#16a34a'} ${analyticsPercent * 3.6}deg, ${analyticsPercent >= 85 ? '#fee2e2' : '#dcfce7'} 0deg)`,
               }}
             >
-              <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 border border-white/80 dark:border-gray-800 flex flex-col items-center justify-center shadow-inner">
-                <span className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tabular-nums">
+              <div className="w-full h-full rounded-full bg-white dark:bg-[#1E293B] border border-white/80 dark:border-[#334155] flex flex-col items-center justify-center shadow-inner">
+                <span className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tabular-nums">
                   {analyticsPercent.toFixed(0)}%
                 </span>
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Used</span>
@@ -241,7 +241,7 @@ const StorageAnalyticsView = ({
 
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6]">
                   <HardDrive className="w-3.5 h-3.5" />
                   {analytics.subscriptionPlan || 'BASIC'} Plan
                 </span>
@@ -256,15 +256,15 @@ const StorageAnalyticsView = ({
                 </span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] leading-tight">
                 Storage Analytics
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-sm text-gray-500 dark:text-[#94A3B8] mt-2">
                 {formatFileSize(analyticsUsed)} used of {formatFileSize(analyticsLimit)} across {analyticsFileCount} active files.
               </p>
 
               <div className="mt-6">
-                <div className="h-3 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-3 w-full bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
@@ -277,7 +277,7 @@ const StorageAnalyticsView = ({
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-gray-400">
                   <span>{formatFileSize(analyticsUsed)}</span>
-                  <span className="font-semibold text-gray-600 dark:text-gray-300">{analyticsPercent.toFixed(1)}%</span>
+                  <span className="font-semibold text-gray-600 dark:text-[#94A3B8]">{analyticsPercent.toFixed(1)}%</span>
                   <span>{formatFileSize(analyticsLimit)}</span>
                 </div>
               </div>
@@ -286,39 +286,39 @@ const StorageAnalyticsView = ({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 shadow-sm">
             <div className="w-10 h-10 bg-sky-50 dark:bg-sky-950/30 rounded-xl flex items-center justify-center mb-5">
               <PieChart className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             </div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Largest Type</p>
-            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{largestCategory?.label || 'Files'}</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-1">{largestCategory?.label || 'Files'}</p>
             <p className="text-xs text-gray-400 mt-1">{formatFileSize(largestCategory?.size || 0)}</p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 shadow-sm">
             <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl flex items-center justify-center mb-5">
-              <HardDrive className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              <HardDrive className="w-5 h-5 text-emerald-600 dark:text-[#3B82F6]" />
             </div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Remaining</p>
-            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{formatFileSize(analyticsRemaining)}</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-1">{formatFileSize(analyticsRemaining)}</p>
             <p className="text-xs text-gray-400 mt-1">Available now</p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 shadow-sm">
             <div className="w-10 h-10 bg-red-50 dark:bg-red-950/30 rounded-xl flex items-center justify-center mb-5">
               <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Trash</p>
-            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{formatFileSize(analyticsTrash.size)}</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-1">{formatFileSize(analyticsTrash.size)}</p>
             <p className="text-xs text-gray-400 mt-1">{analyticsTrash.count} files</p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 shadow-sm">
             <div className="w-10 h-10 bg-violet-50 dark:bg-violet-950/30 rounded-xl flex items-center justify-center mb-5">
               <TrendingUp className="w-5 h-5 text-violet-600 dark:text-violet-400" />
             </div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">7 Days</p>
-            <p className="text-xl font-extrabold text-gray-900 dark:text-gray-100 mt-1">{weeklyUploadCount}</p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-1">{weeklyUploadCount}</p>
             <p className="text-xs text-gray-400 mt-1">{formatFileSize(weeklyUploadSize)} uploaded</p>
           </div>
         </div>
@@ -326,23 +326,23 @@ const StorageAnalyticsView = ({
 
       {/* Real-time Storage Activity Card */}
       {storageActivity && (
-        <section className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-600 animate-pulse" />
+        <section className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 sm:p-6 shadow-sm">
+          <h3 className="font-bold text-gray-900 dark:text-[#F8FAFC] mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#3B82F6] animate-pulse" />
             Storage Space Activity
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div className="md:col-span-2">
-              <div className="flex justify-between items-center mb-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between items-center mb-2 text-sm text-gray-600 dark:text-[#94A3B8]">
                 <span>Active vs Trash Storage</span>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <span className="font-semibold text-gray-900 dark:text-[#F8FAFC]">
                   {getPercent(storageActivity.storageUsed, storageActivity.storageLimit).toFixed(1)}% Limit Used
                 </span>
               </div>
               
               {/* Stacked Progress Bar */}
-              <div className="w-full h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden flex">
+              <div className="w-full h-4 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden flex">
                 <div 
                   className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-1000"
                   style={{ width: `${getPercent(storageActivity.activeUsed, storageActivity.storageUsed)}%` }}
@@ -359,7 +359,7 @@ const StorageAnalyticsView = ({
                 <span>0 B</span>
                 <div className="flex gap-4">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block shadow-sm"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] inline-block shadow-sm"></span>
                     Active ({getPercent(storageActivity.activeUsed, storageActivity.storageUsed).toFixed(0)}%)
                   </span>
                   <span className="flex items-center gap-1.5">
@@ -371,18 +371,18 @@ const StorageAnalyticsView = ({
               </div>
             </div>
             
-            <div className="border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 pt-4 md:pt-0 md:pl-6 space-y-3">
+            <div className="border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#334155] pt-4 md:pt-0 md:pl-6 space-y-3">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Active Files Size:</span>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatFileSize(storageActivity.activeUsed)}</span>
+                <span className="text-gray-500 dark:text-[#94A3B8]">Active Files Size:</span>
+                <span className="font-semibold text-gray-900 dark:text-[#F8FAFC]">{formatFileSize(storageActivity.activeUsed)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Trash Size:</span>
+                <span className="text-gray-500 dark:text-[#94A3B8]">Trash Size:</span>
                 <span className="font-semibold text-red-600 dark:text-red-400">{formatFileSize(storageActivity.trashUsed)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Total Database Used:</span>
-                <span className="font-bold text-gray-900 dark:text-gray-100">{formatFileSize(storageActivity.storageUsed)}</span>
+                <span className="text-gray-500 dark:text-[#94A3B8]">Total Database Used:</span>
+                <span className="font-bold text-gray-900 dark:text-[#F8FAFC]">{formatFileSize(storageActivity.storageUsed)}</span>
               </div>
             </div>
           </div>
@@ -390,10 +390,10 @@ const StorageAnalyticsView = ({
       )}
 
       <section className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3 mb-6">
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-gray-100">Storage Mix</h3>
+              <h3 className="font-bold text-gray-900 dark:text-[#F8FAFC]">Storage Mix</h3>
               <p className="text-xs text-gray-400 mt-1">
                 {formatFileSize(storageActivity?.activeUsed ?? analyticsActiveSize)} active storage
               </p>
@@ -401,7 +401,7 @@ const StorageAnalyticsView = ({
             <BarChart2 className="w-5 h-5 text-gray-400" />
           </div>
 
-          <div className="flex h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 mb-6">
+          <div className="flex h-3 rounded-full overflow-hidden bg-gray-100 dark:bg-[#334155] mb-6">
             {analyticsCategories.map((category) => {
               const mixTotal = storageActivity?.activeUsed ?? analyticsActiveSize;
               const width = getPercent(category.size, mixTotal);
@@ -428,11 +428,11 @@ const StorageAnalyticsView = ({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3 mb-1">
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{category.label}</p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100 tabular-nums">{formatFileSize(category.size)}</p>
+                      <p className="text-sm font-semibold text-gray-800 dark:text-[#F8FAFC] truncate">{category.label}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-[#F8FAFC] tabular-nums">{formatFileSize(category.size)}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="h-2 flex-1 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      <div className="h-2 flex-1 rounded-full overflow-hidden bg-gray-100 dark:bg-[#334155]">
                         <div className={`h-full rounded-full ${category.bar}`} style={{ width: `${percent}%` }} />
                       </div>
                       <span className="w-12 text-right text-xs text-gray-400 tabular-nums">{percent.toFixed(0)}%</span>
@@ -445,23 +445,23 @@ const StorageAnalyticsView = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
+        <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-gray-100">Upload Activity</h3>
+              <h3 className="font-bold text-gray-900 dark:text-[#F8FAFC]">Upload Activity</h3>
               <p className="text-xs text-gray-400 mt-1">Last 7 days by count and size</p>
             </div>
             <button
               type="button"
               onClick={onUpgrade}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold shadow-sm transition active:scale-95"
             >
               <Upload className="w-4 h-4" />
               Upgrade Storage
             </button>
           </div>
 
-          <div className="flex-1 flex items-end gap-2 sm:gap-3 h-56 pt-6 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex-1 flex items-end gap-2 sm:gap-3 h-56 pt-6 border-b border-gray-100 dark:border-[#334155]">
             {uploadTrend.map((day) => {
               const count = Number(day.count) || 0;
               const size = Number(day.size) || 0;
@@ -487,11 +487,11 @@ const StorageAnalyticsView = ({
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-gray-100">Trash Storage</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <h3 className="font-bold text-gray-900 dark:text-[#F8FAFC]">Trash Storage</h3>
+              <p className="text-sm text-gray-500 dark:text-[#94A3B8] mt-1">
                 {formatFileSize(analyticsTrash.size)} in {analyticsTrash.count} trashed files.
               </p>
             </div>
@@ -505,7 +505,7 @@ const StorageAnalyticsView = ({
                 Empty Trash
               </button>
             ) : (
-              <span className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-xs font-bold text-gray-400">
+              <span className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gray-50 dark:bg-[#334155] text-xs font-bold text-gray-400">
                 Trash Empty
               </span>
             )}
@@ -546,12 +546,12 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
         e.dataTransfer.effectAllowed = "move";
       }}
       className={`
-        relative group bg-white dark:bg-gray-900 border rounded-2xl overflow-hidden
+        relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
         transition-all duration-300 cursor-pointer select-none
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-xl hover:-translate-y-1 shadow-sm'}
-        ${isSelected ? 'border-green-500 ring-2 ring-green-500/20' : ''}
+          : 'border-gray-100 dark:border-[#334155] hover:border-blue-200 dark:hover:border-[#3B82F6] hover:shadow-xl hover:-translate-y-1 shadow-sm'}
+        ${isSelected ? 'border-[#3B82F6] ring-2 ring-green-500/20' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
@@ -565,26 +565,26 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
             type="checkbox"
             checked={!!isSelected}
             onChange={onToggleSelect}
-            className="w-4.5 h-4.5 text-green-600 bg-white dark:bg-gray-850 border-gray-300 dark:border-gray-700 rounded-md focus:ring-green-500 cursor-pointer shadow-sm focus:ring-2 focus:ring-offset-0"
+            className="w-4.5 h-4.5 text-[#3B82F6] bg-white dark:bg-[#334155] border-gray-300 dark:border-[#334155] rounded-md focus:ring-[#3B82F6] cursor-pointer shadow-sm focus:ring-2 focus:ring-offset-0"
           />
         </div>
       )}
 
       {isDeleting && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-red-500">{isTrashView ? 'Deleting…' : 'Trashing…'}</span>
         </div>
       )}
       {isRestoring && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-green-500">Restoring…</span>
         </div>
       )}
 
       {file.mimeType?.includes('image') ? (
-        <div className="h-40 overflow-hidden bg-gray-50 dark:bg-gray-800">
+        <div className="h-40 overflow-hidden bg-gray-50 dark:bg-[#334155]">
           <img src={file.url} alt={file.originalName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>
       ) : (
@@ -599,14 +599,14 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
             {type.label}
           </span>
           {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50" title="Found in file contents">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/50" title="Found in file contents">
               🔍 Content Match
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-1.5 mb-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm leading-snug flex-1">
+          <h3 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate text-sm leading-snug flex-1">
             {file.originalName}
           </h3>
           {isStarred && !isTrashView && (
@@ -615,7 +615,7 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
         </div>
         <p className="text-xs text-gray-400 mb-4">{formatFileSize(file.size)}</p>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-[#334155]">
           <span className="text-[11px] text-gray-400">
             {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
@@ -625,7 +625,7 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
                 <button
                   onClick={e => { e.stopPropagation(); onRestore(file.id); }}
                   disabled={isRestoring}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
                   title="Restore"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -691,7 +691,7 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
                   title="Preview"
                 >
                   <Eye className="w-4 h-4" />
@@ -734,10 +734,10 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         e.dataTransfer.effectAllowed = "move";
       }}
       className={`
-        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-gray-800
-        hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition items-center cursor-pointer group
+        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-[#334155]
+        hover:bg-gray-50/80 dark:hover:bg-[#334155]/50 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
-        ${isSelected ? 'bg-green-50/30 dark:bg-green-950/10' : ''}
+        ${isSelected ? 'bg-blue-50/30 dark:bg-green-950/10' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
@@ -751,7 +751,7 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
               type="checkbox"
               checked={!!isSelected}
               onChange={onToggleSelect}
-              className="w-4 h-4 text-green-600 bg-white dark:bg-gray-850 border-gray-300 dark:border-gray-700 rounded focus:ring-green-500 cursor-pointer shadow-xs focus:ring-2 focus:ring-offset-0"
+              className="w-4 h-4 text-[#3B82F6] bg-white dark:bg-[#334155] border-gray-300 dark:border-[#334155] rounded focus:ring-[#3B82F6] cursor-pointer shadow-xs focus:ring-2 focus:ring-offset-0"
             />
           </div>
         )}
@@ -760,12 +760,12 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{file.originalName}</p>
+            <p className="font-medium text-gray-900 dark:text-[#F8FAFC] text-sm truncate">{file.originalName}</p>
             {isStarred && !isTrashView && (
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
             )}
             {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 shrink-0" title="Found in file contents">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/30 shrink-0" title="Found in file contents">
                 🔍 Content Match
               </span>
             )}
@@ -777,7 +777,7 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         </div>
       </div>
 
-      <div className="hidden md:block md:col-span-2 text-sm text-gray-500 dark:text-gray-400">{formatFileSize(file.size)}</div>
+      <div className="hidden md:block md:col-span-2 text-sm text-gray-500 dark:text-[#94A3B8]">{formatFileSize(file.size)}</div>
 
       <div className="hidden md:block md:col-span-3 text-sm text-gray-400">
         {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -787,14 +787,14 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         {isDeleting ? (
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
         ) : isRestoring ? (
-          <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
+          <Loader2 className="w-4 h-4 text-[#3B82F6] animate-spin" />
         ) : (
           <>
             {isTrashView ? (
               <>
                 <button
                   onClick={e => { e.stopPropagation(); onRestore(file.id); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
                   title="Restore"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -859,7 +859,7 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
@@ -884,8 +884,8 @@ const UploadButton = ({ uploading, onChange }) => (
     <div className={`
       px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
       ${uploading
-        ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 cursor-not-allowed'
-        : 'bg-green-600 hover:bg-green-700 text-white hover:shadow-md active:scale-95'}
+        ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] cursor-not-allowed'
+        : 'bg-[#3B82F6] hover:bg-[#2563EB] text-white hover:shadow-md active:scale-95'}
     `}>
       {uploading
         ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
@@ -902,21 +902,21 @@ const MoveItemsModal = ({ isOpen, onClose, folders, onConfirm }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs select-none">
-      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-up text-left">
-        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          <Move className="w-5 h-5 text-green-600" />
+      <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-up text-left">
+        <h3 className="text-base font-bold text-gray-900 dark:text-[#F8FAFC] mb-4 flex items-center gap-2">
+          <Move className="w-5 h-5 text-[#3B82F6]" />
           Move Items
         </h3>
         <p className="text-xs text-gray-400 mb-4">Select the destination directory to move items:</p>
         
-        <div className="max-h-60 overflow-y-auto border border-gray-100 dark:border-gray-800 rounded-2xl mb-6 bg-gray-50/50 dark:bg-gray-950/20 p-2 space-y-1">
+        <div className="max-h-60 overflow-y-auto border border-gray-100 dark:border-[#334155] rounded-2xl mb-6 bg-gray-50/50 dark:bg-[#0F172A]/20 p-2 space-y-1">
           {/* My Drive Option */}
           <div
             onClick={() => setSelectedFolderId("root")}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-semibold transition ${
               selectedFolderId === "root"
-                ? "bg-green-50 dark:bg-green-950/45 text-green-700 dark:text-green-400 border border-green-500/20"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-blue-50 dark:bg-green-950/45 text-[#3B82F6] dark:text-[#3B82F6] border border-[#3B82F6]/20"
+                : "text-gray-700 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]"
             }`}
           >
             <Folder className="w-5 h-5 text-emerald-500 fill-emerald-500/10 shrink-0" />
@@ -932,8 +932,8 @@ const MoveItemsModal = ({ isOpen, onClose, folders, onConfirm }) => {
                 onClick={() => setSelectedFolderId(id)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-semibold transition ${
                   selectedFolderId === id
-                    ? "bg-green-50 dark:bg-green-950/45 text-green-700 dark:text-green-400 border border-green-500/20"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-blue-50 dark:bg-green-950/45 text-[#3B82F6] dark:text-[#3B82F6] border border-[#3B82F6]/20"
+                    : "text-gray-700 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]"
                 }`}
               >
                 <Folder className="w-5 h-5 text-yellow-500 fill-yellow-500/10 shrink-0" />
@@ -946,14 +946,14 @@ const MoveItemsModal = ({ isOpen, onClose, folders, onConfirm }) => {
         <div className="flex justify-end gap-3.5">
           <button
             onClick={onClose}
-            className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-xl text-xs font-bold transition"
+            className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#334155] text-gray-500 dark:text-[#94A3B8] rounded-xl text-xs font-bold transition"
           >
             Cancel
           </button>
           <button
             onClick={() => onConfirm(selectedFolderId === "root" ? null : selectedFolderId)}
             disabled={!selectedFolderId}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-sm"
+            className="px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-sm"
           >
             Move Here
           </button>
@@ -1912,7 +1912,7 @@ const Dashboard = () => {
   const isTrashView = activeTab === 'trash';
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] dark:bg-gray-950 transition-colors duration-200">
+    <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] transition-colors duration-200">
 
       {/* Inline keyframes */}
       <style>{`
@@ -1995,12 +1995,12 @@ const Dashboard = () => {
           className="p-4 sm:p-6 lg:p-8 max-w-[1600px] relative"
         >
           {isDraggingFile && (
-            <div className="absolute inset-0 bg-green-50/90 dark:bg-gray-900/90 backdrop-blur-sm border-2 border-dashed border-green-500 rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-950/40 flex items-center justify-center animate-bounce">
-                  <Upload className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
+              <div className="bg-white dark:bg-[#334155] p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-[#3B82F6]/10 flex items-center justify-center animate-bounce">
+                  <Upload className="w-8 h-8 text-[#3B82F6] dark:text-[#3B82F6]" />
                 </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">Drop files here to upload</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">Drop files here to upload</p>
                 <p className="text-xs text-gray-400">Upload directly to {selectedFolder ? `"${selectedFolder.name}"` : 'My Drive'}</p>
               </div>
             </div>
@@ -2010,10 +2010,10 @@ const Dashboard = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
               <div className="min-w-0">
                 {activeTab?.startsWith('folder-') && folderPath.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2.5 flex-wrap">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-[#94A3B8] mb-2.5 flex-wrap">
                     <span
                       onClick={() => setActiveTab('my-drive')}
-                      className="hover:text-green-600 dark:hover:text-green-400 cursor-pointer transition-colors"
+                      className="hover:text-[#3B82F6] dark:hover:text-[#3B82F6] cursor-pointer transition-colors"
                     >
                       My Drive
                     </span>
@@ -2024,7 +2024,7 @@ const Dashboard = () => {
                           <span className="text-gray-300 dark:text-gray-700">/</span>
                           <span
                             onClick={() => !isLast && setActiveTab(`folder-${item.id}`)}
-                            className={isLast ? "text-gray-505 dark:text-gray-400 font-semibold" : "hover:text-green-600 dark:hover:text-green-400 cursor-pointer transition-colors"}
+                            className={isLast ? "text-gray-505 dark:text-[#94A3B8] font-semibold" : "hover:text-[#3B82F6] dark:hover:text-[#3B82F6] cursor-pointer transition-colors"}
                           >
                             {item.name}
                           </span>
@@ -2034,13 +2034,13 @@ const Dashboard = () => {
                   </div>
                 )}
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight truncate">
+                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
                     {pageTitle}
                   </h1>
                   {selectedFolder && (
                     <button
                       onClick={() => handleShareFolder(selectedFolder)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-green-600 hover:text-green-700 dark:hover:text-green-400 transition flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition flex items-center justify-center shrink-0 border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xs"
                       title="Share folder"
                     >
                       <Share2 className="w-4 h-4" />
@@ -2049,11 +2049,11 @@ const Dashboard = () => {
 
                   {/* Collaborators currently viewing this folder */}
                   {folderUsers.length > 0 && (
-                    <div className="flex items-center -space-x-2 ml-2 sm:ml-4 bg-white dark:bg-gray-900 px-3 py-1 rounded-full border border-gray-100 dark:border-gray-800 shadow-xs">
+                    <div className="flex items-center -space-x-2 ml-2 sm:ml-4 bg-white dark:bg-[#1E293B] px-3 py-1 rounded-full border border-gray-100 dark:border-[#334155] shadow-xs">
                       {folderUsers.map((viewer) => (
                         <div
                           key={viewer.id}
-                          className="relative group w-7 h-7 rounded-full border border-white dark:border-gray-900 bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold shadow-xs overflow-hidden cursor-pointer"
+                          className="relative group w-7 h-7 rounded-full border border-white dark:border-[#334155] bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold shadow-xs overflow-hidden cursor-pointer"
                           title={`${viewer.username} (${viewer.email}) is viewing this folder`}
                         >
                           {viewer.imageUrl ? (
@@ -2061,10 +2061,10 @@ const Dashboard = () => {
                           ) : (
                             <span>{viewer.username.charAt(0).toUpperCase()}</span>
                           )}
-                          <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-gray-900 animate-pulse" />
+                          <div className="absolute top-0 right-0 w-2 h-2 bg-[#3B82F6] rounded-full border border-white dark:border-[#334155] animate-pulse" />
                         </div>
                       ))}
-                      <span className="text-[11px] text-gray-500 dark:text-gray-400 ml-2 font-medium">
+                      <span className="text-[11px] text-gray-500 dark:text-[#94A3B8] ml-2 font-medium">
                         {folderUsers.length} viewing now
                       </span>
                     </div>
@@ -2077,7 +2077,7 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={() => setActiveTab('my-drive')}
-                    className="mt-2 text-sm font-medium text-green-600 hover:text-green-700"
+                    className="mt-2 text-sm font-medium text-[#3B82F6] hover:text-[#3B82F6]"
                   >
                     ← Back to My Drive
                   </button>
@@ -2101,17 +2101,17 @@ const Dashboard = () => {
                   )}
 
                   {/* View toggle */}
-                  <div className="flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-1 shadow-sm">
+                  <div className="flex items-center bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] rounded-xl p-1 shadow-sm">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC]'}`}
                       title="Grid view"
                     >
                       <Grid3X3 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                      className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC]'}`}
                       title="List view"
                     >
                       <List className="w-5 h-5" />
@@ -2128,19 +2128,19 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 
                 {/* Storage card */}
-                <div className="sm:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+                <div className="sm:col-span-2 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
                     <div>
-                      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Storage Usage</h2>
+                      <h2 className="text-base font-semibold text-gray-900 dark:text-[#F8FAFC]">Storage Usage</h2>
                       <p className="text-gray-400 text-sm mt-0.5">{usedFormatted} used of {totalFormatted}</p>
                     </div>
-                    <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
-                      <HardDrive className="w-5 h-5 text-green-600" />
+                    <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <HardDrive className="w-5 h-5 text-[#3B82F6]" />
                     </div>
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-1000"
                       style={{
@@ -2160,15 +2160,15 @@ const Dashboard = () => {
                 </div>
 
                 {/* File count card */}
-                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Total Files</h2>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-[#F8FAFC]">Total Files</h2>
                     <div className="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center">
                       <Folder className="w-5 h-5 text-sky-500" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mt-4 tabular-nums">{totalFileCount}</p>
+                    <p className="text-4xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-4 tabular-nums">{totalFileCount}</p>
                     <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
                   </div>
                 </div>
@@ -2177,10 +2177,10 @@ const Dashboard = () => {
 
             {/* ── ONLINE COLLABORATORS BANNER ── */}
             {onlineUsersList.length > 0 && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 mb-8 shadow-sm flex items-center justify-between flex-wrap gap-4">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-4 mb-8 shadow-sm flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shrink-0" />
-                  <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                  <div className="w-2.5 h-2.5 bg-[#3B82F6] rounded-full animate-pulse shrink-0" />
+                  <span className="font-semibold text-sm text-gray-900 dark:text-[#F8FAFC]">
                     Online Collaborators ({onlineUsersList.length})
                   </span>
                 </div>
@@ -2188,7 +2188,7 @@ const Dashboard = () => {
                   {onlineUsersList.map((onlineUser) => (
                     <div
                       key={onlineUser.id}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 transition hover:shadow-xs"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-[#334155] rounded-xl text-xs font-medium text-gray-700 dark:text-[#94A3B8] border border-gray-200/50 dark:border-[#334155]/50 transition hover:shadow-xs"
                       title={onlineUser.email}
                     >
                       <div className="relative w-5 h-5 rounded-full bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold overflow-hidden shrink-0">
@@ -2218,7 +2218,7 @@ const Dashboard = () => {
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? trashLoading : activeTab === 'shared' ? sharedLoading : loading) && (
               <div className="flex flex-col items-center justify-center py-32 gap-4">
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-green-500" />
                   </div>
                 </div>
@@ -2230,11 +2230,11 @@ const Dashboard = () => {
 
             {/* ── EMPTY STATE ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && filteredFolders.length === 0 && (
-              <div className="bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-gray-700">
-                  {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-gray-600" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-gray-600" />}
+              <div className="bg-white dark:bg-[#1E293B] border border-dashed border-gray-200 dark:border-[#334155] rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-[#334155] rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-[#334155]">
+                  {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-[#94A3B8]" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-[#94A3B8]" />}
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">
                   {emptyState.title}
                 </h2>
                 <p className="text-gray-400 mb-6 text-sm">
@@ -2243,7 +2243,7 @@ const Dashboard = () => {
                 {emptyState.showUpload && (
                   <label className="cursor-pointer inline-flex">
                     <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
-                    <div className="px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
+                    <div className="px-5 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
                       <Plus className="w-4 h-4" />
                       Upload a file
                     </div>
@@ -2302,8 +2302,8 @@ const Dashboard = () => {
 
             {/* ── LIST VIEW ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/50">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm">
+                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-[#334155] bg-gray-50/80 dark:bg-[#334155]/50">
                   <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
                   <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Size</div>
                   <div className="col-span-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Date</div>
@@ -2336,10 +2336,10 @@ const Dashboard = () => {
 
             {/* ── NOTIFICATIONS VIEW ── */}
             {activeTab === 'notifications' && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
-                <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800 mb-6">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-green-600" />
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl p-6 shadow-sm max-w-4xl mx-auto animate-fade-up">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-[#334155] mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC] flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-[#3B82F6]" />
                     All Notifications
                   </h2>
                   {notifications.some(n => !n.isRead) && (
@@ -2352,7 +2352,7 @@ const Dashboard = () => {
                           addToast("Failed to mark all read", "error");
                         }
                       }}
-                      className="text-xs font-semibold text-green-600 hover:text-green-700 bg-green-50 dark:bg-green-950/40 hover:bg-green-100 dark:hover:bg-green-950/60 px-3 py-1.5 rounded-xl transition"
+                      className="text-xs font-semibold text-[#3B82F6] hover:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 hover:bg-blue-100 dark:hover:bg-green-950/60 px-3 py-1.5 rounded-xl transition"
                     >
                       Mark all read
                     </button>
@@ -2366,10 +2366,10 @@ const Dashboard = () => {
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Bell className="w-8 h-8 text-gray-300 dark:text-gray-600" />
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-[#334155] border border-gray-100 dark:border-[#334155] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Bell className="w-8 h-8 text-gray-300 dark:text-[#94A3B8]" />
                     </div>
-                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">No notifications</h3>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-[#F8FAFC] mb-1">No notifications</h3>
                     <p className="text-xs text-gray-400">We'll let you know when something happens!</p>
                   </div>
                 ) : (
@@ -2379,18 +2379,18 @@ const Dashboard = () => {
                         key={notif.id}
                         className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
                           !notif.isRead
-                            ? 'bg-green-50/20 dark:bg-green-950/20 border-green-100 dark:border-green-900/50 shadow-sm'
-                            : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50'
+                            ? 'bg-blue-50/20 dark:bg-[#3B82F6]/10 border-blue-100 dark:border-[#3B82F6]/20 shadow-sm'
+                            : 'bg-white dark:bg-[#1E293B] border-gray-100 dark:border-[#334155] hover:bg-gray-50/50 dark:hover:bg-[#334155]/50'
                         }`}
                       >
                         <div className="flex items-start gap-4 min-w-0">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            !notif.isRead ? 'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                            !notif.isRead ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6]' : 'bg-gray-100 dark:bg-[#334155] text-gray-500 dark:text-[#94A3B8]'
                           }`}>
                             <Bell className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <p className={`text-sm ${!notif.isRead ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                            <p className={`text-sm ${!notif.isRead ? 'font-semibold text-gray-900 dark:text-[#F8FAFC]' : 'text-gray-600 dark:text-[#94A3B8]'}`}>
                               {notif.message}
                             </p>
                             <p className="text-xs text-gray-400 mt-1">
@@ -2415,7 +2415,7 @@ const Dashboard = () => {
                                 addToast("Failed to update notification", "error");
                               }
                             }}
-                            className="p-2 hover:bg-green-50 text-gray-400 hover:text-green-600 rounded-xl transition shrink-0"
+                            className="p-2 hover:bg-blue-50 text-gray-400 hover:text-[#3B82F6] rounded-xl transition shrink-0"
                             title="Mark as read"
                           >
                             <Check className="w-5 h-5" />
@@ -2513,7 +2513,7 @@ const Dashboard = () => {
             </div>
 
             {/* ASCII progress bar */}
-            <div className="font-mono text-xs text-emerald-400 tracking-wider">
+            <div className="font-mono text-xs text-[#3B82F6] tracking-wider">
               {(() => {
                 const totalBlocks = 15;
                 const filledBlocks = Math.round((uploadProgress / 100) * totalBlocks);
@@ -2530,7 +2530,7 @@ const Dashboard = () => {
             {/* Smooth visual progress bar */}
             <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                className="h-full bg-[#3B82F6] rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
@@ -2540,8 +2540,8 @@ const Dashboard = () => {
 
       {/* BULK ACTIONS FLOATING TOOLBAR */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 dark:bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl px-6 py-3.5 shadow-2xl flex items-center gap-6 text-white animate-fade-up text-xs font-semibold">
-          <span className="text-emerald-400 shrink-0">{selectedFileIds.size} file(s) selected</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 dark:bg-[#0F172A]/95 backdrop-blur-md border border-slate-800 rounded-2xl px-6 py-3.5 shadow-2xl flex items-center gap-6 text-white animate-fade-up text-xs font-semibold">
+          <span className="text-[#3B82F6] shrink-0">{selectedFileIds.size} file(s) selected</span>
           <div className="w-px h-5 bg-slate-800" />
           <div className="flex items-center gap-3">
             <button onClick={handleBulkDownload} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition">

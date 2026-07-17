@@ -42,9 +42,9 @@ export default function SidebarNav({
             className={`
               w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium
               ${activeTab === item.id
-                ? 'bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 font-bold'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}
-              ${isDragOver ? 'bg-green-100 dark:bg-green-950/60 border border-green-500 scale-105 shadow-md' : ''}
+                ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-bold'
+                : 'text-gray-600 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]'}
+              ${isDragOver ? 'bg-blue-100 dark:bg-green-950/60 border border-[#3B82F6] scale-105 shadow-md' : ''}
             `}
           >
             <Icon className="w-5 h-5" />
@@ -52,7 +52,7 @@ export default function SidebarNav({
               <>
                 <span className="flex-1 text-left">{item.label}</span>
                 {activeTab === item.id && (
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-[#3B82F6] rounded-full" />
                 )}
               </>
             )}

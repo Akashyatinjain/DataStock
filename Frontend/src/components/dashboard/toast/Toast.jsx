@@ -11,7 +11,7 @@ export default function Toast({ toasts, removeToast }) {
             flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-sm font-medium
             pointer-events-auto transition-all duration-300
             ${t.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : ''}
-            ${t.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : ''}
+            ${t.type === 'success' ? 'bg-blue-50 text-[#3B82F6] border border-blue-200' : ''}
             ${t.type === 'info' ? 'bg-blue-50 text-blue-700 border border-blue-200' : ''}
           `}
         >

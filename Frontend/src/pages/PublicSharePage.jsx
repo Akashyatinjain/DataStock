@@ -30,7 +30,7 @@ const formatSize = (bytes) => {
 };
 
 const getFileIcon = (mime) => {
-  if (!mime) return <FileText className="w-16 h-16 text-slate-400 dark:text-slate-500" />;
+  if (!mime) return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
   if (mime.includes('image')) return <FileImage className="w-16 h-16 text-sky-500" />;
   if (mime.includes('video')) return <FileVideo className="w-16 h-16 text-violet-500" />;
   if (mime.includes('audio')) return <FileAudio className="w-16 h-16 text-pink-500" />;
@@ -40,7 +40,7 @@ const getFileIcon = (mime) => {
   }
   if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-16 h-16 text-amber-500" />;
   if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-16 h-16 text-orange-500" />;
-  return <FileText className="w-16 h-16 text-slate-400 dark:text-slate-500" />;
+  return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
 };
 
 /* ─── Preview renderer ─── */
@@ -66,9 +66,9 @@ const FilePreview = ({ file, allowDownload }) => {
   }
   if (mime.includes('audio')) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100 dark:border-[#334155]">
         <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4" />
-        <p className="font-semibold text-gray-700 dark:text-gray-300 mb-4">{file.originalName}</p>
+        <p className="font-semibold text-gray-700 dark:text-[#94A3B8] mb-4">{file.originalName}</p>
         <audio controls className="w-full">
           <source src={url} type={mime} />
         </audio>
@@ -96,11 +96,11 @@ const FilePreview = ({ file, allowDownload }) => {
 
   // Fallback
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-slate-800 text-center">
+    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-[#334155] text-center">
       {getFileIcon(mime)}
-      <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mt-4">Preview not available</p>
+      <p className="text-lg font-semibold text-gray-700 dark:text-[#94A3B8] mt-4">Preview not available</p>
       {allowDownload ? (
-        <p className="text-gray-400 dark:text-gray-500 mt-2 text-sm">Download the file to open it.</p>
+        <p className="text-gray-400 dark:text-[#94A3B8] mt-2 text-sm">Download the file to open it.</p>
       ) : (
         <p className="text-red-500 dark:text-red-400 mt-2 text-sm font-medium">Downloads are restricted for this link.</p>
       )}
@@ -148,18 +148,18 @@ const PublicSharePage = () => {
   return (
     <div className="min-h-screen bg-linear-to-br from-[#f0fdf4] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
       {/* ── Nav bar ── */}
-      <nav className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+      <nav className="bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-sm border-b border-gray-200 dark:border-[#334155] px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-linear-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
             <Cloud className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-xl text-gray-900 dark:text-white">DataStock</span>
+          <span className="font-bold text-xl text-gray-900 dark:text-[#F8FAFC]">DataStock</span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link
             to="/login"
-            className="text-sm font-semibold text-green-700 dark:text-emerald-400 hover:text-green-800 dark:hover:text-emerald-300 bg-green-50 dark:bg-emerald-500/10 hover:bg-green-100 dark:hover:bg-emerald-500/20 px-4 py-2 rounded-xl transition"
+            className="text-sm font-semibold text-[#3B82F6] dark:text-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 hover:bg-blue-100 dark:hover:bg-[#3B82F6]/20 px-4 py-2 rounded-xl transition"
           >
             Sign In
           </Link>
@@ -172,24 +172,24 @@ const PublicSharePage = () => {
         {/* ── Loading ── */}
         {loading && (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-green-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-green-100 dark:border-emerald-500/20">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-emerald-500/20">
               <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
             </div>
-            <p className="text-gray-400 dark:text-gray-500 font-medium">Loading shared file…</p>
+            <p className="text-gray-400 dark:text-[#94A3B8] font-medium">Loading shared file…</p>
           </div>
         )}
 
         {/* ── Error ── */}
         {!loading && error && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-10 shadow-lg border border-red-100 dark:border-slate-800 text-center max-w-md w-full">
+          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-red-100 dark:border-[#334155] text-center max-w-md w-full">
             <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-500/20">
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Link Unavailable</h1>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">{error}</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">Link Unavailable</h1>
+            <p className="text-gray-400 dark:text-[#94A3B8] text-sm mb-6">{error}</p>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-sm transition"
             >
               Go to DataStock
             </Link>
@@ -198,23 +198,23 @@ const PublicSharePage = () => {
 
         {/* ── Password Protection ── */}
         {!loading && isPasswordProtected && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-slate-800 text-center max-w-md w-full animate-fade-in">
-            <div className="w-14 h-14 bg-green-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-100 dark:border-emerald-500/20">
-              <Lock className="w-7 h-7 text-green-600 dark:text-emerald-400" />
+          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-[#334155] text-center max-w-md w-full animate-fade-in">
+            <div className="w-14 h-14 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-emerald-500/20">
+              <Lock className="w-7 h-7 text-[#3B82F6] dark:text-[#3B82F6]" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Password Protected</h1>
-            <p className="text-gray-400 dark:text-gray-500 text-sm mb-5">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">Password Protected</h1>
+            <p className="text-gray-400 dark:text-[#94A3B8] text-sm mb-5">
               Enter the password to access this shared file.
             </p>
 
             {publicFileData && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/40 rounded-xl border border-gray-100 dark:border-slate-800/50 text-left mb-6">
-                <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-slate-700">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#334155]/40 rounded-xl border border-gray-100 dark:border-[#334155]/50 text-left mb-6">
+                <div className="w-10 h-10 bg-white dark:bg-[#334155] rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
                   {getFileIcon(publicFileData.mimeType)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{publicFileData.fileName}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">{formatSize(publicFileData.size)}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">{publicFileData.fileName}</p>
+                  <p className="text-xs text-gray-400 dark:text-[#94A3B8]">{formatSize(publicFileData.size)}</p>
                 </div>
               </div>
             )}
@@ -225,7 +225,7 @@ const PublicSharePage = () => {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white text-gray-700 dark:text-gray-300 transition"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white text-gray-700 dark:text-[#94A3B8] transition"
                 disabled={verifying}
               />
               {passwordError && (
@@ -234,7 +234,7 @@ const PublicSharePage = () => {
               <button
                 type="submit"
                 disabled={verifying || !password}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-1.5"
+                className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-green-300 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-1.5"
               >
                 {verifying ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -250,18 +250,18 @@ const PublicSharePage = () => {
         {!loading && !isPasswordProtected && file && (
           <div className="w-full max-w-4xl animate-fade-in">
             {/* File header card */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="w-16 h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div className="w-16 h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
                 {getFileIcon(file.mimeType)}
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">{file.originalName}</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate">{file.originalName}</h1>
                 <div className="flex items-center gap-4 mt-1.5">
-                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-[#94A3B8]">
                     <HardDrive className="w-3.5 h-3.5" />
                     {formatSize(file.size)}
                   </span>
-                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-[#94A3B8]">
                     <Clock className="w-3.5 h-3.5" />
                     {new Date(file.createdAt).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -277,7 +277,7 @@ const PublicSharePage = () => {
                   target="_blank"
                   rel="noreferrer"
                   download
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm transition shadow-sm shrink-0"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-sm transition shadow-sm shrink-0"
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -286,14 +286,14 @@ const PublicSharePage = () => {
             </div>
 
             {/* Preview area */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden p-6 flex items-center justify-center min-h-75">
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-6 flex items-center justify-center min-h-75">
               <FilePreview file={file} allowDownload={allowDownload} />
             </div>
 
             {/* Footer note */}
-            <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
+            <p className="text-center text-xs text-gray-400 dark:text-[#94A3B8] mt-6">
               This file was shared via{' '}
-              <Link to="/" className="text-green-600 font-semibold hover:underline">
+              <Link to="/" className="text-[#3B82F6] font-semibold hover:underline">
                 DataStock
               </Link>
               . Sign in to manage your own files.

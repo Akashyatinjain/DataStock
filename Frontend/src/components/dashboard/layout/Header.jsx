@@ -105,11 +105,11 @@ const Header = ({
     : 'h-10 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 text-left transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/70 lg:gap-2.5 lg:px-3';
 
   const upgradeIconClass = isDark
-    ? 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-400 transition-colors duration-200 group-hover:bg-emerald-500/25 group-hover:text-emerald-300'
+    ? 'flex h-7 w-7 items-center justify-center rounded-md bg-[#3B82F6]/15 text-[#3B82F6] transition-colors duration-200 group-hover:bg-[#3B82F6]/25 group-hover:text-[#3B82F6]'
     : 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 transition-colors duration-200 group-hover:bg-emerald-200 group-hover:text-emerald-700';
 
   const upgradeTitleClass = isDark
-    ? 'text-sm font-semibold leading-none text-slate-100 transition-colors duration-200 group-hover:text-emerald-300'
+    ? 'text-sm font-semibold leading-none text-slate-100 transition-colors duration-200 group-hover:text-[#3B82F6]'
     : 'text-sm font-semibold leading-none text-gray-900 transition-colors duration-200 group-hover:text-emerald-700';
 
   const upgradeMetaClass = isDark
@@ -164,7 +164,7 @@ const Header = ({
               </button>
 
               <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-                <div className="w-8 h-8 bg-linear-to-br bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <div className="w-8 h-8 bg-linear-to-br bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <Cloud className="w-5 h-5 text-white" />
                 </div>
                 <span className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'} hidden sm:block`}>
@@ -216,7 +216,7 @@ const Header = ({
                     {subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${subscriptionPlan}`}
                   </p>
                 </div>
-                <ArrowLeft size={14} className={`ml-0.5 rotate-180 transition-colors duration-200 ${isDark ? 'text-slate-500 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-700'}`} />
+                <ArrowLeft size={14} className={`ml-0.5 rotate-180 transition-colors duration-200 ${isDark ? 'text-slate-500 group-hover:text-[#3B82F6]' : 'text-gray-400 group-hover:text-emerald-700'}`} />
               </button>
 
               <ThemeToggle />

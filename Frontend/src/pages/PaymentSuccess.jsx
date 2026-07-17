@@ -25,7 +25,7 @@ const PLAN_DETAILS = {
   PRO: {
     name: "Pro",
     storage: "2 TB",
-    color: "from-emerald-500 to-green-600",
+    color: "from-[#3B82F6] to-[#2563EB]",
     icon: Sparkles,
     features: [
       "2TB secure storage",
@@ -176,9 +176,9 @@ export default function PaymentSuccess() {
         <ThemeToggle />
       </div>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#3B82F6]/10 rounded-full blur-[120px] animate-pulse" />
         <div
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse"
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#3B82F6]/10 rounded-full blur-[100px] animate-pulse"
           style={{ animationDelay: "1s" }}
         />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-green-400/5 rounded-full blur-[150px]" />
@@ -212,38 +212,38 @@ export default function PaymentSuccess() {
         >
           <div className="relative inline-flex items-center justify-center mb-6">
             <div
-              className="absolute w-24 h-24 bg-green-500/20 rounded-full animate-ping"
+              className="absolute w-24 h-24 bg-[#3B82F6]/20 rounded-full animate-ping"
               style={{ animationDuration: "2s" }}
             />
-            <div className="absolute w-20 h-20 bg-green-500/30 rounded-full animate-pulse" />
-            <div className="relative w-16 h-16 bg-linear-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
+            <div className="absolute w-20 h-20 bg-[#3B82F6]/30 rounded-full animate-pulse" />
+            <div className="relative w-16 h-16 bg-linear-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-[#3B82F6]/30">
               <CheckCircle2 className="w-8 h-8 text-white" />
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F8FAFC] mb-3 tracking-tight">
             Payment Successful!
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
+          <p className="text-gray-600 dark:text-[#94A3B8] text-lg">
             Welcome to DataStock{" "}
-            <span className="text-slate-900 dark:text-white font-semibold">{plan.name}</span>
+            <span className="text-slate-900 dark:text-[#F8FAFC] font-semibold">{plan.name}</span>
           </p>
         </div>
 
         <div
-          className={`bg-white/90 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-gray-700/50 p-8 shadow-2xl transition-all duration-700 delay-200 ${
+          className={`bg-white/90 dark:bg-[#334155]/80 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-[#334155]/50 p-8 shadow-2xl transition-all duration-700 delay-200 ${
             showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700/50">
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-[#334155]/50">
             <div
               className={`w-14 h-14 rounded-2xl bg-linear-to-br ${plan.color} flex items-center justify-center shadow-lg`}
             >
               <PlanIcon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name} Plan</h2>
-              <p className="text-green-600 dark:text-green-400 font-semibold">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC]">{plan.name} Plan</h2>
+              <p className="text-[#3B82F6] dark:text-[#3B82F6] font-semibold">
                 {plan.storage} of secure storage
               </p>
             </div>
@@ -258,10 +258,10 @@ export default function PaymentSuccess() {
                 }`}
                 style={{ transitionDelay: `${i * 100 + 600}ms` }}
               >
-                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <div className="w-6 h-6 rounded-full bg-[#3B82F6]/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-[#3B82F6]" />
                 </div>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
+                <span className="text-gray-700 dark:text-[#94A3B8] font-medium">{feature}</span>
               </div>
             ))}
           </div>
@@ -269,7 +269,7 @@ export default function PaymentSuccess() {
           <div
             className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
               activationState === "active"
-                ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-200"
+                ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6] dark:text-green-200"
                 : activationState === "pending"
                   ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-100"
                   : "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-100"
@@ -277,7 +277,7 @@ export default function PaymentSuccess() {
           >
             <div className="flex items-start gap-3">
               {activationState === "active" ? (
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#3B82F6]" />
               ) : activationState === "pending" ? (
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
               ) : (
@@ -303,7 +303,7 @@ export default function PaymentSuccess() {
             </button>
             <button
               onClick={() => navigate("/pricing")}
-              className="w-full py-3 bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-600/50"
+              className="w-full py-3 bg-gray-100 dark:bg-[#334155]/50 text-gray-700 dark:text-[#94A3B8] rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-[#334155] transition-all duration-200 border border-gray-200 dark:border-gray-600/50"
             >
               View Pricing
             </button>
@@ -311,7 +311,7 @@ export default function PaymentSuccess() {
         </div>
 
         <p
-          className={`text-center text-sm text-gray-500 dark:text-gray-400 mt-6 transition-all duration-700 delay-500 ${
+          className={`text-center text-sm text-gray-500 dark:text-[#94A3B8] mt-6 transition-all duration-700 delay-500 ${
             showContent ? "opacity-100" : "opacity-0"
           }`}
         >

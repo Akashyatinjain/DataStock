@@ -228,7 +228,7 @@ export default function ProfilePage() {
       {/* ---------- Success Toast ---------- */}
       {successMessage && (
         <div className="fixed top-20 right-6 z-50 animate-slide-down">
-          <div className="flex items-center gap-2 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg">
+          <div className="flex items-center gap-2 bg-[#3B82F6] text-white px-5 py-3 rounded-xl shadow-lg">
             <CheckCircle size={18} />
             <span className="text-sm font-medium">{successMessage}</span>
           </div>
@@ -251,13 +251,13 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0">
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors mb-4 group"
+              className="flex items-center gap-2 text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] transition-colors mb-4 group"
             >
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back to Dashboard</span>
             </button>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">My Profile</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account settings and preferences</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#F8FAFC]">My Profile</h1>
+            <p className="text-gray-500 dark:text-[#94A3B8] mt-1">Manage your account settings and preferences</p>
           </div>
           <div className="self-end sm:self-start shrink-0">
             <ThemeToggle />
@@ -265,12 +265,12 @@ export default function ProfilePage() {
         </div>
 
         {/*  MAIN PROFILE CARD  */}
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-4 sm:p-8 transition-colors duration-200">
+        <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-4 sm:p-8 transition-colors duration-200">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* ---------- Avatar Section ---------- */}
             <div className="relative w-fit mx-auto lg:mx-0">
               {/* Avatar */}
-              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-green-500 shadow-lg bg-gray-100 dark:bg-slate-800 relative group/avatar">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-[#3B82F6] shadow-lg bg-gray-100 dark:bg-[#334155] relative group/avatar">
                 {user?.imageUrl ? (
                   <img
                     src={user.imageUrl}
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => fileInputRef.current.click()}
                   disabled={uploading}
-                  className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Upload new picture"
                 >
                   {uploading ? (
@@ -335,8 +335,8 @@ export default function ProfilePage() {
             {/* ---------- Profile Info ---------- */}
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Profile Information</h2>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC]">Profile Information</h2>
+                <span className="bg-blue-100 text-[#3B82F6] px-3 py-1 rounded-full text-xs font-semibold">
                   Active
                 </span>
                 {user?.subscriptionPlan && user.subscriptionPlan !== 'BASIC' && (
@@ -352,7 +352,7 @@ export default function ProfilePage() {
 
               {/* Username edit row */}
               <div className="mb-6">
-                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium block mb-2">
+                <label className="text-sm text-gray-500 dark:text-[#94A3B8] font-medium block mb-2">
                   Username
                 </label>
                 <div className="flex gap-3">
@@ -365,14 +365,14 @@ export default function ProfilePage() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-slate-700 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white dark:bg-slate-800 dark:text-white"
+                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-[#334155] pl-11 pr-4 outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition bg-white dark:bg-[#334155] dark:text-[#F8FAFC]"
                       placeholder="Enter username"
                     />
                   </div>
                   <button
                     onClick={handleUpdateProfile}
                     disabled={updating}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-6 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   >
                     {updating ? (
                       <Loader2 className="animate-spin" size={18} />
@@ -389,47 +389,47 @@ export default function ProfilePage() {
               {/* Info cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Email */}
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition relative group/card">
+                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition relative group/card">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-blue-100 dark:bg-blue-950/30 p-2 rounded-lg shrink-0">
                       <Mail className="text-blue-600 dark:text-blue-400" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-white text-sm break-all">
+                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm break-all">
                     {user?.email}
                   </p>
                   <button
                     onClick={copyEmail}
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white dark:bg-slate-700 shadow opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition duration-200"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white dark:bg-[#334155] shadow opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition duration-200"
                     title="Copy email"
                   >
-                    <Copy size={14} className="text-gray-500 dark:text-gray-400" />
+                    <Copy size={14} className="text-gray-500 dark:text-[#94A3B8]" />
                   </button>
                 </div>
 
                 {/* Storage */}
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-green-100 dark:bg-green-950/30 p-2 rounded-lg shrink-0">
-                      <HardDrive className="text-green-600 dark:text-green-400" size={16} />
+                    <div className="bg-blue-100 dark:bg-[#3B82F6]/10 p-2 rounded-lg shrink-0">
+                      <HardDrive className="text-[#3B82F6] dark:text-[#3B82F6]" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Storage Used</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-white text-sm">
+                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm">
                     {formatStorage(user?.storageUsed)}
                   </p>
                 </div>
 
                 {/* Member Since */}
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-purple-100 dark:bg-purple-950/30 p-2 rounded-lg shrink-0">
                       <Calendar className="text-purple-600 dark:text-purple-400" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-white text-sm">
+                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm">
                     {user?.createdAt
                       ? new Date(user.createdAt).toLocaleDateString("en-US", {
                           month: "long",
@@ -446,18 +446,18 @@ export default function ProfilePage() {
         {/*  STORAGE & STATS SECTION  */}
         <div className="mt-6 grid md:grid-cols-2 gap-6">
           {/* Storage Overview */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-6 transition-colors duration-200">
+          <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white dark:text-white flex items-center gap-2">
-                <BarChart3 size={20} className="text-green-600" />
+              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC] flex items-center gap-2">
+                <BarChart3 size={20} className="text-[#3B82F6]" />
                 Storage Overview
               </h3>
-              <span className="text-xs text-green-600 dark:text-emerald-400 font-semibold bg-green-50 dark:bg-emerald-500/10 px-3 py-1 rounded-full">
+              <span className="text-xs text-[#3B82F6] dark:text-[#3B82F6] font-semibold bg-blue-50 dark:bg-[#3B82F6]/10 px-3 py-1 rounded-full">
                 Mini Drive
               </span>
             </div>
 
-            <div className="w-full h-4 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+            <div className="w-full h-4 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden shadow-inner">
               <div
                 className="h-full bg-linear-to-r from-green-400 to-green-600 rounded-full transition-all duration-700 ease-out"
                 style={{
@@ -470,10 +470,10 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex justify-between mt-3 text-sm">
-              <span className="text-gray-600 dark:text-gray-300 font-medium">
+              <span className="text-gray-600 dark:text-[#94A3B8] font-medium">
                 {formatStorage(user?.storageUsed)} used
               </span>
-              <span className="text-gray-400 dark:text-gray-500">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
+              <span className="text-gray-400 dark:text-[#94A3B8]">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
             </div>
 
             {((user?.storageUsed || 0) / (Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)) * 100 > 85 && (
@@ -487,22 +487,22 @@ export default function ProfilePage() {
           </div>
 
           {/* Quick Stats (requires optional backend route) */}
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-6 transition-colors duration-200">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white dark:text-white flex items-center gap-2 mb-4">
-              <Folder size={20} className="text-green-600" />
+          <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC] flex items-center gap-2 mb-4">
+              <Folder size={20} className="text-[#3B82F6]" />
               Quick Stats
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-slate-800 dark:bg-slate-800 rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-[#334155] dark:bg-[#334155] rounded-xl p-4 text-center">
                 <FileText size={24} className="mx-auto text-blue-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">{stats.files}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Files</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.files}</p>
+                <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Files</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-800 dark:bg-slate-800 rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-[#334155] dark:bg-[#334155] rounded-xl p-4 text-center">
                 <Folder size={24} className="mx-auto text-yellow-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">{stats.folders}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Folders</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.folders}</p>
+                <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Folders</p>
               </div>
             </div>
           </div>
@@ -512,43 +512,43 @@ export default function ProfilePage() {
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           <button 
             onClick={() => navigate('/pricing')}
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+            className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
             <div className="p-2 bg-purple-100 dark:bg-purple-950/30 rounded-xl shrink-0">
               <Star size={20} className="text-purple-600 dark:text-purple-400" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">
+              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
               </p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <button className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+          <button className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
             <div className="p-2 bg-pink-100 dark:bg-pink-950/30 rounded-xl shrink-0">
               <Gift size={20} className="text-pink-600 dark:text-pink-400" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">Refer a Friend</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Earn extra storage</p>
+              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">Refer a Friend</p>
+              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">Earn extra storage</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <button
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left"
+            className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left"
           >
-            <div className="p-2 bg-gray-200 dark:bg-slate-800 rounded-xl shrink-0">
-              <Settings size={20} className="text-gray-700 dark:text-gray-300" />
+            <div className="p-2 bg-gray-200 dark:bg-[#334155] rounded-xl shrink-0">
+              <Settings size={20} className="text-gray-700 dark:text-[#94A3B8]" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">Account Settings</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Privacy, security & more</p>
+              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">Account Settings</p>
+              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">Privacy, security & more</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>

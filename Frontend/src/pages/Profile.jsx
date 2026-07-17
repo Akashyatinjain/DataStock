@@ -17,15 +17,15 @@ import { fetchAllFiles } from "../store/slices/filesSlice";
 import { fetchFolders } from "../store/slices/foldersSlice";
 
 const ProfileSkeleton = () => (
-  <div className="h-full animate-pulse p-6 max-w-5xl mx-auto space-y-6">
+  <div className="h-full animate-pulse p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
     <div className="h-8 w-40 bg-gray-200 rounded" />
     <div className="h-6 w-64 bg-gray-200 rounded" />
-    <div className="bg-white rounded-2xl p-8 flex flex-col lg:flex-row gap-10">
-      <div className="w-40 h-40 rounded-full bg-gray-200" />
+    <div className="bg-white rounded-2xl p-4 sm:p-8 flex flex-col lg:flex-row gap-10">
+      <div className="w-40 h-40 rounded-full bg-gray-200 mx-auto lg:mx-0" />
       <div className="flex-1 space-y-4">
         <div className="h-8 w-48 bg-gray-200 rounded" />
         <div className="h-12 bg-gray-200 rounded-xl" />
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="h-24 bg-gray-200 rounded-xl" />
           ))}
@@ -207,8 +207,8 @@ export default function ProfilePage() {
   
   if (errorMessage && !user) {
     return (
-      <div className="h-full flex items-center justify-center p-6">
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md text-center">
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 sm:p-8 max-w-md text-center">
           <AlertCircle className="text-red-500 mx-auto mb-4" size={48} />
           <h3 className="text-lg font-semibold text-red-700 mb-2">Failed to Load Profile</h3>
           <p className="text-red-600 mb-4">{errorMessage}</p>
@@ -245,10 +245,10 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6">
         {/* ---------- Header with Back Button ---------- */}
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <button
               onClick={() => navigate("/dashboard")}
               className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors mb-4 group"
@@ -256,14 +256,16 @@ export default function ProfilePage() {
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back to Dashboard</span>
             </button>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white dark:text-white">My Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">My Profile</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account settings and preferences</p>
           </div>
-          <ThemeToggle />
+          <div className="self-end sm:self-start shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
 
         {/*  MAIN PROFILE CARD  */}
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-8 transition-colors duration-200">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-4 sm:p-8 transition-colors duration-200">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* ---------- Avatar Section ---------- */}
             <div className="relative w-fit mx-auto lg:mx-0">
@@ -332,8 +334,8 @@ export default function ProfilePage() {
 
             {/* ---------- Profile Info ---------- */}
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white dark:text-white">Profile Information</h2>
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Profile Information</h2>
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                   Active
                 </span>
@@ -370,7 +372,7 @@ export default function ProfilePage() {
                   <button
                     onClick={handleUpdateProfile}
                     disabled={updating}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   >
                     {updating ? (
                       <Loader2 className="animate-spin" size={18} />
@@ -385,12 +387,12 @@ export default function ProfilePage() {
               </div>
 
               {/* Info cards */}
-              <div className="grid md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Email */}
                 <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition relative group/card">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <Mail className="text-blue-600" size={16} />
+                    <div className="bg-blue-100 dark:bg-blue-950/30 p-2 rounded-lg shrink-0">
+                      <Mail className="text-blue-600 dark:text-blue-400" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
                   </div>
@@ -399,18 +401,18 @@ export default function ProfilePage() {
                   </p>
                   <button
                     onClick={copyEmail}
-                    className="absolute top-2 right-2 p-1 rounded-lg bg-white shadow opacity-0 group-hover/card:opacity-100 transition"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white dark:bg-slate-700 shadow opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition duration-200"
                     title="Copy email"
                   >
-                    <Copy size={14} className="text-gray-500" />
+                    <Copy size={14} className="text-gray-500 dark:text-gray-400" />
                   </button>
                 </div>
 
                 {/* Storage */}
                 <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-green-100 p-2 rounded-lg">
-                      <HardDrive className="text-green-600" size={16} />
+                    <div className="bg-green-100 dark:bg-green-950/30 p-2 rounded-lg shrink-0">
+                      <HardDrive className="text-green-600 dark:text-green-400" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Storage Used</p>
                   </div>
@@ -422,8 +424,8 @@ export default function ProfilePage() {
                 {/* Member Since */}
                 <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-purple-100 p-2 rounded-lg">
-                      <Calendar className="text-purple-600" size={16} />
+                    <div className="bg-purple-100 dark:bg-purple-950/30 p-2 rounded-lg shrink-0">
+                      <Calendar className="text-purple-600 dark:text-purple-400" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
                   </div>
@@ -510,43 +512,43 @@ export default function ProfilePage() {
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           <button 
             onClick={() => navigate('/pricing')}
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Star size={20} className="text-purple-600" />
+            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+            <div className="p-2 bg-purple-100 dark:bg-purple-950/30 rounded-xl shrink-0">
+              <Star size={20} className="text-purple-600 dark:text-purple-400" />
             </div>
-            <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">
+            <div className="text-left flex-1 min-w-0">
+              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
               </p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <button className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group">
-            <div className="p-2 bg-pink-100 rounded-xl">
-              <Gift size={20} className="text-pink-600" />
+          <button className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+            <div className="p-2 bg-pink-100 dark:bg-pink-950/30 rounded-xl shrink-0">
+              <Gift size={20} className="text-pink-600 dark:text-pink-400" />
             </div>
-            <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">Refer a Friend</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Earn extra storage</p>
+            <div className="text-left flex-1 min-w-0">
+              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">Refer a Friend</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Earn extra storage</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <button
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl flex items-center gap-3"
+            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left"
           >
-            <div className="p-2 bg-gray-200 rounded-xl">
-              <Settings size={20} className="text-gray-700" />
+            <div className="p-2 bg-gray-200 dark:bg-slate-800 rounded-xl shrink-0">
+              <Settings size={20} className="text-gray-700 dark:text-gray-300" />
             </div>
-            <div className="text-left">
-              <p className="font-semibold text-gray-800 dark:text-white dark:text-white group-hover:text-green-600 transition">Account Settings</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Privacy, security & more</p>
+            <div className="text-left flex-1 min-w-0">
+              <p className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition truncate">Account Settings</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Privacy, security & more</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-gray-500 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>

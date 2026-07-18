@@ -235,7 +235,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
             className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
               tab === 'people'
                 ? 'border-[#3B82F6] text-[#3B82F6] dark:text-[#3B82F6]'
-                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-350'
+                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -247,7 +247,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
               className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
                 tab === 'link'
                   ? 'border-[#3B82F6] text-[#3B82F6] dark:text-[#3B82F6]'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-350'
+                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
               }`}
             >
               <Link2 className="w-4 h-4" />

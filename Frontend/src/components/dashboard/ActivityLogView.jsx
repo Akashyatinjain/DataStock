@@ -121,7 +121,7 @@ export default function ActivityLogView() {
                     <p className="text-sm font-medium text-gray-800 dark:text-[#F8FAFC] leading-normal select-text">
                       {act.message}
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-450 dark:text-[#94A3B8] mt-1.5 font-medium">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#94A3B8] mt-1.5 font-medium">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{formatTime(act.createdAt)}</span>
                     </div>

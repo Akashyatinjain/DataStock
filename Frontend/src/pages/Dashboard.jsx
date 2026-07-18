@@ -2429,7 +2429,7 @@ const Dashboard = () => {
                 )}
                 {activeTab === 'my-drive' && !selectedFolder ? (
                   <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
                       {(() => {
                         const hr = new Date().getHours();
                         const name = user?.username || 'Akash';
@@ -2604,9 +2604,9 @@ const Dashboard = () => {
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 animate-fade-up">
                 {/* Storage card (Full Width on First Row) */}
-                <div className="md:col-span-2 bg-white dark:bg-[#1E293B] rounded-2xl p-5.5 shadow-md border border-transparent transition hover:shadow-lg duration-300 flex flex-col justify-between">
+                <div className="md:col-span-2 bg-gradient-to-br from-white to-slate-50/50 dark:from-[#1E293B] dark:to-[#1a2537] rounded-2xl p-4 shadow-md border border-transparent transition hover:shadow-lg duration-300">
                   <div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-2.5">
                       <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Storage Usage</h2>
                       <div className="w-8.5 h-8.5 bg-blue-50 dark:bg-blue-950/20 rounded-xl flex items-center justify-center text-[#3B82F6] shrink-0">
                         <HardDrive className="w-4.5 h-4.5" />
@@ -2632,7 +2632,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Pie Chart Analytics Integration */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-[#334155]/60">
+                  <div className="flex flex-col sm:flex-row items-center gap-5 mt-3 pt-3 border-t border-gray-100 dark:border-[#334155]/60">
                     {/* Donut Chart */}
                     <div className="relative w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-inner hover:scale-105 transition-transform duration-300" style={pieChartStyle}>
                       <div className="absolute w-10 h-10 bg-white dark:bg-[#1E293B] rounded-full flex items-center justify-center text-[9px] font-black text-gray-800 dark:text-slate-100">
@@ -2715,31 +2715,46 @@ const Dashboard = () => {
                       <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         🔒 Zero-Knowledge Vault
                       </span>
-                      <span className="font-bold text-emerald-500">{isE2eeSetup ? (isE2eeUnlocked ? 'Unlocked' : 'Locked') : 'Inactive'}</span>
+                      <span className="flex items-center gap-1.5 font-bold">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isE2eeSetup ? (isE2eeUnlocked ? 'bg-emerald-500' : 'bg-amber-500') : 'bg-gray-400'}`} />
+                        <span className={isE2eeSetup ? (isE2eeUnlocked ? 'text-emerald-500' : 'text-amber-500') : 'text-gray-400'}>{isE2eeSetup ? (isE2eeUnlocked ? 'Unlocked' : 'Locked') : 'Inactive'}</span>
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         📝 OCR Parsing Engine
                       </span>
-                      <span className="font-bold text-slate-700 dark:text-[#F8FAFC]">Enabled</span>
+                      <span className="flex items-center gap-1.5 font-bold text-emerald-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        Enabled
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         🕒 Smart Versioning
                       </span>
-                      <span className="font-bold text-slate-700 dark:text-[#F8FAFC]">Active</span>
+                      <span className="flex items-center gap-1.5 font-bold text-emerald-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        Active
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         🧠 AI Search Indexing
                       </span>
-                      <span className="font-bold text-indigo-500 dark:text-indigo-400">Ready</span>
+                      <span className="flex items-center gap-1.5 font-bold text-blue-500 dark:text-blue-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        Ready
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                         💬 Live Collaboration
                       </span>
-                      <span className="font-bold text-emerald-500">Connected</span>
+                      <span className="flex items-center gap-1.5 font-bold text-emerald-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Connected
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -2901,7 +2916,7 @@ const Dashboard = () => {
 
             {/* ── RECENT ACTIVITY WIDGET ── */}
             {activeTab === 'my-drive' && !loading && (allFiles.length > 0 || folders.length > 0) && (
-              <div className="mb-6 animate-fade-up bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-5 shadow-xs">
+              <div className="mb-6 animate-fade-up">
                 <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Recent Activity</h3>
                 <div className="space-y-2">
                   {[...allFiles, ...folders]

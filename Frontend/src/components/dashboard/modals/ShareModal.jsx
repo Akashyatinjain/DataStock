@@ -176,7 +176,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
       options.password = null;
     }
 
-    const result = await dispatch(createPublicLink({ fileId, options }));
+    const result = await dispatch(createPublicLink({ fileId: itemId, options }));
     if (createPublicLink.fulfilled.match(result)) {
       onToast?.(publicLink ? 'Link settings updated!' : 'Public link generated!', 'success');
     } else {
@@ -260,8 +260,8 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
           {tab === 'people' && (
             <div className="space-y-5">
               <form onSubmit={handleShare}>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider mb-2">
-                  Share with someone
+                <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] tracking-wide mb-2">
+                  Share with Someone
                 </label>
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
@@ -307,8 +307,8 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
               </form>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] uppercase tracking-wider mb-3">
-                  People with access
+                <label className="block text-xs font-semibold text-gray-500 dark:text-[#94A3B8] tracking-wide mb-3">
+                  People with Access
                 </label>
 
                 {sharesLoading ? (
@@ -397,7 +397,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
 
                 {/* Configuration Settings */}
                 <div className="text-left bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-xl p-4 mb-4 space-y-4 shadow-xs">
-                  <h4 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider">Custom Sharing Options</h4>
+                  <h4 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] tracking-wide">Custom Sharing Options</h4>
                   
                   {/* Expiration Date */}
                   <div className="space-y-2">

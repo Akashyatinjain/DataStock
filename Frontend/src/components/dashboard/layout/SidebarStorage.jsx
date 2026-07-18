@@ -47,7 +47,7 @@ export default function SidebarStorage({ storageData, files }) {
 
         <div 
           onClick={() => navigate('/pricing')}
-          className="mt-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/40 dark:to-slate-900/40 border border-slate-200/50 dark:border-[#334155]/60 rounded-2xl p-4 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group shadow-xs hover:shadow-sm"
+          className="mt-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/40 dark:to-slate-900/40 border border-slate-200/50 dark:border-[#334155]/60 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group shadow-xs hover:shadow-sm"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">

@@ -25,8 +25,8 @@ export default function FolderCard({
   const id = getFolderId(folder);
   const tabId = `folder-${id}`;
   
-  // Dynamic stats calculated from global Redux state
-  const folderFiles = useSelector((state) => state.files.files.filter(f => f.folderId === id)) || [];
+  // Dynamic stats calculated from global Redux state (allFiles contains every file across all folders)
+  const folderFiles = useSelector((state) => (state.files.allFiles || []).filter(f => f.folderId === id));
   const fileCount = folderFiles.length;
   const folderSize = folderFiles.reduce((acc, f) => acc + (Number(f.size) || 0), 0);
 
@@ -113,8 +113,8 @@ export default function FolderCard({
       {/* Row 1: Icon + Name and Dropdown Action */}
       <div className="flex items-center justify-between min-w-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${scheme.bg}`}>
-            <Folder className={`w-5 h-5 ${scheme.text}`} />
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${scheme.bg}`}>
+            <Folder className={`w-6 h-6 ${scheme.text}`} />
           </div>
           <h4 className="font-extrabold text-gray-900 dark:text-[#F8FAFC] text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
             {folder.name}
@@ -195,10 +195,11 @@ export default function FolderCard({
         )}
       </div>
 
-      {/* Separator + Open Folder */}
-      <div className="mt-3.5 pt-3 border-t border-gray-100/70 dark:border-[#334155]/40 flex items-center justify-between text-xs font-bold text-gray-500 dark:text-[#94A3B8] group-hover:text-[#3B82F6] dark:group-hover:text-blue-400 transition-colors">
-        <span>Open Folder</span>
-        <span className="transition-transform duration-200 group-hover:translate-x-1">Open Folder →</span>
+      {/* Open Folder Button */}
+      <div className="mt-3 pt-2.5 border-t border-gray-100/70 dark:border-[#334155]/40">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#334155] text-[11px] font-bold text-gray-500 dark:text-[#94A3B8] group-hover:text-[#3B82F6] group-hover:border-blue-300 dark:group-hover:border-blue-500/40 transition-all duration-200">
+          Open Folder <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+        </span>
       </div>
 
       {isDownloading && (

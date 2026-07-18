@@ -3,7 +3,7 @@ import * as shareService from "./share.service.js";
 
 export const shareFile = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
-  const { fileId, email, permission } = req.body;
+  const { fileId, email, permission, encryptedKey } = req.body;
 
   if (!fileId || !email) {
     return res.status(400).json({
@@ -16,7 +16,8 @@ export const shareFile = asyncHandler(async (req, res) => {
     fileId,
     email,
     permission,
-    userId
+    userId,
+    encryptedKey
   );
 
   return res.status(201).json({

@@ -4,11 +4,12 @@ import {
   Camera, Mail, Calendar, HardDrive, Pencil, Save, Loader2,
   User, CheckCircle, AlertCircle, Clock, Folder, Image as ImageIcon,
   FileText, ArrowLeft, Copy, Trash2, BarChart3, UploadCloud,
-  Settings, Star, Gift
+  Settings, Star, Gift, ShieldAlert, ShieldCheck, Lock, Unlock, Eye, EyeOff, Key
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import { useCrypto } from "../context/CryptoContext";
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -53,6 +54,83 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const fileInputRef = useRef(null);
+
+  // E2EE hooks and states
+  const {
+    isE2eeSetup,
+    isE2eeUnlocked,
+    setupE2ee,
+    unlockE2ee,
+    lockE2ee,
+    loading: cryptoLoading,
+    error: cryptoError,
+  } = useCrypto();
+
+  const [passphrase, setPassphrase] = useState("");
+  const [confirmPassphrase, setConfirmPassphrase] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [cryptoSuccess, setCryptoSuccess] = useState("");
+  const [cryptoErr, setCryptoErr] = useState("");
+
+  const handleSetupE2ee = async (e) => {
+    e.preventDefault();
+    if (!passphrase.trim()) {
+      setCryptoErr("Passphrase cannot be empty");
+      return;
+    }
+    if (passphrase !== confirmPassphrase) {
+      setCryptoErr("Passphrases do not match");
+      return;
+    }
+    setCryptoErr("");
+    setCryptoSuccess("");
+    try {
+      await setupE2ee(passphrase.trim());
+      setCryptoSuccess("End-to-End Encryption enabled successfully!");
+      setPassphrase("");
+      setConfirmPassphrase("");
+      
+      // Download backup JSON credentials
+      const backupData = {
+        app: "DataStock E2EE Backup",
+        email: user?.email,
+        createdAt: new Date().toISOString(),
+        note: "Store this credentials config file safely. If passphrase is lost, your encrypted files cannot be recovered.",
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `datastock-e2ee-backup-${user?.email || "user"}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      setCryptoErr(err.message || "Failed to set up E2EE keys");
+    }
+  };
+
+  const handleUnlockE2ee = async (e) => {
+    e.preventDefault();
+    if (!passphrase.trim()) {
+      setCryptoErr("Passphrase is required");
+      return;
+    }
+    setCryptoErr("");
+    setCryptoSuccess("");
+    try {
+      await unlockE2ee(passphrase.trim());
+      setCryptoSuccess("Secure storage unlocked successfully!");
+      setPassphrase("");
+    } catch (err) {
+      setCryptoErr(err.message || "Decryption failed. Try again.");
+    }
+  };
+
+  const handleLockE2ee = () => {
+    lockE2ee();
+    setCryptoSuccess("Secure storage locked.");
+    setCryptoErr("");
+  };
 
   const fetchProfileData = useCallback(async () => {
     try {
@@ -506,6 +584,158 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* E2EE SECURITY CENTER CARD */}
+        <div className="mt-6 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`p-3 rounded-xl shrink-0 ${isE2eeSetup ? (isE2eeUnlocked ? 'bg-green-100 dark:bg-green-950/30' : 'bg-amber-100 dark:bg-amber-950/30') : 'bg-gray-100 dark:bg-gray-800'}`}>
+              {isE2eeSetup ? (
+                isE2eeUnlocked ? (
+                  <ShieldCheck className="text-green-600 dark:text-green-400" size={24} />
+                ) : (
+                  <Lock className="text-amber-600 dark:text-amber-400" size={24} />
+                )
+              ) : (
+                <ShieldAlert className="text-gray-500 dark:text-[#94A3B8]" size={24} />
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC]">
+                End-to-End Encryption Security Center
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-[#94A3B8]">
+                Keep your private files safe with client-side zero-knowledge encryption.
+              </p>
+            </div>
+          </div>
+
+          {cryptoSuccess && (
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-400 text-sm animate-slide-down">
+              <CheckCircle size={16} />
+              <span>{cryptoSuccess}</span>
+            </div>
+          )}
+
+          {cryptoErr && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-400 text-sm animate-slide-down">
+              <AlertCircle size={16} />
+              <span>{cryptoErr}</span>
+            </div>
+          )}
+
+          {/* Setup, Lock, or Unlock UI */}
+          {!isE2eeSetup ? (
+            <form onSubmit={handleSetupE2ee} className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
+                Set up a secure E2EE passphrase. Your files will be encrypted in your browser using AES-256 before upload. 
+                <strong> Warning:</strong> We do not store your passphrase on the server. If lost, your encrypted files cannot be recovered.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <input
+                    type={showPass ? "text" : "password"}
+                    placeholder="Enter Passphrase"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-2.5 text-gray-400 dark:text-[#94A3B8] hover:text-gray-600"
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                
+                <input
+                  type={showPass ? "text" : "password"}
+                  placeholder="Confirm Passphrase"
+                  value={confirmPassphrase}
+                  onChange={(e) => setConfirmPassphrase(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={cryptoLoading}
+                className="bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-blue-300 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition"
+              >
+                {cryptoLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Generating Keys...
+                  </>
+                ) : (
+                  <>
+                    <Key size={16} /> Enable E2EE & Download Recovery Backup
+                  </>
+                )}
+              </button>
+            </form>
+          ) : isE2eeUnlocked ? (
+            <div className="space-y-4">
+              <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl flex items-center gap-3">
+                <ShieldCheck className="text-green-600 dark:text-green-400 shrink-0" size={20} />
+                <div className="text-sm">
+                  <p className="font-semibold text-green-800 dark:text-green-400">
+                    E2EE Safe Storage is Unlocked
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-500">
+                    Your master key is in-memory. You can upload and decrypt your secure files.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLockE2ee}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+              >
+                <Lock size={16} /> Lock Secure Storage
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleUnlockE2ee} className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
+                End-to-End Encryption is active, but your secure vault is currently locked. Enter your passphrase to decrypt your files and upload new ones.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 max-w-md">
+                <div className="relative flex-1">
+                  <input
+                    type={showPass ? "text" : "password"}
+                    placeholder="Enter Passphrase"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-2.5 text-gray-400 dark:text-[#94A3B8] hover:text-gray-600"
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={cryptoLoading}
+                  className="bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white px-5 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition"
+                >
+                  {cryptoLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Unlock size={16} />
+                  )}
+                  <span>Unlock Vault</span>
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/*  QUICK ACTIONS  */}

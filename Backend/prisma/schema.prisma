@@ -31,6 +31,13 @@ model User {
   refreshTokenHash String?
   refreshTokenExpiresAt DateTime?
 
+  encryptedMasterKey   String?
+  masterKeyIv          String?
+  encryptionSalt       String?
+  publicKey            String?
+  encryptedPrivateKey  String?
+  privateKeyIv         String?
+
   files        File[]
   folders      Folder[]
 
@@ -67,6 +74,11 @@ model File {
   isArchived    Boolean  @default(false)
   ocrText       String?
 
+  isEncrypted   Boolean  @default(false)
+  encryptedKey  String?
+  fileIv        String?
+  nameIv        String?
+
   ownerId       String
   owner         User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -93,6 +105,9 @@ model FileVersion {
   url           String
   publicId      String
   size          Int
+  isEncrypted   Boolean  @default(false)
+  encryptedKey  String?
+  fileIv        String?
   createdAt     DateTime @default(now())
 
   @@index([fileId])
@@ -172,6 +187,7 @@ model FileShare {
   sharedTo User @relation("SharedTo", fields: [sharedToId], references: [id])
 
   permission SharePermission @default(VIEW)
+  encryptedKey String?
 
   createdAt DateTime @default(now())
 

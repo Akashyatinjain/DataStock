@@ -4,6 +4,7 @@ import {
   updateUserProfileImage as updateUserProfileImageRepo,
   deleteUserProfileImage as deleteUserProfileImageRepo,
   updateUserById,
+  updateUserE2eeKeys,
 } from "./user.repository.js";
 
 // ======================
@@ -199,4 +200,27 @@ export const deleteUser = async (userId) => {
   return await prisma.user.delete({
     where: { id: userId },
   });
+};
+
+export const setupE2eeService = async (userId, data) => {
+  if (!userId) {
+    throw new Error("UserId is required");
+  }
+  return await updateUserE2eeKeys(userId, data);
+};
+
+export const getPublicKeyByEmailService = async (email) => {
+  if (!email) {
+    throw new Error("Email is required");
+  }
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase().trim() },
+    select: {
+      publicKey: true,
+    },
+  });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user.publicKey;
 };

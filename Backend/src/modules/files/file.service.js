@@ -20,7 +20,8 @@ const createError = (message, statusCode, code) => {
 export const uploadFileService = async (
   file,
   userId, folderId,
-  fileId = null
+  fileId = null,
+  e2eeData = {}
 ) => {
 
   if (!file) {
@@ -64,12 +65,14 @@ export const uploadFileService = async (
     );
   }
 
-  // ── OCR & Content Indexing ──
+  // ── OCR & Content Indexing (Skip if E2EE) ──
   let ocrText = null;
-  try {
-    ocrText = await extractText(file.path, file.mimetype);
-  } catch (ocrErr) {
-    console.error("OCR Extraction failed:", ocrErr);
+  if (!e2eeData.isEncrypted) {
+    try {
+      ocrText = await extractText(file.path, file.mimetype);
+    } catch (ocrErr) {
+      console.error("OCR Extraction failed:", ocrErr);
+    }
   }
 
   // ── Upload to Cloudinary ──
@@ -92,7 +95,7 @@ export const uploadFileService = async (
       })
     : await prisma.file.findFirst({
         where: {
-          originalName: file.originalname,
+          originalName: e2eeData.isEncrypted ? (e2eeData.encryptedName || file.originalname) : file.originalname,
           folderId: folderId || null,
           ownerId: userId,
           isTrash: false,
@@ -118,6 +121,9 @@ export const uploadFileService = async (
         url: uploadedFile.secure_url,
         publicId: uploadedFile.public_id,
         size: uploadedFile.bytes,
+        isEncrypted: e2eeData.isEncrypted || false,
+        encryptedKey: e2eeData.encryptedKey || null,
+        fileIv: e2eeData.fileIv || null,
       }
     });
 
@@ -128,6 +134,11 @@ export const uploadFileService = async (
         publicId: uploadedFile.public_id,
         size: uploadedFile.bytes,
         ocrText: ocrText,
+        mimeType: e2eeData.isEncrypted ? (e2eeData.originalMimeType || file.mimetype) : file.mimetype,
+        isEncrypted: e2eeData.isEncrypted || false,
+        encryptedKey: e2eeData.encryptedKey || null,
+        fileIv: e2eeData.fileIv || null,
+        nameIv: e2eeData.nameIv || null,
       },
       include: {
         owner: {
@@ -143,14 +154,18 @@ export const uploadFileService = async (
   } else {
     savedFile = await fileRepo.createFile({
       fileName: uploadedFile.public_id,
-      originalName: file.originalname,
+      originalName: e2eeData.isEncrypted ? (e2eeData.encryptedName || file.originalname) : file.originalname,
       url: uploadedFile.secure_url,
       publicId: uploadedFile.public_id,
-      mimeType: file.mimetype,
+      mimeType: e2eeData.isEncrypted ? (e2eeData.originalMimeType || file.mimetype) : file.mimetype,
       size: uploadedFile.bytes,
       ownerId: userId,
       folderId: folderId || null,
-      ocrText: ocrText
+      ocrText: ocrText,
+      isEncrypted: e2eeData.isEncrypted || false,
+      encryptedKey: e2eeData.encryptedKey || null,
+      fileIv: e2eeData.fileIv || null,
+      nameIv: e2eeData.nameIv || null,
     });
   }
 

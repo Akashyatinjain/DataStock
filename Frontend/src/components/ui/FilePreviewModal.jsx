@@ -20,6 +20,16 @@ import {
 import { useSelector } from 'react-redux';
 import { socket, connectSocket } from '../../socket';
 import { authFetch, apiUrl } from '../../utils/auth';
+import { useCrypto } from '../../context/CryptoContext';
+import {
+  decryptSymmetricKeyWithRsa,
+  decryptBuffer,
+  generateSymmetricKey,
+  encryptBuffer,
+  encryptString,
+  encryptSymmetricKeyWithRsa,
+  importRsaPublicKeyFromJwk
+} from '../../utils/cryptoHelper';
 
 const FilePreviewModal = ({
   file,
@@ -31,6 +41,72 @@ const FilePreviewModal = ({
   const user = useSelector((state) => state.auth.user);
   const [activeFile, setActiveFile] = useState(file);
   const [comments, setComments] = useState([]);
+
+  // E2EE hooks and states
+  const { isE2eeSetup, isE2eeUnlocked, privateKey } = useCrypto();
+  const [decryptedUrl, setDecryptedUrl] = useState(null);
+  const [decryptedLoading, setDecryptedLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let localUrl = null;
+
+    const decryptFileForPreview = async () => {
+      if (!activeFile) {
+        setDecryptedUrl(null);
+        return;
+      }
+
+      if (activeFile.isEncrypted) {
+        if (!isE2eeUnlocked || !privateKey) {
+          setDecryptedUrl(null);
+          return;
+        }
+
+        setDecryptedLoading(true);
+        try {
+          // 1. Fetch encrypted bytes
+          const response = await fetch(activeFile.url);
+          if (!response.ok) throw new Error("Failed to fetch file content");
+          const encryptedBuffer = await response.arrayBuffer();
+
+          // 2. Decrypt symmetric key
+          const fileKey = await decryptSymmetricKeyWithRsa(activeFile.encryptedKey, privateKey);
+
+          // 3. Decrypt data
+          const decryptedBuffer = await decryptBuffer(encryptedBuffer, fileKey, activeFile.fileIv);
+
+          // 4. Create blob and object URL
+          const decryptedBlob = new Blob([decryptedBuffer], { type: activeFile.mimeType || "application/octet-stream" });
+          localUrl = URL.createObjectURL(decryptedBlob);
+
+          if (active) {
+            setDecryptedUrl(localUrl);
+          }
+        } catch (err) {
+          console.error("Preview decryption error:", err);
+          if (active) {
+            setDecryptedUrl(null);
+          }
+        } finally {
+          if (active) {
+            setDecryptedLoading(false);
+          }
+        }
+      } else {
+        setDecryptedUrl(activeFile.url);
+      }
+    };
+
+    decryptFileForPreview();
+
+    return () => {
+      active = false;
+      if (localUrl) {
+        URL.revokeObjectURL(localUrl);
+      }
+    };
+  }, [activeFile, isE2eeUnlocked, privateKey]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -315,13 +391,15 @@ const FilePreviewModal = ({
   }, [isOpen, fileId]);
 
   const mime = activeFile?.mimeType || '';
-  const url = activeFile?.url;
+  const url = decryptedUrl;
+
+  const ext = activeFile?.originalName ? activeFile.originalName.split('.').pop().toLowerCase() : '';
 
   // FILE TYPES
-  const isImage = mime.includes('image');
-  const isVideo = mime.includes('video');
-  const isAudio = mime.includes('audio');
-  const isPdf = mime.includes('pdf');
+  const isImage = mime.includes('image') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
+  const isVideo = mime.includes('video') || ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext);
+  const isAudio = mime.includes('audio') || ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext);
+  const isPdf = mime.includes('pdf') || ext === 'pdf';
 
   const isText =
     mime.includes('text') ||
@@ -330,15 +408,15 @@ const FilePreviewModal = ({
     mime.includes('html') ||
     mime.includes('css') ||
     mime.includes('xml') ||
-    activeFile?.originalName?.endsWith('.md') ||
-    activeFile?.originalName?.endsWith('.markdown');
+    ['txt', 'md', 'markdown', 'json', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'xml', 'py', 'java', 'cpp', 'c', 'sh', 'yml', 'yaml'].includes(ext);
 
   const isOffice =
     mime.includes('word') ||
     mime.includes('excel') ||
     mime.includes('spreadsheet') ||
+    mime.includes('powerpoint') ||
     mime.includes('presentation') ||
-    mime.includes('powerpoint');
+    ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext);
 
   const isArchive =
     mime.includes('zip') ||
@@ -415,12 +493,57 @@ const FilePreviewModal = ({
     }
     setIsSaving(true);
     try {
-      const blob = new Blob([editorContent], { type: mime || "text/plain" });
-      const fileObj = new File([blob], activeFile.originalName, { type: mime || "text/plain" });
+      let fileObj = null;
+      let isEncryptedSave = false;
+      let e2eeFields = {};
+
+      if (activeFile.isEncrypted) {
+        if (!isE2eeUnlocked || !privateKey) {
+          addToast("Secure storage is locked. Cannot save changes.", "error");
+          setIsSaving(false);
+          return;
+        }
+        isEncryptedSave = true;
+        const encoder = new TextEncoder();
+        const textBuffer = encoder.encode(editorContent).buffer;
+
+        const fileKey = await generateSymmetricKey();
+        const encResult = await encryptBuffer(textBuffer, fileKey);
+        const encNameResult = await encryptString(activeFile.originalName, fileKey);
+        
+        const rsaPublicKey = await importRsaPublicKeyFromJwk(user.publicKey);
+        const encFileKey = await encryptSymmetricKeyWithRsa(fileKey, rsaPublicKey);
+
+        const encryptedBlob = new Blob([encResult.ciphertext], { type: "application/octet-stream" });
+        const randomSuffix = Math.random().toString(36).substring(2, 10);
+        const encFileName = `datastock_e2ee_${Date.now()}_${randomSuffix}.enc`;
+
+        fileObj = new File([encryptedBlob], encFileName, { type: "application/octet-stream" });
+
+        e2eeFields = {
+          isEncrypted: true,
+          encryptedKey: encFileKey,
+          fileIv: encResult.iv,
+          nameIv: encNameResult.iv,
+          encryptedName: encNameResult.ciphertext
+        };
+      } else {
+        const blob = new Blob([editorContent], { type: mime || "text/plain" });
+        fileObj = new File([blob], activeFile.originalName, { type: mime || "text/plain" });
+      }
       
       const formData = new FormData();
       formData.append("file", fileObj);
       formData.append("fileId", fileId);
+
+      if (isEncryptedSave) {
+        formData.append("isEncrypted", "true");
+        formData.append("encryptedKey", e2eeFields.encryptedKey);
+        formData.append("fileIv", e2eeFields.fileIv);
+        formData.append("nameIv", e2eeFields.nameIv);
+        formData.append("encryptedName", e2eeFields.encryptedName);
+        formData.append("originalMimeType", mime || "text/plain");
+      }
 
       const res = await authFetch(apiUrl("/files"), {
         method: "POST",

@@ -143,3 +143,51 @@ export const getUserActivities = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const setupE2ee = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const {
+      encryptionSalt,
+      encryptedMasterKey,
+      masterKeyIv,
+      publicKey,
+      encryptedPrivateKey,
+      privateKeyIv,
+    } = req.body;
+
+    const user = await userService.setupE2eeService(userId, {
+      encryptionSalt,
+      encryptedMasterKey,
+      masterKeyIv,
+      publicKey,
+      encryptedPrivateKey,
+      privateKeyIv,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "E2EE security keys configured successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPublicKeyByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: "Email parameter is required" });
+    }
+
+    const publicKey = await userService.getPublicKeyByEmailService(email);
+    res.status(200).json({
+      success: true,
+      publicKey,
+    });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};

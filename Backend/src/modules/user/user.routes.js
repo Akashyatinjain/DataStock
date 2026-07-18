@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteProfileImage, getProfile, updateProfile, getStorageActivity, getUserActivities } from "./user.controller.js";
+import { deleteProfileImage, getProfile, updateProfile, getStorageActivity, getUserActivities, setupE2ee, getPublicKeyByEmail } from "./user.controller.js";
 import { authenticateUser } from "../../middleware/authMiddleware.js";
 import { upload, validateUploadedFileSize } from "../../middleware/multer.middleware.js";
 import { uploadProfileImage } from "./user.controller.js";
@@ -22,4 +22,6 @@ router.get("/me",authenticateUser, getProfile);
 router.put("/update",authenticateUser,updateUser);
 router.get("/storage-activity", authenticateUser, getStorageActivity);
 router.get("/activities", authenticateUser, getUserActivities);
+router.post("/setup-e2ee", authenticateUser, setupE2ee);
+router.get("/public-key", authenticateUser, getPublicKeyByEmail);
 export default router;

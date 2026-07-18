@@ -30,6 +30,7 @@ const ALLOWED_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "video/mp4",
   "application/zip",
+  "application/octet-stream",
 ];
 
 const ALLOWED_EXTENSIONS_LABEL =

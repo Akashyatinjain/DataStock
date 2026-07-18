@@ -11,6 +11,9 @@ export const createFile = async (data) =>{
                     url: data.url,
                     publicId: data.publicId,
                     size: data.size,
+                    isEncrypted: data.isEncrypted || false,
+                    encryptedKey: data.encryptedKey || null,
+                    fileIv: data.fileIv || null,
                 }
             }
         },

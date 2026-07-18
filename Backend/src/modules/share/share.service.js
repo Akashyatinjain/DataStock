@@ -13,7 +13,8 @@ export const shareFileService = async (
   fileId,
   email,
   permission,
-  userId
+  userId,
+  encryptedKey = null
 ) => {
   const file = await fileRepo.findFileById(fileId);
 
@@ -49,6 +50,7 @@ export const shareFileService = async (
     sharedById: userId,
     sharedToId: receiver.id,
     permission: permission || "VIEW",
+    encryptedKey,
   });
 
   await createNotificationService(

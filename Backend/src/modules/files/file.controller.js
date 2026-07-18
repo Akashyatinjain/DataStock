@@ -37,13 +37,20 @@ export const uploadFile = asyncHandler(
     }
 
     const fileId = req.body.fileId || null;
+    const isEncrypted = req.body.isEncrypted === "true" || req.body.isEncrypted === true;
+    const encryptedKey = req.body.encryptedKey || null;
+    const fileIv = req.body.fileIv || null;
+    const nameIv = req.body.nameIv || null;
+    const encryptedName = req.body.encryptedName || null;
+    const originalMimeType = req.body.originalMimeType || null;
 
     const uploadedFile =
       await fileService.uploadFileService(
         req.file,
         req.user.userId,
         folderId,
-        fileId
+        fileId,
+        { isEncrypted, encryptedKey, fileIv, nameIv, encryptedName, originalMimeType }
       );
 
     return res.status(201).json({

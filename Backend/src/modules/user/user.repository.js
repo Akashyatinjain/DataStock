@@ -12,7 +12,13 @@ export const findUserById = async (userId) => {
       subscriptionPlan: true,
       subscriptionId: true,
       createdAt: true,
-      imageUrl:true
+      imageUrl: true,
+      encryptionSalt: true,
+      encryptedMasterKey: true,
+      masterKeyIv: true,
+      publicKey: true,
+      encryptedPrivateKey: true,
+      privateKeyIv: true,
     },
   });
 };
@@ -84,6 +90,37 @@ export const updateUserSubscription = async (userId, { subscriptionPlan, subscri
       subscriptionPlan: true,
       subscriptionId: true,
       storageLimit: true,
+    },
+  });
+};
+
+export const updateUserE2eeKeys = async (userId, data) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      encryptionSalt: data.encryptionSalt,
+      encryptedMasterKey: data.encryptedMasterKey,
+      masterKeyIv: data.masterKeyIv,
+      publicKey: data.publicKey,
+      encryptedPrivateKey: data.encryptedPrivateKey,
+      privateKeyIv: data.privateKeyIv,
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      storageUsed: true,
+      storageLimit: true,
+      subscriptionPlan: true,
+      subscriptionId: true,
+      imageUrl: true,
+      createdAt: true,
+      encryptionSalt: true,
+      encryptedMasterKey: true,
+      masterKeyIv: true,
+      publicKey: true,
+      encryptedPrivateKey: true,
+      privateKeyIv: true,
     },
   });
 };

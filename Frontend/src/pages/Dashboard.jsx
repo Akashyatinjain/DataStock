@@ -29,9 +29,23 @@ import {
   TrendingUp,
   PieChart,
   Move,
+  Lock,
+  Unlock,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
+import { useCrypto } from '../context/CryptoContext';
+import {
+  generateSymmetricKey,
+  encryptBuffer,
+  encryptString,
+  encryptSymmetricKeyWithRsa,
+  importRsaPublicKeyFromJwk,
+  decryptBuffer,
+  decryptSymmetricKeyWithRsa
+} from '../utils/cryptoHelper';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
@@ -78,6 +92,7 @@ import {
   addNotification,
 } from '../store/slices/notificationsSlice';
 import { fetchSharedWithMe } from '../store/slices/shareSlice';
+import { useDecryptedFiles } from '../hooks/useDecryptedFiles';
 
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-[#3B82F6] shrink-0" />;
@@ -1010,6 +1025,30 @@ const Dashboard = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isFolderShare, setIsFolderShare] = useState(false);
 
+  // E2EE States and Hooks
+  const {
+    isE2eeSetup,
+    isE2eeUnlocked,
+    unlockE2ee,
+    masterKey,
+    privateKey,
+  } = useCrypto();
+
+  const [encryptNewUploads, setEncryptNewUploads] = useState(false);
+  const [bannerPass, setBannerPass] = useState("");
+
+  const handleUnlockBannerSubmit = async (e) => {
+    e.preventDefault();
+    if (!bannerPass.trim()) return;
+    try {
+      await unlockE2ee(bannerPass.trim());
+      setBannerPass("");
+      addToast("Secure storage unlocked!", "success");
+    } catch (err) {
+      addToast(err.message || "Invalid passphrase", "error");
+    }
+  };
+
 
 
   // Confirm modal state
@@ -1466,12 +1505,14 @@ const Dashboard = () => {
     return { title: 'No items found', desc: 'Get started by uploading a file or creating a folder', showUpload: true };
   }, [activeTab, searchQuery, selectedFolder]);
 
+  const decryptedDisplayFiles = useDecryptedFiles(displayFiles);
+
   const filteredFiles = useMemo(() =>
-    displayFiles.filter(f => 
+    decryptedDisplayFiles.filter(f => 
       f.originalName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.ocrText?.toLowerCase().includes(searchQuery.toLowerCase())
     ),
-    [displayFiles, searchQuery]
+    [decryptedDisplayFiles, searchQuery]
   );
 
   const handleUpload = async (e) => {
@@ -1492,13 +1533,68 @@ const Dashboard = () => {
         continue;
       }
       try {
-        addToast(`Starting upload for "${file.name}"…`, 'info');
         setUploadProgress(0);
         setUploadingFileName(file.name);
 
+        let fileToUpload = file;
+        let isEncryptedPayload = false;
+        let e2eeFields = {};
+
+        if (isE2eeSetup && isE2eeUnlocked && encryptNewUploads) {
+          try {
+            addToast(`Encrypting "${file.name}"…`, 'info');
+            isEncryptedPayload = true;
+            // 1. Read file as ArrayBuffer
+            const fileBuffer = await file.arrayBuffer();
+            
+            // 2. Generate random symmetric AES key
+            const fileKey = await generateSymmetricKey();
+            
+            // 3. Encrypt file data
+            const encResult = await encryptBuffer(fileBuffer, fileKey);
+            
+            // 4. Encrypt filename
+            const encNameResult = await encryptString(file.name, fileKey);
+            
+            // 5. Encrypt file key using user's RSA public key
+            const rsaPublicKey = await importRsaPublicKeyFromJwk(user.publicKey);
+            const encFileKey = await encryptSymmetricKeyWithRsa(fileKey, rsaPublicKey);
+            
+            // 6. Create encrypted binary file
+            const encryptedBlob = new Blob([encResult.ciphertext], { type: 'application/octet-stream' });
+            const randomSuffix = Math.random().toString(36).substring(2, 10);
+            const encFileName = `datastock_e2ee_${Date.now()}_${randomSuffix}.enc`;
+            
+            fileToUpload = new File([encryptedBlob], encFileName, { type: 'application/octet-stream' });
+            
+            e2eeFields = {
+              isEncrypted: true,
+              encryptedKey: encFileKey,
+              fileIv: encResult.iv,
+              nameIv: encNameResult.iv,
+              encryptedName: encNameResult.ciphertext
+            };
+          } catch (cryptoErr) {
+            console.error('File encryption failed:', cryptoErr);
+            addToast(`Failed to encrypt "${file.name}". Upload aborted.`, 'error');
+            continue;
+          }
+        }
+
+        addToast(`Starting upload for "${file.name}"…`, 'info');
+
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', fileToUpload);
         if (selectedFolderId) formData.append('folderId', selectedFolderId);
+
+        if (isEncryptedPayload) {
+          formData.append('isEncrypted', 'true');
+          formData.append('encryptedKey', e2eeFields.encryptedKey);
+          formData.append('fileIv', e2eeFields.fileIv);
+          formData.append('nameIv', e2eeFields.nameIv);
+          formData.append('encryptedName', e2eeFields.encryptedName);
+          formData.append('originalMimeType', file.type || 'application/octet-stream');
+        }
 
         const onUploadProgress = (progressEvent) => {
           if (progressEvent.total) {
@@ -1787,13 +1883,45 @@ const Dashboard = () => {
     const filesToDownload = files.filter(f => fileIds.includes(f.id));
     for (let i = 0; i < filesToDownload.length; i++) {
       const file = filesToDownload[i];
-      const a = document.createElement('a');
-      a.href = file.url;
-      a.download = file.originalName;
-      a.target = "_blank";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      
+      if (file.isEncrypted) {
+        if (!isE2eeUnlocked || !privateKey) {
+          addToast(`"${file.originalName}" is encrypted. Unlock secure storage to download.`, "error");
+          continue;
+        }
+        try {
+          addToast(`Decrypting "${file.originalName}"…`, "info");
+          const response = await fetch(file.url);
+          if (!response.ok) throw new Error("Failed to fetch file content");
+          const encryptedBuffer = await response.arrayBuffer();
+
+          const fileKey = await decryptSymmetricKeyWithRsa(file.encryptedKey, privateKey);
+          const decryptedBuffer = await decryptBuffer(encryptedBuffer, fileKey, file.fileIv);
+
+          const decryptedBlob = new Blob([decryptedBuffer], { type: file.mimeType || "application/octet-stream" });
+          const localUrl = URL.createObjectURL(decryptedBlob);
+
+          const a = document.createElement('a');
+          a.href = localUrl;
+          a.download = file.originalName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          
+          setTimeout(() => URL.revokeObjectURL(localUrl), 1000);
+        } catch (err) {
+          console.error("Download decryption error:", err);
+          addToast(`Failed to decrypt "${file.originalName}"`, "error");
+        }
+      } else {
+        const a = document.createElement('a');
+        a.href = file.url;
+        a.download = file.originalName;
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
       await new Promise(r => setTimeout(r, 400));
     }
     setSelectedFileIds(new Set());
@@ -2119,10 +2247,63 @@ const Dashboard = () => {
                     </button>
                   </div>
 
-                  {!isTrashView && <UploadButton uploading={uploading} onChange={handleUpload} />}
+                  {!isTrashView && (
+                    <div className="flex items-center gap-4">
+                      {isE2eeSetup && isE2eeUnlocked && (
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition">
+                          <input
+                            type="checkbox"
+                            checked={encryptNewUploads}
+                            onChange={(e) => setEncryptNewUploads(e.target.checked)}
+                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                          />
+                          <span className="flex items-center gap-1 select-none">
+                            <ShieldCheck className="w-4 h-4 text-green-500" />
+                            E2EE Upload
+                          </span>
+                        </label>
+                      )}
+                      <UploadButton uploading={uploading} onChange={handleUpload} />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* ── E2EE UNLOCK BANNER ── */}
+            {isE2eeSetup && !isE2eeUnlocked && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-5 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-slide-down">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+                    <Lock className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-[#F8FAFC]">
+                      E2EE Safe Storage is Locked
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Enter your passphrase to unlock and decrypt your end-to-end encrypted files.
+                    </p>
+                  </div>
+                </div>
+                
+                <form onSubmit={handleUnlockBannerSubmit} className="flex gap-2 w-full md:w-auto shrink-0">
+                  <input
+                    type="password"
+                    placeholder="Enter Passphrase"
+                    value={bannerPass}
+                    onChange={(e) => setBannerPass(e.target.value)}
+                    className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-xs focus:outline-[#3B82F6] min-w-[150px] flex-1 md:flex-initial"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition"
+                  >
+                    Unlock
+                  </button>
+                </form>
+              </div>
+            )}
 
             {/* ── STATS ROW ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (

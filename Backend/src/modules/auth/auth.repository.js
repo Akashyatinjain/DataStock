@@ -14,6 +14,12 @@ const userSessionSelect = {
   subscriptionId: true,
   imageUrl: true,
   createdAt: true,
+  encryptionSalt: true,
+  encryptedMasterKey: true,
+  masterKeyIv: true,
+  publicKey: true,
+  encryptedPrivateKey: true,
+  privateKeyIv: true,
 };
 
 export const createUser = (data) => {

@@ -284,27 +284,23 @@ export const seedUserDemoData = async (userId) => {
     data: { name: "Legal Templates", ownerId: userId },
   });
 
-  // 3. Seed 12 files across categories (3 Images, 2 Videos, 4 PDFs, 3 Docs/Other)
+  // 3. Seed files across categories (Images, Videos, PDFs, Encrypted)
   const filesToSeed = [
     // Root files
     { name: "Brand_Styleguide.pdf", mime: "application/pdf", size: 8912896, folderId: null },
     { name: "Dashboard_Mockup_V1.png", mime: "image/png", size: 2516582, folderId: null },
-    { name: "Product_Launch_Presentation.pptx", mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation", size: 15938355, folderId: null, isStarred: true },
     { name: "Secure_Credentials.key", mime: "application/octet-stream", size: 1024, folderId: null, isEncrypted: true },
 
     // "Basanti" folder files
-    { name: "Basanti_Agreement_Draft.docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 1258291, folderId: basantiFolder.id },
     { name: "Sprint_Demo_Recording.mp4", mime: "video/mp4", size: 47290777, folderId: basantiFolder.id },
     { name: "Team_Photo.jpg", mime: "image/jpeg", size: 4325376, folderId: basantiFolder.id },
 
     // "Project Pitch" folder files
-    { name: "Financial_Projections_2026.xlsx", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", size: 1677721, folderId: pitchFolder.id },
     { name: "Investor_Pitch_Deck.pdf", mime: "application/pdf", size: 7025459, folderId: pitchFolder.id },
     { name: "Promotional_Video_Teaser.mp4", mime: "video/mp4", size: 33973862, folderId: pitchFolder.id },
 
     // "Legal Templates" folder files
     { name: "Standard_NDA.pdf", mime: "application/pdf", size: 419430, folderId: legalFolder.id },
-    { name: "Employment_Agreement.docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 838860, folderId: legalFolder.id },
   ];
 
   for (const item of filesToSeed) {

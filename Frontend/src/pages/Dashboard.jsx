@@ -145,16 +145,7 @@ const getFileType = (mimeType) => {
   return FILE_TYPES.default;
 };
 
-// Returns true if the file has a recognized type (image, video, pdf, archive)
-const isKnownFileType = (mimeType) => {
-  if (!mimeType) return false;
-  return (
-    mimeType.includes('image') ||
-    mimeType.includes('video') ||
-    mimeType.includes('pdf') ||
-    mimeType.includes('zip')
-  );
-};
+
 
 const ANALYTICS_CATEGORIES = [
   {
@@ -2297,10 +2288,8 @@ const Dashboard = () => {
 
   const filteredFiles = useMemo(() =>
     decryptedDisplayFiles.filter(f => 
-      isKnownFileType(f.mimeType) && (
-        f.originalName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        f.ocrText?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      f.originalName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.ocrText?.toLowerCase().includes(searchQuery.toLowerCase())
     ),
     [decryptedDisplayFiles, searchQuery]
   );
@@ -3461,7 +3450,7 @@ const Dashboard = () => {
               <div className="mb-6 animate-fade-up">
                 <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Recent Activity</h3>
                 <div className="space-y-2">
-                  {[...decryptedAllFiles.filter(f => isKnownFileType(f.mimeType)), ...folders]
+                  {[...decryptedAllFiles, ...folders]
                     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                     .slice(0, 4)
                     .map((item, idx) => {

@@ -563,10 +563,16 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
 
   const longPressTimer = useRef(null);
   const isLongPressActive = useRef(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
 
   const startPress = (e) => {
     isLongPressActive.current = false;
-    if (e.type === 'mousedown' && e.button !== 0) return;
+    if (e.type === 'mousedown') {
+      if (e.button !== 0) return;
+    } else if (e.type === 'touchstart') {
+      const touch = e.touches[0];
+      touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    }
     longPressTimer.current = setTimeout(() => {
       isLongPressActive.current = true;
       if (navigator.vibrate) {
@@ -587,6 +593,14 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
       e.preventDefault();
       e.stopPropagation();
       return;
+    }
+    if (e.type === 'touchend') {
+      const touch = e.changedTouches[0];
+      const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+      const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+      if (dx > 8 || dy > 8) {
+        return; // Swiped/scrolled, ignore preview
+      }
     }
     if (callback) callback();
   };
@@ -824,10 +838,16 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
 
   const longPressTimer = useRef(null);
   const isLongPressActive = useRef(false);
+  const touchStartPos = useRef({ x: 0, y: 0 });
 
   const startPress = (e) => {
     isLongPressActive.current = false;
-    if (e.type === 'mousedown' && e.button !== 0) return;
+    if (e.type === 'mousedown') {
+      if (e.button !== 0) return;
+    } else if (e.type === 'touchstart') {
+      const touch = e.touches[0];
+      touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    }
     longPressTimer.current = setTimeout(() => {
       isLongPressActive.current = true;
       if (navigator.vibrate) {
@@ -848,6 +868,14 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
       e.preventDefault();
       e.stopPropagation();
       return;
+    }
+    if (e.type === 'touchend') {
+      const touch = e.changedTouches[0];
+      const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+      const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+      if (dx > 8 || dy > 8) {
+        return; // Swiped/scrolled, ignore preview
+      }
     }
     if (callback) callback();
   };

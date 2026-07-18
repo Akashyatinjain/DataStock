@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -561,6 +561,36 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
 
   const [showMenu, setShowMenu] = useState(false);
 
+  const longPressTimer = useRef(null);
+  const isLongPressActive = useRef(false);
+
+  const startPress = (e) => {
+    isLongPressActive.current = false;
+    if (e.type === 'mousedown' && e.button !== 0) return;
+    longPressTimer.current = setTimeout(() => {
+      isLongPressActive.current = true;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(40); } catch (err) {}
+      }
+      if (onToggleSelect) {
+        onToggleSelect({ stopPropagation: () => {} });
+      }
+    }, 600);
+  };
+
+  const endPress = (e, callback) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (callback) callback();
+  };
+
   return (
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
@@ -580,7 +610,22 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
           : 'border-gray-100 dark:border-[#334155] hover:border-blue-200 dark:hover:border-[#3B82F6] hover:shadow-lg hover:-translate-y-0.5 shadow-xs'}
         ${isSelected ? 'border-[#3B82F6] ring-2 ring-green-500/20' : ''}
       `}
-      onClick={() => !isDeleting && !isRestoring && onPreview(file)}
+      onMouseDown={startPress}
+      onTouchStart={startPress}
+      onMouseUp={(e) => endPress(e, () => !isDeleting && !isRestoring && onPreview(file))}
+      onTouchEnd={(e) => endPress(e, () => !isDeleting && !isRestoring && onPreview(file))}
+      onMouseLeave={() => {
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }}
+      onTouchMove={() => {
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }}
     >
       {/* Checkbox Overlay */}
       {!isTrashView && onToggleSelect && (
@@ -777,6 +822,36 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
   
   const [showMenu, setShowMenu] = useState(false);
 
+  const longPressTimer = useRef(null);
+  const isLongPressActive = useRef(false);
+
+  const startPress = (e) => {
+    isLongPressActive.current = false;
+    if (e.type === 'mousedown' && e.button !== 0) return;
+    longPressTimer.current = setTimeout(() => {
+      isLongPressActive.current = true;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(40); } catch (err) {}
+      }
+      if (onToggleSelect) {
+        onToggleSelect({ stopPropagation: () => {} });
+      }
+    }, 600);
+  };
+
+  const endPress = (e, callback) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (isLongPressActive.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (callback) callback();
+  };
+
   return (
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
@@ -794,7 +869,22 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
         ${isSelected ? 'bg-blue-50/30 dark:bg-green-950/10' : ''}
       `}
-      onClick={() => !isDeleting && !isRestoring && onPreview(file)}
+      onMouseDown={startPress}
+      onTouchStart={startPress}
+      onMouseUp={(e) => endPress(e, () => !isDeleting && !isRestoring && onPreview(file))}
+      onTouchEnd={(e) => endPress(e, () => !isDeleting && !isRestoring && onPreview(file))}
+      onMouseLeave={() => {
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }}
+      onTouchMove={() => {
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }}
     >
       <div className="col-span-1 md:col-span-6 flex items-center gap-3 min-w-0">
         {!isTrashView && onToggleSelect && (
@@ -3685,6 +3775,27 @@ const Dashboard = () => {
               >
                 <Move className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">Move</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedFileIds.size > 1) {
+                    addToast("Batch sharing is not supported yet. Please select a single file to share.", "warning");
+                    return;
+                  }
+                  const selectedId = Array.from(selectedFileIds)[0];
+                  const selectedFile = (allFiles || []).find(f => f.id === selectedId) || (files || []).find(f => f.id === selectedId);
+                  if (selectedFile) {
+                    handleShare(selectedFile);
+                  } else {
+                    addToast("Could not retrieve file details.", "error");
+                  }
+                }}
+                className={`inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 ${selectedFileIds.size > 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="Share"
+              >
+                <Share2 className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Share</span>
               </button>
               <button
                 type="button"

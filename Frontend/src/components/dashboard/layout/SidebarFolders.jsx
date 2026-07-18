@@ -47,11 +47,11 @@ export default function SidebarFolders({
 
   return (
     <>
-      <div className="my-5 border-t border-gray-200 dark:border-[#334155]" />
+      <div className="my-3.5" />
       <div>
         <div className="flex items-center justify-between mb-3 px-2">
-          <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
-            Folders
+          <p className="text-xs font-extrabold tracking-wide text-gray-400 dark:text-slate-500">
+            Folders ({folders.length})
           </p>
           <button
             onClick={onNewFolder}
@@ -70,10 +70,20 @@ export default function SidebarFolders({
           ) : folders.length === 0 ? (
             <p className="text-xs text-gray-400 px-3 py-2">No folders yet</p>
           ) : (
-            folders.map((folder) => {
+            folders.map((folder, index) => {
               const id = getFolderId(folder);
               const tabId = `folder-${id}`;
               const isDragOver = dragOverFolderId === id;
+
+              const dotColors = [
+                { bg: 'bg-yellow-400', border: 'border-yellow-400/30' },
+                { bg: 'bg-blue-400', border: 'border-blue-400/30' },
+                { bg: 'bg-emerald-400', border: 'border-emerald-400/30' },
+                { bg: 'bg-red-400', border: 'border-red-400/30' },
+                { bg: 'bg-purple-400', border: 'border-purple-400/30' },
+                { bg: 'bg-orange-400', border: 'border-orange-400/30' },
+              ];
+              const scheme = dotColors[index % dotColors.length];
 
               return (
                 <div
@@ -86,15 +96,17 @@ export default function SidebarFolders({
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, id)}
                   className={`
-                    group w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm cursor-pointer
+                    group w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-sm cursor-pointer
                     ${activeTab === tabId
-                      ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-medium'
-                      : 'text-gray-700 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]'}
+                      ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-semibold shadow-2xs'
+                      : 'text-gray-650 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]'}
                     ${isDragOver ? 'bg-blue-100 dark:bg-green-950/60 border border-[#3B82F6] scale-105 shadow-md font-bold' : ''}
+                    hover:translate-x-0.5 duration-150
                   `}
                 >
-                  <Folder className="w-5 h-5 text-yellow-500 shrink-0" />
-                  <span className="flex-1 text-left truncate">{folder.name}</span>
+                  <span className={`w-2 h-2 rounded-full shrink-0 shadow-xs border ${scheme.bg} ${scheme.border}`} />
+                  <Folder className={`w-3.5 h-3.5 shrink-0 opacity-75 ${activeTab === tabId ? 'text-[#3B82F6]' : 'text-gray-400'}`} />
+                  <span className="flex-1 text-left truncate text-xs font-semibold">{folder.name}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

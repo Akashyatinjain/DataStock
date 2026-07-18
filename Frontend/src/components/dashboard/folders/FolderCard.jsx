@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Folder, Share2, Trash2, Users, MoreVertical, Eye, Edit3, Download, Loader2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
 import { authFetch, apiUrl } from '../../../utils/auth';
+
+const formatFolderSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
 
 export default function FolderCard({
   folder,
@@ -15,9 +24,46 @@ export default function FolderCard({
   const [isDownloading, setIsDownloading] = useState(false);
   const id = getFolderId(folder);
   const tabId = `folder-${id}`;
+  
+  // Dynamic stats calculated from global Redux state
+  const folderFiles = useSelector((state) => state.files.files.filter(f => f.folderId === id)) || [];
+  const fileCount = folderFiles.length;
+  const folderSize = folderFiles.reduce((acc, f) => acc + (Number(f.size) || 0), 0);
+
   const isOwner = folder.ownerId === currentUserId || folder._isOwner;
   const isShared = folder.sharedWith && folder.sharedWith.length > 0 || folder._isDirectlyShared || folder._isSharedDescendant;
   const permission = folder._sharedPermission || (folder.sharedWith && folder.sharedWith.find(sw => sw.sharedToId === currentUserId)?.permission) || 'VIEW';
+
+  const colorSchemes = [
+    { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-500 fill-blue-500/10' },
+    { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-500 fill-emerald-500/10' },
+    { bg: 'bg-amber-50 dark:bg-amber-950/30', text: 'text-amber-500 fill-amber-500/10' },
+    { bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-500 fill-purple-500/10' },
+    { bg: 'bg-rose-50 dark:bg-rose-950/30', text: 'text-rose-500 fill-rose-500/10' },
+    { bg: 'bg-cyan-50 dark:bg-cyan-950/30', text: 'text-cyan-500 fill-cyan-500/10' }
+  ];
+  const charCodeSum = (folder.name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const scheme = colorSchemes[charCodeSum % colorSchemes.length];
+
+  const getModifiedLabel = () => {
+    const targetDate = folder.updatedAt || folder.createdAt;
+    if (!targetDate) return 'Updated recently';
+    const date = new Date(targetDate);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      const diffHrs = Math.max(1, Math.floor((today - date) / (1000 * 60 * 60)));
+      if (diffHrs < 24) return `Updated ${diffHrs} ${diffHrs === 1 ? 'hr' : 'hrs'} ago`;
+      return 'Updated today';
+    }
+    if (date.toDateString() === yesterday.toDateString()) return 'Updated yesterday';
+    return `Updated ${date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`;
+  };
+
+  const ownerInitial = folder.owner?.username?.charAt(0).toUpperCase() || folder.owner?.email?.charAt(0).toUpperCase() || 'U';
+  const ownerName = isOwner ? 'You' : (folder.owner?.username || folder.owner?.email || 'Shared User');
 
   const handleOpen = () => {
     setActiveTab(tabId);
@@ -62,25 +108,24 @@ export default function FolderCard({
   return (
     <div
       onClick={handleOpen}
-      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] hover:border-[#3B82F6]/30 dark:hover:border-[#3B82F6]/30 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-36 animate-fade-up"
+      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 hover:border-blue-200 dark:hover:border-blue-500/40 rounded-2xl p-4.5 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[185px] animate-fade-up hover:scale-[1.02] hover:-translate-y-0.5"
     >
-      <div className="flex items-start justify-between">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
-            <Folder className="w-6 h-6 text-amber-500 fill-amber-500/20" />
+      {/* Row 1: Icon + Name and Dropdown Action */}
+      <div className="flex items-center justify-between min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${scheme.bg}`}>
+            <Folder className={`w-5 h-5 ${scheme.text}`} />
           </div>
-          {isShared && (
-            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-blue-100 dark:bg-green-950 flex items-center justify-center border border-white dark:border-[#334155]">
-              <Users className="w-2.5 h-2.5 text-[#3B82F6] dark:text-[#3B82F6]" />
-            </div>
-          )}
+          <h4 className="font-extrabold text-gray-900 dark:text-[#F8FAFC] text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
+            {folder.name}
+          </h4>
         </div>
 
         {/* Action Dropdown Menu */}
-        <div className="relative" onClick={(e) => e.stopPropagation()}>
+        <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="p-1.5 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+            className="p-1 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -91,7 +136,7 @@ export default function FolderCard({
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-[#334155] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1 z-20 animate-fade-in">
+              <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-[#334155] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-20 animate-fade-in text-left">
                 {isOwner && (
                   <button
                     onClick={handleShareClick}
@@ -123,26 +168,39 @@ export default function FolderCard({
         </div>
       </div>
 
-      <div className="mt-4 min-w-0">
-        <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] text-sm truncate group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition-colors">
-          {folder.name}
-        </h4>
-        <div className="flex items-center gap-2 mt-1 min-w-0 text-[11px] text-gray-400">
-          {isOwner ? (
-            <span>Owner: You</span>
-          ) : (
-            <span className="truncate">
-              Owner: {folder.owner?.username || folder.owner?.email || 'Shared User'}
-            </span>
-          )}
-          {isShared && (
-            <span className="flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-[#3B82F6] bg-blue-50 dark:text-[#3B82F6] dark:bg-[#3B82F6]/10 px-1.5 py-0.5 rounded-full shrink-0">
-              {permission === 'EDIT' ? <Edit3 className="w-2 h-2" /> : <Eye className="w-2 h-2" />}
-              {permission === 'EDIT' ? 'Edit' : 'View'}
-            </span>
-          )}
-        </div>
+      {/* Row 2: File Count & Size */}
+      <div className="flex items-center gap-3 text-xs font-bold text-gray-500 dark:text-[#94A3B8] mt-2.5">
+        <span>{fileCount} {fileCount === 1 ? 'File' : 'Files'}</span>
+        <span className="text-gray-300 dark:text-gray-700">•</span>
+        <span>{formatFolderSize(folderSize)}</span>
       </div>
+
+      {/* Row 3: Modified Time */}
+      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">
+        {getModifiedLabel()}
+      </div>
+
+      {/* Row 4: Shared Badge */}
+      <div className="flex items-center gap-1 mt-2 text-xs font-semibold text-gray-500 dark:text-[#94A3B8]">
+        {isShared ? (
+          <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold">
+            <Users className="w-3.5 h-3.5" />
+            <span>Shared with {folder.sharedWith?.length || 1}</span>
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-gray-400">
+            <Users className="w-3.5 h-3.5 opacity-40" />
+            <span>Only You</span>
+          </span>
+        )}
+      </div>
+
+      {/* Separator + Open Folder */}
+      <div className="mt-3.5 pt-3 border-t border-gray-100/70 dark:border-[#334155]/40 flex items-center justify-between text-xs font-bold text-gray-500 dark:text-[#94A3B8] group-hover:text-[#3B82F6] dark:group-hover:text-blue-400 transition-colors">
+        <span>Open Folder</span>
+        <span className="transition-transform duration-200 group-hover:translate-x-1">Open Folder →</span>
+      </div>
+
       {isDownloading && (
         <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
           <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />

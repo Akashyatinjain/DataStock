@@ -15,7 +15,7 @@ export default function SidebarStorage({ storageData, files }) {
 
   return (
     <>
-      <div className="my-5 border-t border-gray-200 dark:border-[#334155]" />
+      <div className="my-3.5" />
       <div className="px-2">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
@@ -45,22 +45,27 @@ export default function SidebarStorage({ storageData, files }) {
           </div>
         </div>
 
-        <div className="mt-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/20 border border-blue-100 dark:border-[#3B82F6]/20 rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Cloud className="w-4 h-4 text-[#3B82F6]" />
-            <span className="text-sm font-semibold text-[#3B82F6] dark:text-[#3B82F6]">{isBasic ? 'Free Plan' : `${plan} Plan`}</span>
+        <div 
+          onClick={() => navigate('/pricing')}
+          className="mt-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/40 dark:to-slate-900/40 border border-slate-200/50 dark:border-[#334155]/60 rounded-2xl p-4 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group shadow-xs hover:shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {isBasic ? 'Free Plan' : `${plan} Plan`}
+            </span>
+            <Cloud className="w-4 h-4 text-slate-400 dark:text-slate-400 group-hover:text-blue-500 transition-colors" />
           </div>
-          <p className="text-xs text-gray-600 dark:text-[#94A3B8] mb-4">
-            {isBasic ? 'Upgrade to Pro for 2 TB storage' : `${storageData.totalLabel || `${storageData.total} GB`} storage active`}
+          <div className="mb-1 text-base font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+            {storageData.usedLabel || `${storageData.used} GB`} <span className="text-xs font-semibold text-slate-400">/ {storageData.totalLabel || `${storageData.total} GB`}</span>
+          </div>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none">
+            {isBasic ? 'Get 2 TB & Priority Support' : 'Manage your cloud subscription'}
           </p>
-          {isBasic && (
-            <button
-              onClick={() => navigate('/pricing')}
-              className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl py-2 text-sm font-medium transition"
-            >
-              Upgrade Now
-            </button>
-          )}
+          
+          <div className="mt-4 pt-3 border-t border-slate-200/50 dark:border-[#334155]/40 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+            <span>{isBasic ? 'Upgrade Plan' : 'Manage Plan'}</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </div>
         </div>
       </div>
     </>

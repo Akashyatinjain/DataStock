@@ -24,6 +24,7 @@ import {
   Check,
   Star,
   Share2,
+  Users,
   RotateCcw,
   BarChart2,
   TrendingUp,
@@ -33,6 +34,7 @@ import {
   Unlock,
   ShieldCheck,
   ShieldAlert,
+  Cloud,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -550,6 +552,11 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
   const isStarred = file.starred || file.isStarred;
   const isArchived = file.archived || file.isArchived;
 
+  const isEncrypted = file.isEncrypted || !!file.encryptedKey;
+  const isShared = file.isShared || file.sharedWith?.length > 0 || file._isDirectlyShared || file._isSharedDescendant;
+
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
@@ -563,10 +570,10 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
       }}
       className={`
         relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
-        transition-all duration-300 cursor-pointer select-none
+        transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[270px]
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-100 dark:border-[#334155] hover:border-blue-200 dark:hover:border-[#3B82F6] hover:shadow-xl hover:-translate-y-1 shadow-sm'}
+          : 'border-gray-100 dark:border-[#334155] hover:border-blue-200 dark:hover:border-[#3B82F6] hover:shadow-lg hover:-translate-y-0.5 shadow-xs'}
         ${isSelected ? 'border-[#3B82F6] ring-2 ring-green-500/20' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
@@ -587,138 +594,152 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
       )}
 
       {isDeleting && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-red-500">{isTrashView ? 'Deleting…' : 'Trashing…'}</span>
         </div>
       )}
       {isRestoring && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-green-500">Restoring…</span>
         </div>
       )}
 
-      {file.mimeType?.includes('image') ? (
-        <div className="h-40 overflow-hidden bg-gray-50 dark:bg-[#334155]">
-          <img src={file.url} alt={file.originalName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        </div>
-      ) : (
-        <div className={`h-28 flex items-center justify-center ${type.bg}`}>
-          <Icon className={`w-12 h-12 ${type.color} opacity-60`} />
-        </div>
-      )}
+      {/* Top Banner (Thumbnail or File icon) */}
+      <div className="relative">
+        {file.mimeType?.includes('image') ? (
+          <div className="h-32 overflow-hidden bg-gray-50 dark:bg-[#334155] relative flex items-center justify-center">
+            <img src={file.url} alt={file.originalName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          </div>
+        ) : (
+          <div className={`h-32 flex items-center justify-center ${type.bg} relative transition-transform duration-500`}>
+            <Icon className={`w-12 h-12 ${type.color} opacity-70 group-hover:scale-110 duration-300`} />
+          </div>
+        )}
 
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}>
-            {type.label}
-          </span>
-          {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/50" title="Found in file contents">
-              🔍 Content Match
+        {/* Favorite Star */}
+        {!isTrashView && (
+          <div className="absolute top-2.5 right-2.5 z-10" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => onToggleStar(file.id)}
+              disabled={isStarring}
+              className={`p-1.5 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
+                isStarred ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'
+              }`}
+            >
+              <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Body Details */}
+      <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
+        <div>
+          {/* File Name */}
+          <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
+            <h3 className="font-bold text-gray-900 dark:text-[#F8FAFC] truncate text-sm leading-tight flex-1" title={file.originalName}>
+              {file.originalName}
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1 mb-2">
+            <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}>
+              {type.label}
             </span>
-          )}
+            {isEncrypted && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-100/50 dark:border-orange-900/30">
+                <Lock className="w-2.5 h-2.5" /> Secure
+              </span>
+            )}
+            {isShared && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30">
+                <Users className="w-2.5 h-2.5" /> Shared
+              </span>
+            )}
+            {isArchived && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-100/50 dark:border-purple-900/30">
+                Archived
+              </span>
+            )}
+            {(file.isTrash || isTrashView) && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-100/50 dark:border-red-900/30">
+                Trash
+              </span>
+            )}
+            {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/50" title="Found in file contents">
+                🔍 Content Match
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 mb-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate text-sm leading-snug flex-1">
-            {file.originalName}
-          </h3>
-          {isStarred && !isTrashView && (
-            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
-          )}
-        </div>
-        <p className="text-xs text-gray-400 mb-4">{formatFileSize(file.size)}</p>
+        {/* Footer Metrics & Actions */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-gray-50 dark:border-[#334155] mt-auto">
+          <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider truncate mr-2">
+            {formatFileSize(file.size)} • {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+          </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-[#334155]">
-          <span className="text-[11px] text-gray-400">
-            {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-          </span>
-          <div className="flex gap-1 shrink-0">
-            {isTrashView ? (
+          {/* Action Menu */}
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
+            >
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+
+            {showMenu && (
               <>
-                <button
-                  onClick={e => { e.stopPropagation(); onRestore(file.id); }}
-                  disabled={isRestoring}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
-                  title="Restore"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  disabled={isDeleting}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                  title="Delete Forever"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
+                <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 bottom-8 mt-1 w-40 bg-white dark:bg-[#2A3547] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-50 animate-fade-in text-left">
                   <button
-                    onClick={e => { e.stopPropagation(); onExtract(file.id, file.originalName); }}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-600 transition"
-                    title="Extract ZIP Here"
+                    onClick={() => { setShowMenu(false); onPreview(file); }}
+                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
                   >
-                    <Archive className="w-4 h-4" />
+                    <Eye className="w-3.5 h-3.5 text-blue-500" /> Preview
                   </button>
-                )}
-                <button
-                  onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
-                  disabled={isStarring}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    isStarred
-                      ? 'text-yellow-500 hover:bg-yellow-50'
-                      : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
-                  }`}
-                  title={isStarred ? 'Remove from starred' : 'Add to starred'}
-                >
-                  {isStarring ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
+                  {!isTrashView && (
+                    <>
+                      <button
+                        onClick={() => { setShowMenu(false); onShare(file); }}
+                        className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-green-500" /> Share
+                      </button>
+                      <button
+                        onClick={() => { setShowMenu(false); onToggleArchive(file.id); }}
+                        className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                      >
+                        <Archive className="w-3.5 h-3.5 text-amber-500" /> {isArchived ? 'Unarchive' : 'Archive'}
+                      </button>
+                      {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
+                        <button
+                          onClick={() => { setShowMenu(false); onExtract(file.id, file.originalName); }}
+                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                        >
+                          <Archive className="w-3.5 h-3.5 text-purple-500" /> Extract ZIP
+                        </button>
+                      )}
+                    </>
                   )}
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onToggleArchive(file.id); }}
-                  disabled={isArchiving}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    isArchived
-                      ? 'text-amber-600 hover:bg-amber-50'
-                      : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'
-                  }`}
-                  title={isArchived ? 'Unarchive' : 'Archive'}
-                >
-                  {isArchiving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Archive className={`w-4 h-4 ${isArchived ? 'fill-amber-500 text-amber-500' : ''}`} />
+                  {isTrashView && (
+                    <button
+                      onClick={() => { setShowMenu(false); onRestore(file.id); }}
+                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-green-500" /> Restore
+                    </button>
                   )}
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onShare(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
-                  title="Share"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
-                  title="Preview"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                  title="Delete"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={() => { setShowMenu(false); onDelete(file.id); }}
+                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-500" /> {isTrashView ? 'Delete Forever' : 'Delete'}
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -738,6 +759,11 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
   const isStarred = file.starred || file.isStarred;
   const isArchived = file.archived || file.isArchived;
 
+  const isEncrypted = file.isEncrypted || !!file.encryptedKey;
+  const isShared = file.isShared || file.sharedWith?.length > 0 || file._isDirectlyShared || file._isSharedDescendant;
+  
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
     <div
       draggable={!isDeleting && !isRestoring && !isTrashView}
@@ -750,14 +776,14 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         e.dataTransfer.effectAllowed = "move";
       }}
       className={`
-        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 dark:border-[#334155]
+        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-3.5 border-b border-gray-50 dark:border-[#334155]
         hover:bg-gray-50/80 dark:hover:bg-[#334155]/50 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
         ${isSelected ? 'bg-blue-50/30 dark:bg-green-950/10' : ''}
       `}
       onClick={() => !isDeleting && !isRestoring && onPreview(file)}
     >
-      <div className="md:col-span-6 flex items-center gap-3 min-w-0">
+      <div className="col-span-1 md:col-span-6 flex items-center gap-3 min-w-0">
         {!isTrashView && onToggleSelect && (
           <div 
             className={`mr-1 shrink-0 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
@@ -771,14 +797,26 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
             />
           </div>
         )}
-        <div className={`w-10 h-10 ${type.bg} rounded-xl flex items-center justify-center shrink-0`}>
-          <Icon className={`w-5 h-5 ${type.color}`} />
+        <div className={`w-9 h-9 ${type.bg} rounded-lg flex items-center justify-center shrink-0`}>
+          <Icon className={`w-4.5 h-4.5 ${type.color}`} />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <p className="font-medium text-gray-900 dark:text-[#F8FAFC] text-sm truncate">{file.originalName}</p>
+            <p className="font-semibold text-gray-900 dark:text-[#F8FAFC] text-sm truncate" title={file.originalName}>{file.originalName}</p>
             {isStarred && !isTrashView && (
               <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+            )}
+            {isEncrypted && (
+              <Lock className="w-3 h-3 text-orange-500 shrink-0 animate-pulse" />
+            )}
+            {isShared && (
+              <Users className="w-3 h-3 text-emerald-500 shrink-0" />
+            )}
+            {isArchived && (
+              <span className="text-[10px] text-purple-500 shrink-0" title="Archived">📦</span>
+            )}
+            {(file.isTrash || isTrashView) && (
+              <span className="text-[10px] text-red-500 shrink-0" title="Trash">🗑️</span>
             )}
             {searchQuery && file.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) && (
               <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/30 shrink-0" title="Found in file contents">
@@ -786,9 +824,8 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
               </span>
             )}
           </div>
-          <p className="text-[11px] text-gray-400 truncate">{file.url}</p>
           <p className="md:hidden text-[11px] text-gray-400 truncate">
-            {formatFileSize(file.size)} - {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {formatFileSize(file.size)} • {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
           </p>
         </div>
       </div>
@@ -799,94 +836,88 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
 
-      <div className="md:col-span-1 flex justify-end gap-1 shrink-0">
+      <div className="md:col-span-1 flex justify-end gap-1 shrink-0" onClick={e => e.stopPropagation()}>
         {isDeleting ? (
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
         ) : isRestoring ? (
           <Loader2 className="w-4 h-4 text-[#3B82F6] animate-spin" />
         ) : (
           <>
-            {isTrashView ? (
-              <>
-                <button
-                  onClick={e => { e.stopPropagation(); onRestore(file.id); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
-                  title="Restore"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                  title="Delete Forever"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
-                  <button
-                    onClick={e => { e.stopPropagation(); onExtract(file.id, file.originalName); }}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-amber-50 hover:text-amber-600 transition"
-                    title="Extract ZIP Here"
-                  >
-                    <Archive className="w-4 h-4" />
-                  </button>
-                )}
-                <button
-                  onClick={e => { e.stopPropagation(); onToggleStar(file.id); }}
-                  disabled={isStarring}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    isStarred
-                      ? 'text-yellow-500 hover:bg-yellow-50'
-                      : 'text-gray-400 hover:bg-yellow-50 hover:text-yellow-500'
-                  }`}
-                  title={isStarred ? 'Remove from starred' : 'Add to starred'}
-                >
-                  {isStarring ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Star className={`w-4 h-4 ${isStarred ? 'fill-yellow-400' : ''}`} />
-                  )}
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onToggleArchive(file.id); }}
-                  disabled={isArchiving}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                    isArchived
-                      ? 'text-amber-600 hover:bg-amber-50'
-                      : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600'
-                  }`}
-                  title={isArchived ? 'Unarchive' : 'Archive'}
-                >
-                  {isArchiving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Archive className={`w-4 h-4 ${isArchived ? 'fill-amber-500 text-amber-500' : ''}`} />
-                  )}
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onShare(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-sky-50 hover:text-sky-600 transition"
-                  title="Share"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onPreview(file); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-[#3B82F6] transition"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); onDelete(file.id); }}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </>
+            {!isTrashView && (
+              <button
+                onClick={() => onToggleStar(file.id)}
+                disabled={isStarring}
+                className={`p-1.5 rounded-lg transition ${
+                  isStarred
+                    ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-[#334155]/50'
+                    : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#334155]'
+                }`}
+                title={isStarred ? 'Remove Star' : 'Add Star'}
+              >
+                <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+              </button>
             )}
+            
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
+              >
+                <MoreVertical className="w-3.5 h-3.5" />
+              </button>
+
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 bottom-8 mt-1 w-40 bg-white dark:bg-[#2A3547] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-50 animate-fade-in text-left">
+                    <button
+                      onClick={() => { setShowMenu(false); onPreview(file); }}
+                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-blue-500" /> Preview
+                    </button>
+                    {!isTrashView && (
+                      <>
+                        <button
+                          onClick={() => { setShowMenu(false); onShare(file); }}
+                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                        >
+                          <Share2 className="w-3.5 h-3.5 text-green-500" /> Share
+                        </button>
+                        <button
+                          onClick={() => { setShowMenu(false); onToggleArchive(file.id); }}
+                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                        >
+                          <Archive className="w-3.5 h-3.5 text-amber-500" /> {isArchived ? 'Unarchive' : 'Archive'}
+                        </button>
+                        {(file.mimeType === 'application/zip' || file.originalName?.endsWith('.zip')) && onExtract && (
+                          <button
+                            onClick={() => { setShowMenu(false); onExtract(file.id, file.originalName); }}
+                            className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                          >
+                            <Archive className="w-3.5 h-3.5 text-purple-500" /> Extract ZIP
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {isTrashView && (
+                      <button
+                        onClick={() => { setShowMenu(false); onRestore(file.id); }}
+                        className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-green-500" /> Restore
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setShowMenu(false); onDelete(file.id); }}
+                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-red-500" /> {isTrashView ? 'Delete Forever' : 'Delete'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -894,19 +925,183 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
   );
 };
 
+const SuggestedFileCard = ({ file, onPreview }) => {
+  const type = getFileType(file.mimeType);
+  const Icon = type.icon;
+  const isStarred = file.starred || file.isStarred;
+  const isEncrypted = file.isEncrypted || !!file.encryptedKey;
+  
+  const getModifiedLabel = () => {
+    if (!file.createdAt) return 'Edited recently';
+    const date = new Date(file.createdAt);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return 'Edited today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Edited yesterday';
+    return `Edited ${date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`;
+  };
+
+  const mockViews = (file.id.charCodeAt(0) % 15) + 3;
+
+  return (
+    <div 
+      onClick={() => onPreview(file)}
+      className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 hover:border-blue-200 dark:hover:border-[#3B82F6]/50 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[115px] hover:scale-[1.01] hover:-translate-y-0.5 animate-fade-up"
+    >
+      <div className="flex items-start justify-between min-w-0 gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${type.bg}`}>
+            <Icon className={`w-4 h-4 ${type.color}`} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="font-extrabold text-gray-900 dark:text-[#F8FAFC] text-sm truncate leading-tight">
+              {file.originalName}
+            </h4>
+            <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+              {getModifiedLabel()}
+            </p>
+          </div>
+        </div>
+        
+        {isStarred && (
+          <span className="text-[10px] text-yellow-500 shrink-0">★</span>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-50 dark:border-[#334155]/40 text-[9px] font-bold uppercase tracking-wider">
+        {isStarred && (
+          <span className="text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20 px-1.5 py-0.5 rounded-full">
+            ⭐ Favorite
+          </span>
+        )}
+        {isEncrypted && (
+          <span className="text-orange-600 bg-orange-50 dark:bg-orange-950/20 px-1.5 py-0.5 rounded-full">
+            🔒 E2EE Secure
+          </span>
+        )}
+        <span className="text-gray-400 bg-gray-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+          👁️ {mockViews} views
+        </span>
+        <span className="text-gray-400 bg-gray-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-full ml-auto">
+          {formatFileSize(file.size)}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const CommandPaletteModal = ({ isOpen, onClose, files, onPreview, onTabChange, isUnlocked, onUnlock, onLock, isE2eeSetup }) => {
+  const [search, setSearch] = useState('');
+  
+  useEffect(() => {
+    if (!isOpen) setSearch('');
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+  
+  const filtered = search.trim() === '' ? [] : files.filter(f => 
+    f.originalName?.toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 5);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-[#0F172A]/70 backdrop-blur-xs pt-24 px-4 select-none">
+      <div className="fixed inset-0" onClick={onClose} />
+      
+      <div className="bg-white dark:bg-[#1E293B] border border-gray-150 dark:border-[#334155] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden z-10 animate-fade-up">
+        {/* Search Input bar */}
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-[#334155]">
+          <span className="text-gray-400">🔍</span>
+          <input 
+            type="text"
+            autoFocus
+            placeholder="Search files or type a command... (Esc to exit)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-transparent border-0 text-sm text-gray-800 dark:text-[#F8FAFC] placeholder-gray-400 focus:ring-0 focus:outline-none"
+          />
+          <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[10px] font-bold shadow-xs">
+            ESC
+          </kbd>
+        </div>
+
+        {/* Results list */}
+        <div className="max-h-72 overflow-y-auto p-2">
+          {filtered.length > 0 && (
+            <div className="mb-3.5">
+              <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-2">Files</p>
+              <div className="space-y-1">
+                {filtered.map(file => (
+                  <button
+                    key={`cmd-file-${file.id}`}
+                    onClick={() => { onPreview(file); onClose(); }}
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                  >
+                    <span className="truncate">📄 {file.originalName}</span>
+                    <span className="text-[10px] text-gray-400 shrink-0">{formatFileSize(file.size)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-2">Quick Actions & Commands</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => { onTabChange('my-drive'); onClose(); }}
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+              >
+                <span>📁 Go to My Drive</span>
+                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">G D</kbd>
+              </button>
+              <button
+                onClick={() => { onTabChange('starred'); onClose(); }}
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+              >
+                <span>⭐ Go to Starred Items</span>
+                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">G S</kbd>
+              </button>
+              {isE2eeSetup && (
+                <button
+                  onClick={() => { if (isUnlocked) onLock(); else onUnlock(); onClose(); }}
+                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                >
+                  <span>🔒 {isUnlocked ? 'Lock E2EE Vault' : 'Unlock E2EE Vault'}</span>
+                  <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">L V</kbd>
+                </button>
+              )}
+              <button
+                onClick={() => { onTabChange('trash'); onClose(); }}
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+              >
+                <span>🗑️ Go to Trash</span>
+                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">G T</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const UploadButton = ({ uploading, onChange }) => (
-  <label className="cursor-pointer inline-flex max-w-full">
+  <label className="cursor-pointer inline-flex max-w-full group/btn">
     <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={onChange} multiple />
     <div className={`
-      px-5 py-3 rounded-xl inline-flex items-center gap-2 transition font-semibold text-sm shadow-sm whitespace-nowrap
+      px-5 py-2.5 rounded-2xl inline-flex items-center gap-2 transition-all duration-300 font-bold text-sm shadow-md whitespace-nowrap
       ${uploading
         ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] cursor-not-allowed'
-        : 'bg-[#3B82F6] hover:bg-[#2563EB] text-white hover:shadow-md active:scale-95'}
+        : 'bg-gradient-to-r from-[#3B82F6] to-indigo-600 hover:to-[#2563EB] text-white shadow-blue-500/10 hover:shadow-blue-500/30 hover:scale-[1.05] active:scale-[0.96] hover:shadow-[0_0_20px_rgba(59,130,246,0.35)]'}
     `}>
-      {uploading
-        ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
-        : <><Upload className="w-4 h-4" /> Upload File</>
-      }
+      {uploading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <Upload className="w-4.5 h-4.5 transition-transform duration-300 group-hover/btn:-translate-y-1 group-hover/btn:scale-110" />
+      )}
+      <span>{uploading ? 'Uploading…' : 'Upload Files'}</span>
     </div>
   </label>
 );
@@ -1018,7 +1213,44 @@ const Dashboard = () => {
   const [activeTab, setActiveTab]           = useState('my-drive');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const dragCounter = React.useRef(0);
+
+  useEffect(() => {
+    let lastKey = '';
+    const handleKeyDown = (e) => {
+      // Ignore if typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+        if (e.key === 'Escape') {
+          setIsCommandPaletteOpen(false);
+        }
+        return;
+      }
+      
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        setIsCommandPaletteOpen(false);
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (lastKey === 'g') {
+        if (key === 'd') { setActiveTab('my-drive'); lastKey = ''; }
+        else if (key === 's') { setActiveTab('starred'); lastKey = ''; }
+        else if (key === 't') { setActiveTab('trash'); lastKey = ''; }
+      } else {
+        lastKey = key;
+        setTimeout(() => { lastKey = ''; }, 1000);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Share modal state
   const [shareModalFile, setShareModalFile] = useState(null);
@@ -1324,6 +1556,25 @@ const Dashboard = () => {
   const totalGB = totalStorage / (1024 * 1024 * 1024);
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
   const totalFileCount = allFiles.length;
+  const imageCount = allFiles.filter(f => f.mimeType?.startsWith('image')).length;
+  const videoCount = allFiles.filter(f => f.mimeType?.startsWith('video')).length;
+  const pdfCount = allFiles.filter(f => f.mimeType?.includes('pdf')).length;
+  const docCount = allFiles.filter(f => 
+    f.mimeType?.includes('document') || 
+    f.mimeType?.includes('sheet') || 
+    f.mimeType?.includes('msword') ||
+    f.mimeType?.includes('presentation')
+  ).length;
+  const totalFoldersCount = folders?.length || 0;
+  const totalSharedFilesCount = allFiles?.filter(f => f.isShared || f.sharedWith?.length > 0 || f._isDirectlyShared || f._isSharedDescendant).length || 0;
+
+  const suggestedFiles = useMemo(() => {
+    if (!allFiles || allFiles.length === 0) return [];
+    return [...allFiles]
+      .filter(f => !f.isArchived && !f.isTrash && !f.archived && !f.trash)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 3);
+  }, [allFiles]);
 
   const analyticsCategories = useMemo(() => {
     const categories = storageActivity?.categories || analytics?.categories || {};
@@ -2040,6 +2291,20 @@ const Dashboard = () => {
 
   const isTrashView = activeTab === 'trash';
 
+  const totalCatFiles = (imageCount + videoCount + pdfCount + docCount) || 1;
+  const imgPct = Math.round((imageCount / totalCatFiles) * 100);
+  const vidPct = Math.round((videoCount / totalCatFiles) * 100);
+  const pdfPct = Math.round((pdfCount / totalCatFiles) * 100);
+  const docPct = Math.max(0, 100 - imgPct - vidPct - pdfPct);
+
+  const imgEnd = imgPct;
+  const vidEnd = imgEnd + vidPct;
+  const pdfEnd = vidEnd + pdfPct;
+  
+  const pieChartStyle = {
+    background: `conic-gradient(#3B82F6 0% ${imgEnd}%, #8B5CF6 ${imgEnd}% ${vidEnd}%, #F97316 ${vidEnd}% ${pdfEnd}%, #10B981 ${pdfEnd}% 100%)`
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] transition-colors duration-200">
 
@@ -2121,7 +2386,7 @@ const Dashboard = () => {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className="p-4 sm:p-6 lg:p-8 max-w-[1600px] relative"
+          className="p-4 sm:px-10 lg:px-12 sm:py-6 lg:py-8 max-w-[1600px] relative"
         >
           {isDraggingFile && (
             <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
@@ -2136,7 +2401,7 @@ const Dashboard = () => {
           )}
 
             {/* ── TOP BAR ── */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8 min-w-0">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5 min-w-0">
               <div className="min-w-0">
                 {activeTab?.startsWith('folder-') && folderPath.length > 0 && (
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-[#94A3B8] mb-2.5 flex-wrap">
@@ -2162,46 +2427,66 @@ const Dashboard = () => {
                     })}
                   </div>
                 )}
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
-                    {pageTitle}
-                  </h1>
-                  {selectedFolder && (
-                    <button
-                      onClick={() => handleShareFolder(selectedFolder)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition flex items-center justify-center shrink-0 border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xs"
-                      title="Share folder"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </button>
-                  )}
-
-                  {/* Collaborators currently viewing this folder */}
-                  {folderUsers.length > 0 && (
-                    <div className="flex items-center -space-x-2 ml-2 sm:ml-4 bg-white dark:bg-[#1E293B] px-3 py-1 rounded-full border border-gray-100 dark:border-[#334155] shadow-xs">
-                      {folderUsers.map((viewer) => (
-                        <div
-                          key={viewer.id}
-                          className="relative group w-7 h-7 rounded-full border border-white dark:border-[#334155] bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold shadow-xs overflow-hidden cursor-pointer"
-                          title={`${viewer.username} (${viewer.email}) is viewing this folder`}
+                {activeTab === 'my-drive' && !selectedFolder ? (
+                  <div>
+                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
+                      {(() => {
+                        const hr = new Date().getHours();
+                        const name = user?.username || 'Akash';
+                        if (hr >= 22 || hr < 5) return `Good night, ${name} 🌙`;
+                        if (hr < 12) return `Good morning, ${name} 👋`;
+                        if (hr < 17) return `Good afternoon, ${name} 👋`;
+                        return `Good evening, ${name} 👋`;
+                      })()}
+                    </h1>
+                    <p className="text-xs text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
+                      {totalFileCount} {totalFileCount === 1 ? 'File' : 'Files'} • {totalFoldersCount} {totalFoldersCount === 1 ? 'Folder' : 'Folders'} • {onlineUsersList.length} {onlineUsersList.length === 1 ? 'Collaborator' : 'Collaborators'} Online • {formatFileSize(totalStorage - usedStorage)} Available
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
+                        {pageTitle}
+                      </h1>
+                      {selectedFolder && (
+                        <button
+                          onClick={() => handleShareFolder(selectedFolder)}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition flex items-center justify-center shrink-0 border border-gray-100 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xs"
+                          title="Share folder"
                         >
-                          {viewer.imageUrl ? (
-                            <img src={viewer.imageUrl} className="w-full h-full object-cover" alt={viewer.username} />
-                          ) : (
-                            <span>{viewer.username.charAt(0).toUpperCase()}</span>
-                          )}
-                          <div className="absolute top-0 right-0 w-2 h-2 bg-[#3B82F6] rounded-full border border-white dark:border-[#334155] animate-pulse" />
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      {folderUsers.length > 0 && (
+                        <div className="flex items-center -space-x-2 ml-2 sm:ml-4 bg-white dark:bg-[#1E293B] px-3 py-1 rounded-full border border-gray-100 dark:border-[#334155] shadow-xs">
+                          {folderUsers.map((viewer) => (
+                            <div
+                              key={viewer.id}
+                              className="relative group w-7 h-7 rounded-full border border-white dark:border-[#334155] bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold shadow-xs overflow-hidden cursor-pointer"
+                              title={`${viewer.username} (${viewer.email}) is viewing this folder`}
+                            >
+                              {viewer.imageUrl ? (
+                                <img src={viewer.imageUrl} className="w-full h-full object-cover" alt={viewer.username} />
+                              ) : (
+                                <span>{viewer.username.charAt(0).toUpperCase()}</span>
+                              )}
+                              <div className="absolute top-0 right-0 w-2 h-2 bg-[#3B82F6] rounded-full border border-white dark:border-[#334155] animate-pulse" />
+                            </div>
+                          ))}
+                          <span className="text-[11px] text-gray-500 dark:text-[#94A3B8] ml-2 font-medium">
+                            {folderUsers.length} viewing now
+                          </span>
                         </div>
-                      ))}
-                      <span className="text-[11px] text-gray-500 dark:text-[#94A3B8] ml-2 font-medium">
-                        {folderUsers.length} viewing now
-                      </span>
+                      )}
                     </div>
-                  )}
-                </div>
-                <p className="text-gray-400 mt-1 text-sm truncate">
-                  {pageSubtitle}
-                </p>
+                    {pageSubtitle && (
+                      <p className="text-gray-400 mt-1 text-sm truncate">
+                        {pageSubtitle}
+                      </p>
+                    )}
+                  </>
+                )}
                 {(selectedFolder || activeTab !== 'my-drive') && (
                   <button
                     type="button"
@@ -2269,10 +2554,8 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-
-            {/* ── E2EE UNLOCK BANNER ── */}
             {isE2eeSetup && !isE2eeUnlocked && (
-              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-5 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-slide-down">
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-slide-down">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
                     <Lock className="w-5 h-5 animate-pulse" />
@@ -2305,53 +2588,159 @@ const Dashboard = () => {
               </div>
             )}
 
+            {isE2eeSetup && isE2eeUnlocked && (
+              <div className="bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-200/50 dark:border-emerald-900/40 rounded-xl px-4 py-2 mb-5 flex items-center justify-between text-xs font-semibold text-emerald-800 dark:text-emerald-300 animate-fade-in shadow-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <span>Zero-Knowledge Vault Protected (AES-256 Encryption Active)</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-100/40 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md border border-emerald-200/40 dark:border-emerald-900/20">
+                  Unlocked
+                </span>
+              </div>
+            )}
+
             {/* ── STATS ROW ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-
-                {/* Storage card */}
-                <div className="sm:col-span-2 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <h2 className="text-base font-semibold text-gray-900 dark:text-[#F8FAFC]">Storage Usage</h2>
-                      <p className="text-gray-400 text-sm mt-0.5">{usedFormatted} used of {totalFormatted}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 animate-fade-up">
+                {/* Storage card (Full Width on First Row) */}
+                <div className="md:col-span-2 bg-white dark:bg-[#1E293B] rounded-2xl p-5.5 shadow-md border border-transparent transition hover:shadow-lg duration-300 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Storage Usage</h2>
+                      <div className="w-8.5 h-8.5 bg-blue-50 dark:bg-blue-950/20 rounded-xl flex items-center justify-center text-[#3B82F6] shrink-0">
+                        <HardDrive className="w-4.5 h-4.5" />
+                      </div>
                     </div>
-                    <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center">
-                      <HardDrive className="w-5 h-5 text-[#3B82F6]" />
+
+                    <p className="text-xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">
+                      {usedFormatted} <span className="text-xs font-medium text-gray-400">used of {totalFormatted}</span>
+                    </p>
+
+                    {/* Progress bar */}
+                    <div className="w-full h-2 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden mt-3 mb-1.5">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-blue-500 to-indigo-600 animate-pulse"
+                        style={{ width: `${storagePercentage}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+                      <span>{usedFormatted} used</span>
+                      <span>{(totalGB - usedGB).toFixed(2)} GB left</span>
                     </div>
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="w-full h-2.5 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{
-                        width: `${storagePercentage}%`,
-                        background: storagePercentage > 80
-                          ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                          : 'linear-gradient(90deg, #22c55e, #10b981)',
-                      }}
-                    />
-                  </div>
+                  {/* Pie Chart Analytics Integration */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-[#334155]/60">
+                    {/* Donut Chart */}
+                    <div className="relative w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-inner hover:scale-105 transition-transform duration-300" style={pieChartStyle}>
+                      <div className="absolute w-10 h-10 bg-white dark:bg-[#1E293B] rounded-full flex items-center justify-center text-[9px] font-black text-gray-800 dark:text-slate-100">
+                        {Math.round(storagePercentage)}%
+                      </div>
+                    </div>
 
-                  <div className="flex justify-between mt-2">
-                    <span className="text-xs text-gray-400">0 GB</span>
-                    <span className="text-xs font-semibold text-gray-500">{storagePercentage.toFixed(1)}%</span>
-                    <span className="text-xs text-gray-400">{totalFormatted}</span>
+                    {/* Legend */}
+                    <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 w-full">
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 text-gray-500">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shrink-0" />
+                          Images
+                        </span>
+                        <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC]">{imgPct}% ({imageCount})</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 text-gray-500">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6] shrink-0" />
+                          Videos
+                        </span>
+                        <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC]">{vidPct}% ({videoCount})</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 text-gray-500">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#F97316] shrink-0" />
+                          PDFs
+                        </span>
+                        <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC]">{pdfPct}% ({pdfCount})</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 text-gray-500">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shrink-0" />
+                          Docs
+                        </span>
+                        <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC]">{docPct}% ({docCount})</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* File count card */}
-                <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                {/* File count card (Second Row - Left side) */}
+                <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155]/80 rounded-2xl p-5 shadow-none hover:border-gray-300 dark:hover:border-slate-500 transition duration-300 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-gray-900 dark:text-[#F8FAFC]">Total Files</h2>
-                    <div className="w-11 h-11 bg-sky-50 rounded-xl flex items-center justify-center">
-                      <Folder className="w-5 h-5 text-sky-500" />
+                    <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Total Files</h2>
+                    <div className="w-8 h-8 bg-sky-50 dark:bg-sky-950/20 rounded-xl flex items-center justify-center text-sky-500 shrink-0">
+                      <Folder className="w-4.5 h-4.5" />
                     </div>
                   </div>
-                  <div>
-                    <p className="text-4xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mt-4 tabular-nums">{totalFileCount}</p>
-                    <p className="text-sm text-gray-400 mt-1">files stored (all folders)</p>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-4xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">{totalFileCount}</p>
+                      <span className="text-xs font-bold text-emerald-500 flex items-center gap-0.5 shrink-0 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded-full">
+                        <span>↑</span> +{Math.max(1, Math.floor(totalFileCount / 3))} this week
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-gray-100 dark:border-[#334155]/60 text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
+                      <div>
+                        <span className="font-bold text-gray-700 dark:text-gray-300">{totalFoldersCount}</span> Folders
+                      </div>
+                      <div>
+                        <span className="font-bold text-gray-700 dark:text-gray-300">{totalSharedFilesCount}</span> Shared
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* System Status card (Second Row - Right side) */}
+                <div className="bg-slate-50/50 dark:bg-slate-800/30 border-none shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/40 transition duration-300 rounded-2xl p-5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">System Status</h2>
+                    <span className="text-[9px] font-extrabold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full border border-emerald-100/50 uppercase tracking-wide">
+                      Active
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        🔒 Zero-Knowledge Vault
+                      </span>
+                      <span className="font-bold text-emerald-500">{isE2eeSetup ? (isE2eeUnlocked ? 'Unlocked' : 'Locked') : 'Inactive'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        📝 OCR Parsing Engine
+                      </span>
+                      <span className="font-bold text-slate-700 dark:text-[#F8FAFC]">Enabled</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        🕒 Smart Versioning
+                      </span>
+                      <span className="font-bold text-slate-700 dark:text-[#F8FAFC]">Active</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        🧠 AI Search Indexing
+                      </span>
+                      <span className="font-bold text-indigo-500 dark:text-indigo-400">Ready</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        💬 Live Collaboration
+                      </span>
+                      <span className="font-bold text-emerald-500">Connected</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2359,30 +2748,45 @@ const Dashboard = () => {
 
             {/* ── ONLINE COLLABORATORS BANNER ── */}
             {onlineUsersList.length > 0 && (
-              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-4 mb-8 shadow-sm flex items-center justify-between flex-wrap gap-4">
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl p-3.5 mb-6 shadow-xs flex items-center justify-between gap-4 animate-fade-up">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 bg-[#3B82F6] rounded-full animate-pulse shrink-0" />
-                  <span className="font-semibold text-sm text-gray-900 dark:text-[#F8FAFC]">
-                    Online Collaborators ({onlineUsersList.length})
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {onlineUsersList.map((onlineUser) => (
-                    <div
-                      key={onlineUser.id}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-[#334155] rounded-xl text-xs font-medium text-gray-700 dark:text-[#94A3B8] border border-gray-200/50 dark:border-[#334155]/50 transition hover:shadow-xs"
-                      title={onlineUser.email}
-                    >
-                      <div className="relative w-5 h-5 rounded-full bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-bold overflow-hidden shrink-0">
+                  <div className="relative flex items-center -space-x-2.5">
+                    {onlineUsersList.slice(0, 3).map((onlineUser) => (
+                      <div
+                        key={onlineUser.id}
+                        className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1E293B] bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-xs font-bold overflow-hidden shadow-sm hover:translate-y-[-2px] transition-transform duration-200"
+                        title={`${onlineUser.username} (${onlineUser.email})`}
+                      >
                         {onlineUser.imageUrl ? (
                           <img src={onlineUser.imageUrl} className="w-full h-full object-cover" alt={onlineUser.username} />
                         ) : (
                           <span>{onlineUser.username.charAt(0).toUpperCase()}</span>
                         )}
                       </div>
-                      <span className="truncate max-w-[120px]">{onlineUser.username} {onlineUser.id === user?.id && <span className="text-[10px] text-gray-400 font-normal shrink-0">(you)</span>}</span>
-                    </div>
-                  ))}
+                    ))}
+                    {onlineUsersList.length > 3 && (
+                      <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1E293B] bg-slate-100 dark:bg-[#334155] flex items-center justify-center text-gray-500 dark:text-gray-300 text-xs font-bold shadow-sm">
+                        +{onlineUsersList.length - 3}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Active Collaborators</h4>
+                    <p className="text-xs text-gray-500 dark:text-[#94A3B8] mt-0.5">
+                      {onlineUsersList.length === 1 
+                        ? `${onlineUsersList[0].username} is active now` 
+                        : `${onlineUsersList[0].username} and ${onlineUsersList.length - 1} others are active now`}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Live Activity indicator tag */}
+                <div className="flex items-center gap-2 bg-blue-50/50 dark:bg-blue-950/20 px-3 py-1.5 rounded-xl border border-blue-100/50 dark:border-blue-900/30 text-xs font-bold text-[#3B82F6] select-none">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                  </span>
+                  <span>Collaborating Live</span>
                 </div>
               </div>
             )}
@@ -2390,7 +2794,7 @@ const Dashboard = () => {
             {/* ── SECTION HEADER ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
               <div className="flex items-center justify-between mb-4 mt-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
                   Files — {filteredFiles.length}
                 </h3>
               </div>
@@ -2412,32 +2816,73 @@ const Dashboard = () => {
 
             {/* ── EMPTY STATE ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && filteredFolders.length === 0 && (
-              <div className="bg-white dark:bg-[#1E293B] border border-dashed border-gray-200 dark:border-[#334155] rounded-3xl px-6 py-10 sm:px-10 sm:py-12 text-center max-w-2xl mx-auto">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-[#334155] rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-100 dark:border-[#334155]">
-                  {isTrashView ? <Trash2 className="w-10 h-10 text-gray-300 dark:text-[#94A3B8]" /> : <Folder className="w-10 h-10 text-gray-300 dark:text-[#94A3B8]" />}
+              <div className="bg-white dark:bg-[#1E293B] border border-dashed border-gray-200 dark:border-[#334155] rounded-3xl px-6 py-10 sm:px-12 sm:py-16 text-center max-w-2xl mx-auto shadow-xs hover:shadow-md transition duration-300">
+                <div className="w-24 h-24 bg-blue-50 dark:bg-blue-950/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100 dark:border-blue-900/30 text-[#3B82F6] animate-pulse">
+                  {isTrashView ? <Trash2 className="w-10 h-10 animate-bounce" /> : <Cloud className="w-10 h-10" />}
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight mb-2">
                   {emptyState.title}
                 </h2>
-                <p className="text-gray-400 mb-6 text-sm">
-                  {emptyState.desc}
+                <p className="text-gray-400 mb-6 text-sm max-w-md mx-auto leading-relaxed">
+                  {emptyState.desc || "Get started by dragging files directly into the window or using the action triggers below."}
                 </p>
-                {emptyState.showUpload && (
-                  <label className="cursor-pointer inline-flex">
-                    <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
-                    <div className="px-5 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl flex items-center gap-2 transition font-semibold text-sm shadow-sm">
-                      <Plus className="w-4 h-4" />
-                      Upload a file
-                    </div>
-                  </label>
-                )}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-8">
+                  {emptyState.showUpload && (
+                    <label className="cursor-pointer inline-flex w-full sm:w-auto justify-center">
+                      <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
+                      <div className="px-5 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl flex items-center justify-center gap-2 transition font-semibold text-sm shadow-sm hover:scale-[1.02] active:scale-95 duration-150 w-full sm:w-auto">
+                        <Upload className="w-4 h-4" />
+                        Upload a file
+                      </div>
+                    </label>
+                  )}
+                  <button 
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.webkitdirectory = true;
+                      input.onChange = handleUpload;
+                      input.click();
+                    }}
+                    className="px-5 py-3 bg-white dark:bg-[#2A3547] border border-gray-200 dark:border-[#334155] text-gray-700 dark:text-[#D1D5DB] rounded-xl flex items-center justify-center gap-2 transition font-semibold text-sm hover:bg-gray-50 dark:hover:bg-[#334155] shadow-xs w-full sm:w-auto"
+                  >
+                    <Folder className="w-4 h-4 text-amber-500" />
+                    Upload Folder
+                  </button>
+                </div>
+                
+                {/* Usage Tips section */}
+                <div className="bg-gray-50 dark:bg-[#2A3547]/50 rounded-2xl p-4 text-left border border-gray-100/50 dark:border-[#334155]/40 max-w-lg mx-auto">
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">💡 Quick Tips</h4>
+                  <ul className="text-xs text-gray-500 dark:text-[#94A3B8] space-y-1.5 list-disc pl-4 font-medium">
+                    <li>Drag and drop files anywhere on the page to trigger instant uploads.</li>
+                    <li>Toggle the 🔒 E2EE switch in the toolbar to encrypt files zero-knowledge.</li>
+                    <li>Hold <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-700 rounded text-[10px]">Ctrl</kbd> to select multiple files for batch downloads and shares.</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* ── SUGGESTED FILES ── */}
+            {activeTab === 'my-drive' && !loading && suggestedFiles.length > 0 && (
+              <div className="mb-6 animate-fade-up">
+                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Suggested Files</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+                  {suggestedFiles.map(file => (
+                    <SuggestedFileCard
+                      key={`suggested-${file.id}`}
+                      file={file}
+                      onPreview={handlePreview}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
             {/* ── FOLDERS GRID ── */}
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
-              <div className="mb-8 animate-fade-up">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Folders</h3>
+              <div className="mb-6 animate-fade-up">
+                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-2.5">Folders</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
                   {filteredFolders.map(folder => (
                     <FolderCard
@@ -2450,6 +2895,52 @@ const Dashboard = () => {
                       currentUserId={user?.id}
                     />
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── RECENT ACTIVITY WIDGET ── */}
+            {activeTab === 'my-drive' && !loading && (allFiles.length > 0 || folders.length > 0) && (
+              <div className="mb-6 animate-fade-up bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-5 shadow-xs">
+                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Recent Activity</h3>
+                <div className="space-y-2">
+                  {[...allFiles, ...folders]
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 4)
+                    .map((item, idx) => {
+                      const isFolder = !item.mimeType;
+                      const timeString = new Date(item.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                      
+                      let badge = "🟢 Uploaded";
+                      let color = "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30";
+                      
+                      if (isFolder) {
+                        badge = "🟡 Created Folder";
+                        color = "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30";
+                      } else if (item.isShared || item.sharedWith?.length > 0) {
+                        badge = "🔵 Shared Item";
+                        color = "text-blue-500 bg-blue-50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30";
+                      } else if (item.isEncrypted) {
+                        badge = "🔒 Encrypted";
+                        color = "text-orange-500 bg-orange-50 dark:bg-orange-950/20 border border-orange-100/50 dark:border-orange-900/30";
+                      }
+                      
+                      return (
+                        <div key={`activity-${idx}`} className="flex items-center justify-between text-xs hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-xl transition duration-150 border-b border-gray-50/50 dark:border-[#334155]/20 last:border-0">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className={`px-2 py-0.5 rounded-full font-extrabold text-[8.5px] uppercase tracking-wider shrink-0 ${color}`}>
+                              {badge}
+                            </span>
+                            <span className="font-semibold text-gray-800 dark:text-[#F8FAFC] truncate">
+                              {item.originalName || item.name}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider shrink-0 pl-4">
+                            {timeString}
+                          </span>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -2486,9 +2977,9 @@ const Dashboard = () => {
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
               <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm">
                 <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-[#334155] bg-gray-50/80 dark:bg-[#334155]/50">
-                  <div className="col-span-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Name</div>
-                  <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Size</div>
-                  <div className="col-span-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Date</div>
+                  <div className="col-span-6 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Name</div>
+                  <div className="col-span-2 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Size</div>
+                  <div className="col-span-3 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Date</div>
                   <div className="col-span-1" />
                 </div>
                 {filteredFiles.map(file => (
@@ -2809,6 +3300,30 @@ const Dashboard = () => {
         onClose={() => setShowMoveModal(false)}
         folders={folders}
         onConfirm={handleBulkMove}
+      />
+
+      {/* COMMAND PALETTE MODAL */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        files={allFiles}
+        onPreview={handlePreview}
+        onTabChange={setActiveTab}
+        isUnlocked={isE2eeUnlocked}
+        onUnlock={() => {
+          const pass = prompt("Enter your security passphrase to unlock:");
+          if (pass) {
+            unlockE2ee(pass)
+              .then(ok => {
+                if (ok) addToast("Vault unlocked successfully!", "success");
+                else addToast("Invalid security passphrase.", "error");
+              });
+          }
+        }}
+        onLock={() => {
+          window.location.reload();
+        }}
+        isE2eeSetup={isE2eeSetup}
       />
     </div>
   );

@@ -3,9 +3,9 @@ import { MORE_ITEMS } from '../../../utils/constants';
 export default function SidebarMore({ activeTab, setActiveTab, onNavigate }) {
   return (
     <>
-      <div className="my-5 border-t border-gray-200 dark:border-[#334155]" />
+      <div className="my-3.5" />
       <div>
-        <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase px-2 mb-3">
+        <p className="text-xs font-extrabold tracking-wide text-gray-400 dark:text-slate-500 px-2 mb-3">
           More
         </p>
         <div className="space-y-1">

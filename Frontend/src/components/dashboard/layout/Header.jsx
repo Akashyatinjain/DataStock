@@ -97,8 +97,8 @@ const Header = ({
     : 'p-2 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-lg transition-colors duration-200';
 
   const inputClass = isDark
-    ? 'w-80 lg:w-96 pl-10 pr-8 py-2 bg-slate-800/60 text-slate-100 placeholder-slate-400 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-slate-800/80 transition-all'
-    : 'w-80 lg:w-96 pl-10 pr-8 py-2 bg-gray-100 text-gray-800 placeholder-gray-500 border border-transparent rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:border-gray-300 transition-all';
+    ? 'w-96 md:w-[32rem] lg:w-[44rem] pl-10 pr-8 py-2 bg-slate-800/60 text-slate-100 placeholder-slate-400 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-slate-800/80 transition-all'
+    : 'w-96 md:w-[32rem] lg:w-[44rem] pl-10 pr-8 py-2 bg-gray-100 text-gray-800 placeholder-gray-500 border border-transparent rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:border-gray-300 transition-all';
 
   const upgradeBtnClass = isDark
     ? 'h-10 items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/50 px-2.5 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800 lg:gap-2.5 lg:px-3'
@@ -182,6 +182,12 @@ const Header = ({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={inputClass}
                   />
+                  {!searchQuery && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 pointer-events-none select-none text-[10px] font-bold text-gray-400 dark:text-slate-500 bg-gray-150 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700/80 px-1.5 py-0.5 rounded shadow-2xs">
+                      <span>Ctrl</span>
+                      <span>K</span>
+                    </div>
+                  )}
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
@@ -195,7 +201,7 @@ const Header = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-3.5 lg:space-x-5">
               <button 
                 onClick={() => navigate('/pricing')}
                 className={`${upgradeBtnClass} group hidden md:flex max-w-44 lg:max-w-none`}

@@ -93,3 +93,63 @@ img, video, iframe {
 .overlay-transition {
   transition: opacity 0.3s ease-in-out;
 }
+
+/* Premium Micro-Animations & Hover states */
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.hover-scale:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.hover-rotate {
+  transition: transform 0.3s ease;
+}
+.hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Staggered load animation delays */
+.stagger > * {
+  animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 30ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 90ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 150ms; }
+.stagger > *:nth-child(6) { animation-delay: 180ms; }
+
+/* Custom Dot Grid Pattern */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.dark .bg-dot-grid {
+  background-image: radial-gradient(rgba(248, 250, 252, 0.015) 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+}

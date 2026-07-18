@@ -1247,7 +1247,7 @@ const FilePreviewModal = ({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
+                            <div className={`flex items-center justify-between gap-2 ${canDelete ? 'pr-5' : ''}`}>
                               <span className="text-xs font-semibold text-gray-800 dark:text-gray-250 truncate">
                                 {c.user?.username}
                               </span>

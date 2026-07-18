@@ -51,17 +51,6 @@ export const createFolderService = async (name,userId,parentId = null) => {
 
 
 export const getFoldersService = async (userId) => {
-  // Auto-seed demo data if the user has 0 files and 0 folders in their drive.
-  const fileCount = await prisma.file.count({ where: { ownerId: userId } });
-  const folderCount = await prisma.folder.count({ where: { ownerId: userId } });
-  if (fileCount === 0 && folderCount === 0) {
-    try {
-      await seedUserDemoData(userId);
-    } catch (err) {
-      console.error("Failed to seed user demo data during folders fetch:", err);
-    }
-  }
-
   // 1. Get all folders owned by the user
   const ownedFolders = await prisma.folder.findMany({
     where: { ownerId: userId },

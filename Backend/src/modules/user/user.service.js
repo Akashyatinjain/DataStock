@@ -7,26 +7,13 @@ import {
   updateUserE2eeKeys,
 } from "./user.repository.js";
 
-// ======================
-// GET USER PROFILE
-// ======================
+
 
 export const getUserProfile = async (userId) => {
   const user = await findUserById(userId);
 
   if (!user) {
     throw new Error("User not found");
-  }
-
-  // Auto-seed demo data if the user has 0 files and 0 folders in their drive.
-  const fileCount = await prisma.file.count({ where: { ownerId: userId } });
-  const folderCount = await prisma.folder.count({ where: { ownerId: userId } });
-  if (fileCount === 0 && folderCount === 0) {
-    try {
-      await seedUserDemoData(userId);
-    } catch (err) {
-      console.error("Failed to seed user demo data:", err);
-    }
   }
 
   return user;

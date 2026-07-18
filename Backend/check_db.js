@@ -2,15 +2,33 @@ import prisma from "./src/config/db.js";
 
 async function main() {
   try {
-    const users = await prisma.user.findMany({
+    const files = await prisma.file.findMany({
       select: {
         id: true,
-        username: true,
-        email: true,
-        imageUrl: true,
+        fileName: true,
+        owner: {
+          select: {
+            username: true,
+            email: true
+          }
+        }
       }
     });
-    console.log("USERS IN DATABASE:", JSON.stringify(users, null, 2));
+    console.log("FILES IN DATABASE:", JSON.stringify(files, null, 2));
+
+    const folders = await prisma.folder.findMany({
+      select: {
+        id: true,
+        name: true,
+        owner: {
+          select: {
+            username: true,
+            email: true
+          }
+        }
+      }
+    });
+    console.log("FOLDERS IN DATABASE:", JSON.stringify(folders, null, 2));
   } catch (error) {
     console.error("Database query error:", error);
   } finally {

@@ -755,7 +755,7 @@ const FileCard = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onTogg
           </div>
 
           {/* Action Menu */}
-          <div className="relative" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
+          <div className="relative" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
             <button
               onClick={() => setShowMenu(!showMenu)}
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
@@ -969,7 +969,7 @@ const FileRow = ({ file, searchQuery, onDelete, onPreview, onToggleStar, onToggl
         {new Date(file.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
 
-      <div className="md:col-span-1 flex justify-end gap-1 shrink-0" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
+      <div className="md:col-span-1 flex justify-end gap-1 shrink-0" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
         {isDeleting ? (
           <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
         ) : isRestoring ? (

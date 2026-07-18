@@ -526,7 +526,7 @@ export default function ProfilePage() {
           {/* Storage Overview */}
           <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC] flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] flex items-center gap-2">
                 <BarChart3 size={20} className="text-[#3B82F6]" />
                 Storage Overview
               </h3>
@@ -566,18 +566,18 @@ export default function ProfilePage() {
 
           {/* Quick Stats (requires optional backend route) */}
           <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC] flex items-center gap-2 mb-4">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] flex items-center gap-2 mb-4">
               <Folder size={20} className="text-[#3B82F6]" />
               Quick Stats
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-[#334155] dark:bg-[#334155] rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 text-center">
                 <FileText size={24} className="mx-auto text-blue-600 mb-2" />
                 <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.files}</p>
                 <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Files</p>
               </div>
-              <div className="bg-gray-50 dark:bg-[#334155] dark:bg-[#334155] rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 text-center">
                 <Folder size={24} className="mx-auto text-yellow-600 mb-2" />
                 <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.folders}</p>
                 <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Folders</p>

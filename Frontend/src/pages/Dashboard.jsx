@@ -3163,7 +3163,7 @@ const Dashboard = () => {
             )}
 
             {/* ── STATS ROW ── */}
-            {activeTab !== 'notifications' && activeTab !== 'analytics' && (
+            {activeTab === 'my-drive' && !selectedFolder && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5 animate-fade-up">
                 {/* Storage card (Full Width on First Row) */}
                 <div className="sm:col-span-2 bg-gradient-to-br from-white to-slate-50/50 dark:from-[#1E293B] dark:to-[#1a2537] rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md border border-transparent transition hover:shadow-lg duration-300">

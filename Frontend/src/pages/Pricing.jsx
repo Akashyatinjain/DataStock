@@ -136,14 +136,31 @@ export default function Pricing() {
 
   const displayError = error || subscriptionError;
 
+  const user = useSelector((state) => state.auth.user);
+
+  const formatStorage = (bytes) => {
+    if (bytes === undefined || bytes === null || isNaN(bytes)) return "0 B";
+    const num = Number(bytes);
+    if (num === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(num) / Math.log(k));
+    return parseFloat((num / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
+
   // Determine current plan details for storage bar
   const currentPlan = PLANS.find((p) => p.key === currentPlanKey);
-  // Simulate usage – in real app you'd fetch this from backend
-  const usagePercentage = 15; // 15% used, just for visual
-  const usedStorage = currentPlan ? (currentPlan.storage.includes("TB") 
-    ? (parseFloat(currentPlan.storage) * 1024 * (usagePercentage / 100)).toFixed(1) + " GB"
-    : (parseFloat(currentPlan.storage) * (usagePercentage / 100)).toFixed(1) + " GB"
-  ) : "0 GB";
+
+  const storageLimit = Number(user?.storageLimit) || (currentPlan ? (plan => {
+    if (plan.storage.includes("TB")) return parseFloat(plan.storage) * 1024 * 1024 * 1024 * 1024;
+    return parseFloat(plan.storage) * 1024 * 1024 * 1024;
+  })(currentPlan) : 10 * 1024 * 1024 * 1024);
+
+  const storageUsed = Number(user?.storageUsed) || 0;
+  const usagePercentage = Math.min((storageUsed / (storageLimit || 1)) * 100, 100);
+
+  const displayUsedStorage = formatStorage(storageUsed);
+  const displayLimitStorage = formatStorage(storageLimit);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b1120] font-['Inter'] selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden transition-colors duration-200">
@@ -239,7 +256,7 @@ export default function Pricing() {
                   <div>
                     <p className="text-sm text-slate-600 dark:text-[#94A3B8]">Your storage</p>
                     <p className="font-medium text-slate-900 dark:text-[#F8FAFC]">
-                      {usedStorage} used of {currentPlan.storage}
+                      {displayUsedStorage} used of {displayLimitStorage}
                     </p>
                   </div>
                 </div>

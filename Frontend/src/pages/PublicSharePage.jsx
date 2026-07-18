@@ -234,7 +234,7 @@ const PublicSharePage = () => {
               <button
                 type="submit"
                 disabled={verifying || !password}
-                className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-green-300 text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-1.5"
+                className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm transition flex items-center justify-center gap-1.5"
               >
                 {verifying ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

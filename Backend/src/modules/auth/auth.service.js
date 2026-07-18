@@ -23,11 +23,14 @@ export const signUpUserLocal = async ({ username, email, password }, res) => {
 
   const hashedPassword = await hashPassword(password);
 
+  const defaultAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256&h=256";
+
   const user = await createUser({
     username: username.trim(),
     email: normalizedEmail,
     password: hashedPassword,
     authProvider: "local",
+    imageUrl: defaultAvatar,
   });
 
   return issueAuthSession(user, res);

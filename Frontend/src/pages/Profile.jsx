@@ -785,19 +785,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-// --- CSS for toast animation (add to your global styles if not already present) ---
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-slide-down {
-    animation: slideDown 0.3s ease-out;
-  }
-`;
-if (!document.querySelector('style[data-profile-anim]')) {
-  style.setAttribute('data-profile-anim', 'true');
-  document.head.appendChild(style);
-}

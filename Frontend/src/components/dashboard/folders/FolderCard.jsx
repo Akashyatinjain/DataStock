@@ -108,7 +108,7 @@ export default function FolderCard({
   return (
     <div
       onClick={handleOpen}
-      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 hover:border-blue-200 dark:hover:border-blue-500/40 rounded-2xl p-4.5 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[185px] animate-fade-up hover:scale-[1.02] hover:-translate-y-0.5"
+      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 hover:border-blue-200 dark:hover:border-blue-500/40 rounded-2xl p-4.5 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[210px] animate-fade-up hover:scale-[1.02] hover:-translate-y-0.5"
     >
       {/* Row 1: Icon + Name and Dropdown Action */}
       <div className="flex items-center justify-between min-w-0">
@@ -183,12 +183,12 @@ export default function FolderCard({
       {/* Row 4: Shared Badge */}
       <div className="flex items-center gap-1 mt-2 text-xs font-semibold text-gray-500 dark:text-[#94A3B8]">
         {isShared ? (
-          <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold">
-            <Users className="w-3.5 h-3.5" />
-            <span>Shared with {folder.sharedWith?.length || 1}</span>
+          <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/20 px-2 py-0.5 rounded-lg border border-blue-100/50 dark:border-blue-900/30">
+            <Users className="w-3.5 h-3.5 animate-pulse" />
+            <span>Shared with {folder.sharedWith?.length || (folder._isDirectlyShared ? 1 : 0)}</span>
           </span>
         ) : (
-          <span className="flex items-center gap-1 text-gray-400">
+          <span className="flex items-center gap-1 text-gray-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/30 px-2 py-0.5 rounded-lg border border-slate-100/50 dark:border-slate-800/30">
             <Users className="w-3.5 h-3.5 opacity-40" />
             <span>Only You</span>
           </span>

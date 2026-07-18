@@ -43,10 +43,10 @@ export const useDecryptedFiles = (files) => {
                 return { ...file, originalName: decryptedName, isLocked: false };
               } catch (e) {
                 console.error("Failed to decrypt file name:", e);
-                return { ...file, originalName: `🔒 Encrypted File (Locked)`, isLocked: true };
+                return { ...file, originalName: `🔒 e2ee_${originalName.slice(0, 8)}...`, isLocked: true };
               }
             } else {
-              return { ...file, originalName: `🔒 Encrypted File (Locked)`, isLocked: true };
+              return { ...file, originalName: `🔒 e2ee_${originalName.slice(0, 8)}...`, isLocked: true };
             }
           }
           return { ...file, isLocked: false };

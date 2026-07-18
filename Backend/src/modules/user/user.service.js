@@ -18,6 +18,17 @@ export const getUserProfile = async (userId) => {
     throw new Error("User not found");
   }
 
+  // Auto-seed demo data if the user has 0 files and 0 folders in their drive.
+  const fileCount = await prisma.file.count({ where: { ownerId: userId } });
+  const folderCount = await prisma.folder.count({ where: { ownerId: userId } });
+  if (fileCount === 0 && folderCount === 0) {
+    try {
+      await seedUserDemoData(userId);
+    } catch (err) {
+      console.error("Failed to seed user demo data:", err);
+    }
+  }
+
   return user;
 };
 
@@ -223,4 +234,123 @@ export const getPublicKeyByEmailService = async (email) => {
     throw new Error("User not found");
   }
   return user.publicKey;
+};
+
+export const seedUserDemoData = async (userId) => {
+  // Check if we have already seeded folders for this user
+  const existingFolder = await prisma.folder.findFirst({
+    where: { name: "Basanti", ownerId: userId }
+  });
+  if (existingFolder) {
+    return;
+  }
+
+  // 1. Create collaborator (Sarah Connor) if not exists
+  let collaborator = await prisma.user.findUnique({
+    where: { email: "sarah@cyberdyne.org" },
+  });
+  if (!collaborator) {
+    collaborator = await prisma.user.create({
+      data: {
+        username: "Sarah Connor",
+        email: "sarah@cyberdyne.org",
+        password: "dummy_password_hash",
+        authProvider: "local",
+        subscriptionPlan: "BASIC",
+      },
+    });
+  }
+
+  // 2. Create folders
+  const basantiFolder = await prisma.folder.create({
+    data: { name: "Basanti", ownerId: userId },
+  });
+
+  // Share "Basanti" folder with Sarah Connor
+  await prisma.folderShare.create({
+    data: {
+      folderId: basantiFolder.id,
+      sharedById: userId,
+      sharedToId: collaborator.id,
+      permission: "VIEW",
+    },
+  });
+
+  const pitchFolder = await prisma.folder.create({
+    data: { name: "Project Pitch", ownerId: userId },
+  });
+
+  const legalFolder = await prisma.folder.create({
+    data: { name: "Legal Templates", ownerId: userId },
+  });
+
+  // 3. Seed 12 files across categories (3 Images, 2 Videos, 4 PDFs, 3 Docs/Other)
+  const filesToSeed = [
+    // Root files
+    { name: "Brand_Styleguide.pdf", mime: "application/pdf", size: 8912896, folderId: null },
+    { name: "Dashboard_Mockup_V1.png", mime: "image/png", size: 2516582, folderId: null },
+    { name: "Product_Launch_Presentation.pptx", mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation", size: 15938355, folderId: null, isStarred: true },
+    { name: "Secure_Credentials.key", mime: "application/octet-stream", size: 1024, folderId: null, isEncrypted: true },
+
+    // "Basanti" folder files
+    { name: "Basanti_Agreement_Draft.docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 1258291, folderId: basantiFolder.id },
+    { name: "Sprint_Demo_Recording.mp4", mime: "video/mp4", size: 47290777, folderId: basantiFolder.id },
+    { name: "Team_Photo.jpg", mime: "image/jpeg", size: 4325376, folderId: basantiFolder.id },
+
+    // "Project Pitch" folder files
+    { name: "Financial_Projections_2026.xlsx", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", size: 1677721, folderId: pitchFolder.id },
+    { name: "Investor_Pitch_Deck.pdf", mime: "application/pdf", size: 7025459, folderId: pitchFolder.id },
+    { name: "Promotional_Video_Teaser.mp4", mime: "video/mp4", size: 33973862, folderId: pitchFolder.id },
+
+    // "Legal Templates" folder files
+    { name: "Standard_NDA.pdf", mime: "application/pdf", size: 419430, folderId: legalFolder.id },
+    { name: "Employment_Agreement.docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 838860, folderId: legalFolder.id },
+  ];
+
+  for (const item of filesToSeed) {
+    const dummyUrl = `https://res.cloudinary.com/dummy-cloud/image/upload/v1/${item.name}`;
+    const data = {
+      fileName: item.name,
+      originalName: item.name,
+      url: dummyUrl,
+      publicId: `dummy_${item.name.replace(/\./g, "_")}_id`,
+      mimeType: item.mime,
+      size: item.size,
+      isStarred: item.isStarred || false,
+      isEncrypted: item.isEncrypted || false,
+      ownerId: userId,
+      folderId: item.folderId,
+    };
+
+    if (item.isEncrypted) {
+      data.encryptedKey = "6ZN5SyACIN7dXg+nskZs7Uh5iviAuOcHpvCUevnQuWD0Q8E9Vg==";
+      data.fileIv = "iv_placeholder_base64==";
+      data.nameIv = "name_placeholder_base64==";
+      data.originalName = "6ZN5SyACIN7dXg+nskZs7Uh5iviAuOcHpvCUevnQuWD0Q8E9Vg==";
+    }
+
+    await prisma.file.create({
+      data: {
+        ...data,
+        versions: {
+          create: {
+            versionNumber: 1,
+            url: dummyUrl,
+            publicId: data.publicId,
+            size: item.size,
+            isEncrypted: item.isEncrypted,
+            encryptedKey: item.isEncrypted ? data.encryptedKey : null,
+            fileIv: item.isEncrypted ? data.fileIv : null,
+          },
+        },
+      },
+    });
+  }
+
+  // Update user's storageUsed
+  const totalSeededSize = filesToSeed.reduce((acc, file) => acc + file.size, 0);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { storageUsed: totalSeededSize },
+  });
 };

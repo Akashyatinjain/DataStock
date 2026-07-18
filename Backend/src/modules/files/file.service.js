@@ -8,6 +8,7 @@ import prisma from "../../config/db.js";
 import { createNotificationService } from "../notifications/notification.service.js";
 import { getIO } from "../../socket.js";
 import { checkFolderAccess, checkFileAccess } from "../../utils/permission.js";
+import { seedUserDemoData } from "../user/user.service.js";
 
 // ── Helper: create a typed error ──
 const createError = (message, statusCode, code) => {
@@ -222,6 +223,19 @@ export const getUserFilesService =
     userId,
     folderId = null
   ) => {
+    if (!folderId) {
+      // Auto-seed demo data if empty
+      const fileCount = await prisma.file.count({ where: { ownerId: userId } });
+      const folderCount = await prisma.folder.count({ where: { ownerId: userId } });
+      if (fileCount === 0 && folderCount === 0) {
+        try {
+          await seedUserDemoData(userId);
+        } catch (err) {
+          console.error("Failed to seed user demo data during files fetch:", err);
+        }
+      }
+    }
+
     if (folderId) {
       const access = await checkFolderAccess(folderId, userId);
       if (!access) {

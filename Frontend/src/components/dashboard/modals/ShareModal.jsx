@@ -287,7 +287,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                   <button
                     type="submit"
                     disabled={sharing || !email.trim()}
-                    className="px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-green-200 text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap"
+                    className="px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5 whitespace-nowrap"
                   >
                     {sharing ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -467,7 +467,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                   <button
                     onClick={handleGenerateOrUpdateLink}
                     disabled={linkLoading}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-green-200 text-white rounded-xl text-sm font-semibold transition"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition"
                   >
                     {linkLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

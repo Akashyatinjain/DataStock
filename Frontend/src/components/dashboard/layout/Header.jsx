@@ -26,6 +26,8 @@ const Header = ({
   setSearchQuery,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
+  activeTab,
+  setActiveTab,
 }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -236,7 +238,13 @@ const Header = ({
               </button>
 
               <button
-                onClick={() => navigate('/notifications')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('notifications');
+                  } else {
+                    navigate('/notifications');
+                  }
+                }}
                 className={`${iconBtnClass} relative hidden sm:block`}
                 aria-label="Notifications"
               >

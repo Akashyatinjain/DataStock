@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { NAV_ITEMS } from '../../../utils/constants';
 
 export default function SidebarNav({
@@ -9,6 +10,7 @@ export default function SidebarNav({
   onNavigate,
   onMoveFile,
 }) {
+  const navigate = useNavigate();
   const [dragOverMyDrive, setDragOverMyDrive] = useState(false);
 
   const handleClick = (id) => {

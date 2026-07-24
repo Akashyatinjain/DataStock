@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+.git
+.gitignore
+vite-dev.log
+vite-dev.err.log
+scratch

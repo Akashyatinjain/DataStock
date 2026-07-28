@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import JSZip from 'jszip';
 import {
   Plus,
   Folder,
@@ -525,8 +526,11 @@ const Dashboard = () => {
       socket.emit("join", user.id);
 
       const handleNewNotification = (notification) => {
-        addToast(notification.message, 'success');
         dispatch(addNotification(notification));
+        // Only trigger toast if notification is from another user
+        if (notification.actorId && notification.actorId !== user.id) {
+          addToast(notification.message, 'info');
+        }
       };
 
       socket.on('notification', handleNewNotification);
@@ -574,20 +578,26 @@ const Dashboard = () => {
 
       if (fileFolderId === currentFolderId) {
         dispatch(addUploadedFile(normalizeFile(file)));
-        addToast(`"${file.originalName}" was uploaded by another user`, 'info');
         loadFiles(currentFolderId);
         dispatch(fetchStorageActivity());
+
+        const isMyUpload = (file.ownerId && file.ownerId === user?.id) || (file.userId && file.userId === user?.id) || (file.uploaderId && file.uploaderId === user?.id);
+        if (!isMyUpload) {
+          addToast(`"${file.originalName || file.name}" was uploaded by another user`, 'info');
+        }
       }
     };
 
-    const handleFileDeleted = ({ fileId, folderId }) => {
+    const handleFileDeleted = ({ fileId, folderId, deletedBy }) => {
       const fileFolderId = folderId || null;
       const currentFolderId = selectedFolderId || null;
 
       if (fileFolderId === currentFolderId) {
         loadFiles(currentFolderId);
         dispatch(fetchStorageActivity());
-        addToast("A file was deleted or moved by another user", 'info');
+        if (deletedBy && deletedBy !== user?.id) {
+          addToast("A file was deleted by another user", 'info');
+        }
       }
     };
 
@@ -611,7 +621,7 @@ const Dashboard = () => {
       socket.off("folder_created", handleFolderCreated);
       socket.off("folder_deleted", handleFolderDeleted);
     };
-  }, [selectedFolderId, dispatch, addToast, loadFiles]);
+  }, [selectedFolderId, user, dispatch, addToast, loadFiles]);
 
   // ── STORAGE (all files: My Drive + every folder) ──
   const totalStorage = Number(user?.storageLimit || 10 * 1024 * 1024 * 1024);
@@ -901,8 +911,6 @@ const Dashboard = () => {
           }
         }
 
-        addToast(`Starting upload for "${file.name}"…`, 'info');
-
         const formData = new FormData();
         formData.append('file', fileToUpload);
         if (selectedFolderId) formData.append('folderId', selectedFolderId);
@@ -962,7 +970,6 @@ const Dashboard = () => {
         continue;
       }
       try {
-        addToast(`Starting upload for "${file.name}"…`, 'info');
         setUploadProgress(0);
         setUploadingFileName(file.name);
 
@@ -1199,15 +1206,20 @@ const Dashboard = () => {
 
   const handleBulkDownload = async () => {
     const fileIds = Array.from(selectedFileIds);
-    addToast("Starting downloads…", "info");
-    const filesToDownload = files.filter(f => fileIds.includes(f.id));
-    for (let i = 0; i < filesToDownload.length; i++) {
-      const file = filesToDownload[i];
+    if (fileIds.length === 0) return;
 
+    const filesToDownload = (allFiles || []).filter(f => fileIds.includes(f.id));
+    if (filesToDownload.length === 0) {
+      addToast("No files found to download.", "error");
+      return;
+    }
+
+    if (filesToDownload.length === 1) {
+      const file = filesToDownload[0];
       if (file.isEncrypted) {
         if (!isE2eeUnlocked || !privateKey) {
           addToast(`"${file.originalName}" is encrypted. Unlock secure storage to download.`, "error");
-          continue;
+          return;
         }
         try {
           addToast(`Decrypting "${file.originalName}"…`, "info");
@@ -1227,8 +1239,7 @@ const Dashboard = () => {
           document.body.appendChild(a);
           a.click();
           a.remove();
-
-          setTimeout(() => URL.revokeObjectURL(localUrl), 1000);
+          setTimeout(() => URL.revokeObjectURL(localUrl), 2000);
         } catch (err) {
           console.error("Download decryption error:", err);
           addToast(`Failed to decrypt "${file.originalName}"`, "error");
@@ -1242,9 +1253,60 @@ const Dashboard = () => {
         a.click();
         a.remove();
       }
-      await new Promise(r => setTimeout(r, 400));
+      setSelectedFileIds(new Set());
+      return;
     }
-    setSelectedFileIds(new Set());
+
+    // Multi-file download (2+ files): Bundle into a single ZIP using JSZip to avoid browser multi-file download popup blocks and memory crashes
+    addToast(`Packaging ${filesToDownload.length} files into ZIP archive…`, "info");
+    try {
+      const zip = new JSZip();
+      let addedCount = 0;
+
+      for (let i = 0; i < filesToDownload.length; i++) {
+        const file = filesToDownload[i];
+        try {
+          if (file.isEncrypted && isE2eeUnlocked && privateKey) {
+            const response = await fetch(file.url);
+            if (!response.ok) continue;
+            const encryptedBuffer = await response.arrayBuffer();
+            const fileKey = await decryptSymmetricKeyWithRsa(file.encryptedKey, privateKey);
+            const decryptedBuffer = await decryptBuffer(encryptedBuffer, fileKey, file.fileIv);
+            zip.file(file.originalName || `file_${i + 1}`, decryptedBuffer);
+            addedCount++;
+          } else {
+            const response = await fetch(file.url);
+            if (!response.ok) continue;
+            const blob = await response.blob();
+            zip.file(file.originalName || `file_${i + 1}`, blob);
+            addedCount++;
+          }
+        } catch (err) {
+          console.error("Error adding file to bulk zip:", err);
+        }
+      }
+
+      if (addedCount === 0) {
+        addToast("Failed to retrieve file contents for download.", "error");
+        return;
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = zipUrl;
+      a.download = `datastock_batch_${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(zipUrl), 5000);
+
+      addToast(`Downloaded ${addedCount} files as a ZIP archive!`, "success");
+      setSelectedFileIds(new Set());
+    } catch (err) {
+      console.error("Bulk download error:", err);
+      addToast("Failed to create ZIP package for download.", "error");
+    }
   };
 
   const handleExtractZip = async (fileId, originalName) => {
@@ -1884,9 +1946,50 @@ const Dashboard = () => {
           {/* ── SECTION HEADER ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
             <div className="flex items-center justify-between mb-4 mt-6">
-              <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
-                Files — {filteredFiles.length}
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
+                  Files — {filteredFiles.length}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedFileIds.size === filteredFiles.length) {
+                      setSelectedFileIds(new Set());
+                    } else {
+                      setSelectedFileIds(new Set(filteredFiles.map(f => f.id)));
+                    }
+                  }}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition flex items-center gap-1.5"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFileIds.size > 0 && selectedFileIds.size === filteredFiles.length}
+                    onChange={() => {}}
+                    className="w-3.5 h-3.5 text-[#3B82F6] rounded border-gray-300 pointer-events-none"
+                  />
+                  <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select All"}</span>
+                </button>
+              </div>
+
+              {/* View Mode Toggle (Grid vs List) */}
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
+                  title="Grid View"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
 

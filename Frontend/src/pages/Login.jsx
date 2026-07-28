@@ -13,7 +13,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   loginUser,
@@ -22,6 +22,7 @@ import {
   logoutUser,
 } from "../store/slices/authSlice";
 import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
+import { getErrorMessage } from "../utils/errorMessage";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const LoginPage = () => {
@@ -65,7 +66,7 @@ const handleOtpRequest = async (e) => {
   if (sendLoginOtp.fulfilled.match(result)) {
     setStep("otp-verification");
   } else {
-    setErrors({ email: result.payload || "OTP failed" });
+    setErrors({ email: getErrorMessage(result.payload, "OTP failed") });
   }
 };
 
@@ -90,7 +91,7 @@ const handlePasswordLogin = async (e) => {
     setStep("success");
     setTimeout(() => navigate("/dashboard"), 1500);
   } else {
-    setErrors({ password: result.payload || "Login failed" });
+    setErrors({ password: getErrorMessage(result.payload, "Login failed") });
   }
 };
 const handleOtpChange = (index, value) => {
@@ -122,7 +123,7 @@ const handleOtpVerification = async (e) => {
     setStep("success");
     setTimeout(() => navigate("/dashboard"), 1500);
   } else {
-    setErrors({ otp: result.payload || "Invalid OTP" });
+    setErrors({ otp: getErrorMessage(result.payload, "Invalid OTP") });
   }
 };
   // Handle OTP verification
@@ -139,7 +140,7 @@ const handleOtpVerification = async (e) => {
     if (sendLoginOtp.fulfilled.match(result)) {
       setErrors({ otp: "A new OTP has been sent to your email." });
     } else {
-      setErrors({ otp: result.payload || "Failed to resend OTP" });
+      setErrors({ otp: getErrorMessage(result.payload, "Failed to resend OTP") });
     }
   };
 
@@ -157,13 +158,13 @@ const handleOtpVerification = async (e) => {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <a 
-                href="/signup" 
+              <Link 
+                to="/signup" 
                 className="text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC] transition flex items-center space-x-1 text-sm"
               >
                 <span className="hidden sm:inline">Need an account?</span>
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -387,9 +388,16 @@ const handleOtpVerification = async (e) => {
                           />
                           <span className="ml-2 text-sm text-gray-600 dark:text-[#94A3B8]">Remember me</span>
                         </label>
-                        <a href="#" className="text-sm text-[#3B82F6] hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLoginMethod('otp');
+                            setErrors({});
+                          }}
+                          className="text-sm text-[#3B82F6] hover:underline cursor-pointer"
+                        >
                           Forgot password?
-                        </a>
+                        </button>
                       </div>
                     )}
 
@@ -430,9 +438,9 @@ const handleOtpVerification = async (e) => {
                   {/* Signup Link for Mobile */}
                   <p className="mt-6 text-center text-sm text-gray-600 dark:text-[#94A3B8]">
                     Don't have an account?{' '}
-                    <a href="/signup" className="text-[#3B82F6] font-medium hover:underline">
+                    <Link to="/signup" className="text-[#3B82F6] font-medium hover:underline">
                       Sign up free
-                    </a>
+                    </Link>
                   </p>
                 </>
               )}

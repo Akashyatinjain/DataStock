@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
 import {
   Cloud,
   Download,
@@ -16,6 +19,7 @@ import {
   Clock,
   HardDrive,
   Lock,
+  Search,
 } from 'lucide-react';
 import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -45,10 +49,78 @@ const getFileIcon = (mime) => {
 
 /* ─── Preview renderer ─── */
 const FilePreview = ({ file, allowDownload }) => {
-  const mime = file.mimeType || '';
-  const url = file.url;
+  const mime = file?.mimeType || '';
+  const url = file?.url;
+  const ext = file?.originalName ? file.originalName.split('.').pop().toLowerCase() : '';
 
-  if (mime.includes('image')) {
+  const isImage = mime.includes('image') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
+  const isVideo = mime.includes('video') || ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext);
+  const isAudio = mime.includes('audio') || ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext);
+  const isPdf = mime.includes('pdf') || ext === 'pdf';
+  const isDocx = ['docx', 'doc'].includes(ext) || mime.includes('word');
+  const isExcel = ['xlsx', 'xls', 'csv'].includes(ext) || mime.includes('excel') || mime.includes('spreadsheet') || mime.includes('csv');
+  const isArchive = ['zip', 'rar', '7z'].includes(ext) || mime.includes('zip');
+  const isText = mime.includes('text') || mime.includes('json') || ['txt', 'md', 'json', 'js', 'py', 'html', 'css'].includes(ext);
+
+  const [docxHtml, setDocxHtml] = useState('');
+  const [docxLoading, setDocxLoading] = useState(false);
+
+  const [xlsxSheets, setXlsxSheets] = useState({});
+  const [xlsxSheetNames, setXlsxSheetNames] = useState([]);
+  const [xlsxActiveSheet, setXlsxActiveSheet] = useState('');
+  const [xlsxLoading, setXlsxLoading] = useState(false);
+
+  const [textContent, setTextContent] = useState('');
+  const [textLoading, setTextLoading] = useState(false);
+
+  useEffect(() => {
+    if (isDocx && url) {
+      setDocxLoading(true);
+      fetch(url)
+        .then(res => res.arrayBuffer())
+        .then(buffer => mammoth.convertToHtml({ arrayBuffer: buffer }))
+        .then(result => {
+          setDocxHtml(result.value || '<p>Empty document</p>');
+          setDocxLoading(false);
+        })
+        .catch(() => setDocxLoading(false));
+    }
+  }, [isDocx, url]);
+
+  useEffect(() => {
+    if (isExcel && url) {
+      setXlsxLoading(true);
+      fetch(url)
+        .then(res => res.arrayBuffer())
+        .then(buffer => {
+          const wb = XLSX.read(buffer, { type: 'array' });
+          const map = {};
+          wb.SheetNames.forEach(n => {
+            map[n] = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '' });
+          });
+          setXlsxSheets(map);
+          setXlsxSheetNames(wb.SheetNames);
+          setXlsxActiveSheet(wb.SheetNames[0] || '');
+          setXlsxLoading(false);
+        })
+        .catch(() => setXlsxLoading(false));
+    }
+  }, [isExcel, url]);
+
+  useEffect(() => {
+    if (isText && url) {
+      setTextLoading(true);
+      fetch(url)
+        .then(res => res.text())
+        .then(txt => {
+          setTextContent(txt);
+          setTextLoading(false);
+        })
+        .catch(() => setTextLoading(false));
+    }
+  }, [isText, url]);
+
+  if (isImage) {
     return (
       <img
         src={url}
@@ -57,14 +129,14 @@ const FilePreview = ({ file, allowDownload }) => {
       />
     );
   }
-  if (mime.includes('video')) {
+  if (isVideo) {
     return (
       <video controls className="max-w-full max-h-[60vh] rounded-2xl shadow-xl">
         <source src={url} type={mime} />
       </video>
     );
   }
-  if (mime.includes('audio')) {
+  if (isAudio) {
     return (
       <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100 dark:border-[#334155]">
         <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4" />
@@ -75,34 +147,91 @@ const FilePreview = ({ file, allowDownload }) => {
       </div>
     );
   }
-  if (mime.includes('pdf')) {
+  if (isDocx) {
+    return (
+      <div className="w-full max-w-3xl h-[60vh] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] overflow-auto p-8 text-left text-slate-900 dark:text-slate-100">
+        {docxLoading ? (
+          <div className="flex items-center justify-center h-full gap-2 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            <span>Loading Word document...</span>
+          </div>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: docxHtml }} className="prose dark:prose-invert max-w-none leading-relaxed" />
+        )}
+      </div>
+    );
+  }
+  if (isExcel) {
+    return (
+      <div className="w-full max-w-4xl h-[60vh] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 flex flex-col overflow-hidden text-left">
+        <div className="bg-slate-900 p-2 flex gap-2 border-b border-slate-800 overflow-x-auto">
+          {xlsxSheetNames.map(n => (
+            <button
+              key={n}
+              onClick={() => setXlsxActiveSheet(n)}
+              className={`px-3 py-1 rounded text-xs font-semibold ${xlsxActiveSheet === n ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-auto p-2">
+          {xlsxLoading ? (
+            <div className="flex items-center justify-center h-full gap-2 text-slate-400">
+              <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+              <span>Loading sheet...</span>
+            </div>
+          ) : (
+            <table className="w-full text-xs font-mono text-slate-200 border-collapse">
+              <tbody>
+                {(xlsxSheets[xlsxActiveSheet] || []).map((row, r) => (
+                  <tr key={r} className="border-b border-slate-800">
+                    {row.map((c, col) => (
+                      <td key={col} className="p-2 border-r border-slate-800 whitespace-nowrap">{String(c ?? '')}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    );
+  }
+  if (isPdf) {
     return (
       <iframe
-        src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+        src={url}
         title={file.originalName}
-        className="w-full h-[60vh] rounded-2xl shadow-xl border-0 bg-white"
+        className="w-full h-[65vh] rounded-2xl shadow-xl border-0 bg-white"
       />
     );
   }
-  if (mime.includes('word') || mime.includes('excel') || mime.includes('spreadsheet') || mime.includes('presentation')) {
+  if (isText) {
     return (
-      <iframe
-        src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
-        title={file.originalName}
-        className="w-full h-[60vh] rounded-2xl shadow-xl border-0 bg-white"
-      />
+      <div className="w-full max-w-3xl h-[60vh] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 p-6 overflow-auto text-left font-mono text-xs text-slate-200 whitespace-pre">
+        {textLoading ? 'Loading text file...' : textContent}
+      </div>
     );
   }
 
   // Fallback
   return (
-    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-[#334155] text-center">
+    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-[#334155] text-center max-w-md">
       {getFileIcon(mime)}
-      <p className="text-lg font-semibold text-gray-700 dark:text-[#94A3B8] mt-4">Preview not available</p>
+      <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mt-4">{file.originalName}</h3>
+      <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1 font-mono">{mime || 'Binary file'}</p>
       {allowDownload ? (
-        <p className="text-gray-400 dark:text-[#94A3B8] mt-2 text-sm">Download the file to open it.</p>
+        <a
+          href={url}
+          download
+          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+        >
+          <Download className="w-4 h-4" />
+          Download File
+        </a>
       ) : (
-        <p className="text-red-500 dark:text-red-400 mt-2 text-sm font-medium">Downloads are restricted for this link.</p>
+        <p className="text-red-500 dark:text-red-400 mt-4 text-xs font-medium">Downloads restricted for this link.</p>
       )}
     </div>
   );

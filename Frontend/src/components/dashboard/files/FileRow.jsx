@@ -143,7 +143,7 @@ const FileRow = ({
       <div className="col-span-1 md:col-span-6 flex items-center gap-3 min-w-0">
         {!isTrashView && onToggleSelect && (
           <div
-            className={`mr-1 shrink-0 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            className={`mr-1 shrink-0 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}

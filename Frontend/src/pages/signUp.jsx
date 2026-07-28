@@ -12,10 +12,11 @@ import {
   Github,
   Chrome
 } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { signupUser, logoutUser } from "../store/slices/authSlice";
 import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
+import { getErrorMessage } from "../utils/errorMessage";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const SignupPage = () => {
@@ -104,7 +105,7 @@ const handleSubmit = async (e) => {
     }
     navigate("/dashboard");
   } else {
-    setErrors({ email: result.payload || "Signup failed" });
+    setErrors({ email: getErrorMessage(result.payload, "Signup failed") });
   }
 };
    // Handle Google login
@@ -127,13 +128,13 @@ const handleSubmit = async (e) => {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <a 
-                href="/login" 
+              <Link 
+                to="/login" 
                 className="text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC] transition flex items-center space-x-1 text-sm"
               >
                 <span className="hidden sm:inline">Already have an account?</span>
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -356,9 +357,9 @@ const handleSubmit = async (e) => {
                     />
                     <label className="ml-2 text-sm text-gray-600 dark:text-[#94A3B8]">
                       I agree to the{' '}
-                      <a href="#" className="text-[#3B82F6] hover:underline">Terms of Service</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); alert("Terms of Service: By signing up, you agree to store files in compliance with our usage guidelines and security standards."); }} className="text-[#3B82F6] hover:underline">Terms of Service</a>
                       {' '}and{' '}
-                      <a href="#" className="text-[#3B82F6] hover:underline">Privacy Policy</a>
+                      <a href="#" onClick={(e) => { e.preventDefault(); alert("Privacy Policy: Your files are secure and private with us. End-to-end encrypted items are only accessible using your passphrase."); }} className="text-[#3B82F6] hover:underline">Privacy Policy</a>
                     </label>
                   </div>
                   {errors.agreeTerms && (
@@ -387,9 +388,9 @@ const handleSubmit = async (e) => {
                 {/* Login Link for Mobile */}
                 <p className="mt-6 text-center text-sm text-gray-600 dark:text-[#94A3B8] lg:hidden">
                   Already have an account?{' '}
-                  <a href="/login" className="text-[#3B82F6] font-medium hover:underline">
+                  <Link to="/login" className="text-[#3B82F6] font-medium hover:underline">
                     Sign in
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>

@@ -10,7 +10,7 @@ import {
 } from "./cookie.utils.js";
 import * as authRepo from "../modules/auth/auth.repository.js";
 
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export const createRefreshToken = () => crypto.randomBytes(64).toString("hex");
 

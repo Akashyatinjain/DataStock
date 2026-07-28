@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useCrypto } from "../context/CryptoContext";
+import { getErrorMessage } from "../utils/errorMessage";
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -142,7 +143,7 @@ export default function ProfilePage() {
           setUsername(u.username || "");
         }
       } else {
-        setErrorMessage(resultAction.payload || "Failed to fetch profile");
+        setErrorMessage(getErrorMessage(resultAction.payload, "Failed to fetch profile"));
       }
     } catch (error) {
       console.error("Fetch profile error:", error.message);
@@ -188,7 +189,7 @@ export default function ProfilePage() {
         setSuccessMessage("Username updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setErrorMessage(resultAction.payload || "Update failed");
+        setErrorMessage(getErrorMessage(resultAction.payload, "Update failed"));
         setTimeout(() => setErrorMessage(""), 3000);
       }
     } catch (error) {
@@ -224,7 +225,7 @@ export default function ProfilePage() {
         setSuccessMessage("Profile picture updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setErrorMessage(resultAction.payload || "Upload failed");
+        setErrorMessage(getErrorMessage(resultAction.payload, "Upload failed"));
         setTimeout(() => setErrorMessage(""), 3000);
       }
     } catch (error) {
@@ -246,7 +247,7 @@ export default function ProfilePage() {
         setSuccessMessage("Profile picture removed.");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setErrorMessage(resultAction.payload || "Deletion failed");
+        setErrorMessage(getErrorMessage(resultAction.payload, "Deletion failed"));
         setTimeout(() => setErrorMessage(""), 3000);
       }
     } catch (error) {

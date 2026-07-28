@@ -136,7 +136,7 @@ export default function FolderCard({
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-[#334155] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-20 animate-fade-in text-left">
+              <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-20 animate-fade-in text-left">
                 {isOwner && (
                   <button
                     onClick={handleShareClick}

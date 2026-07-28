@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
 import {
   X,
   FileText,
@@ -15,7 +18,13 @@ import {
   ArrowLeft,
   Upload,
   History,
-  RotateCcw
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Search,
+  FolderArchive,
+  Maximize2
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { socket, connectSocket } from '../../socket';
@@ -145,6 +154,31 @@ const FilePreviewModal = ({
   const [compareTextB, setCompareTextB] = useState("");
   const [loadingCompare, setLoadingCompare] = useState(false);
 
+  // --- DOCX / WORD DOCUMENT STATES ---
+  const [docxHtml, setDocxHtml] = useState("");
+  const [docxLoading, setDocxLoading] = useState(false);
+  const [docxError, setDocxError] = useState(null);
+  const [docxSearchTerm, setDocxSearchTerm] = useState("");
+  const [docxZoom, setDocxZoom] = useState(100);
+
+  // --- SPREADSHEET (XLSX / CSV) STATES ---
+  const [xlsxSheets, setXlsxSheets] = useState({});
+  const [xlsxSheetNames, setXlsxSheetNames] = useState([]);
+  const [xlsxActiveSheet, setXlsxActiveSheet] = useState("");
+  const [xlsxLoading, setXlsxLoading] = useState(false);
+  const [xlsxError, setXlsxError] = useState(null);
+  const [xlsxSearchTerm, setXlsxSearchTerm] = useState("");
+
+  // --- ARCHIVE (ZIP) STATES ---
+  const [zipEntries, setZipEntries] = useState([]);
+  const [zipLoading, setZipLoading] = useState(false);
+  const [zipError, setZipError] = useState(null);
+  const [zipSearchTerm, setZipSearchTerm] = useState("");
+
+  // --- IMAGE CONTROLS ---
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotate, setImageRotate] = useState(0);
+
   const mediaRef = useRef(null);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -166,28 +200,16 @@ const FilePreviewModal = ({
       setAnnotations([]);
       setShowResumePrompt(false);
       setCompareVersion(null);
+      setImageZoom(1);
+      setImageRotate(0);
+      setDocxSearchTerm("");
+      setXlsxSearchTerm("");
+      setZipSearchTerm("");
     }
   }, [file]);
 
   const hasPreview = () => {
-    const mimeType = activeFile?.mimeType || '';
-    return (
-      mimeType.includes('image') ||
-      mimeType.includes('video') ||
-      mimeType.includes('audio') ||
-      mimeType.includes('pdf') ||
-      mimeType.includes('text') ||
-      mimeType.includes('json') ||
-      mimeType.includes('javascript') ||
-      mimeType.includes('html') ||
-      mimeType.includes('css') ||
-      mimeType.includes('xml') ||
-      mimeType.includes('word') ||
-      mimeType.includes('excel') ||
-      mimeType.includes('spreadsheet') ||
-      mimeType.includes('presentation') ||
-      mimeType.includes('powerpoint')
-    );
+    return true; // All uploaded file types are supported for preview!
   };
 
   const scrollToBottom = () => {
@@ -395,33 +417,109 @@ const FilePreviewModal = ({
 
   const ext = activeFile?.originalName ? activeFile.originalName.split('.').pop().toLowerCase() : '';
 
-  // FILE TYPES
-  const isImage = mime.includes('image') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
-  const isVideo = mime.includes('video') || ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext);
-  const isAudio = mime.includes('audio') || ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext);
-  const isPdf = mime.includes('pdf') || ext === 'pdf';
-
-  const isText =
+  // FILE TYPES — mutually exclusive, checked in priority order
+  const isImage = mime.includes('image') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext);
+  const isVideo = !isImage && (mime.includes('video') || ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext));
+  const isAudio = !isImage && !isVideo && (mime.includes('audio') || ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext));
+  const isPdf = !isImage && !isVideo && !isAudio && (mime.includes('pdf') || ext === 'pdf');
+  const isDocx = !isImage && !isVideo && !isAudio && !isPdf && (['docx', 'doc', 'dotx', 'odt'].includes(ext) || mime.includes('word') || mime.includes('wordprocessingml'));
+  const isExcel = !isDocx && !isImage && !isVideo && !isAudio && !isPdf && (['xlsx', 'xls', 'ods', 'xlsm'].includes(ext) || mime.includes('excel') || mime.includes('spreadsheetml'));
+  const isCsv = !isExcel && !isDocx && !isImage && !isVideo && !isAudio && !isPdf && (ext === 'csv' || mime.includes('csv'));
+  const isPpt = !isCsv && !isExcel && !isDocx && !isImage && !isVideo && !isAudio && !isPdf && (['ppt', 'pptx', 'odp'].includes(ext) || mime.includes('powerpoint') || mime.includes('presentationml'));
+  const isArchive = !isPpt && !isCsv && !isExcel && !isDocx && !isImage && !isVideo && !isAudio && !isPdf && (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || mime.includes('zip') || mime.includes('compressed'));
+  const isText = !isArchive && !isPpt && !isCsv && !isExcel && !isDocx && !isImage && !isVideo && !isAudio && !isPdf && (
     mime.includes('text') ||
     mime.includes('json') ||
     mime.includes('javascript') ||
     mime.includes('html') ||
     mime.includes('css') ||
-    mime.includes('xml') ||
-    ['txt', 'md', 'markdown', 'json', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'xml', 'py', 'java', 'cpp', 'c', 'sh', 'yml', 'yaml'].includes(ext);
+    (mime.includes('xml') && !mime.includes('officedocument') && !mime.includes('word') && !mime.includes('spreadsheet') && !mime.includes('presentation')) ||
+    ['txt', 'md', 'markdown', 'json', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'xml', 'py', 'java', 'cpp', 'c', 'sh', 'yml', 'yaml', 'log', 'ini', 'env', 'sql'].includes(ext)
+  );
 
-  const isOffice =
-    mime.includes('word') ||
-    mime.includes('excel') ||
-    mime.includes('spreadsheet') ||
-    mime.includes('powerpoint') ||
-    mime.includes('presentation') ||
-    ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext);
+  // --- DOCX CLIENT-SIDE PARSER EFFECT ---
+  useEffect(() => {
+    if (isOpen && isDocx && url) {
+      setDocxLoading(true);
+      setDocxError(null);
+      fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch Word document");
+          return res.arrayBuffer();
+        })
+        .then((buffer) => mammoth.convertToHtml({ arrayBuffer: buffer }))
+        .then((result) => {
+          setDocxHtml(result.value || "<p className='text-gray-400 italic'>Empty document</p>");
+          setDocxLoading(false);
+        })
+        .catch((err) => {
+          console.error("DOCX parsing error:", err);
+          setDocxError("Failed to parse Word document formatting directly.");
+          setDocxLoading(false);
+        });
+    }
+  }, [isOpen, fileId, isDocx, url]);
 
-  const isArchive =
-    mime.includes('zip') ||
-    mime.includes('rar') ||
-    mime.includes('7z');
+  // --- XLSX / CSV SPREADSHEET CLIENT-SIDE PARSER EFFECT ---
+  useEffect(() => {
+    if (isOpen && (isExcel || isCsv) && url) {
+      setXlsxLoading(true);
+      setXlsxError(null);
+      fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch spreadsheet file");
+          return res.arrayBuffer();
+        })
+        .then((buffer) => {
+          const wb = XLSX.read(buffer, { type: 'array' });
+          const sheetsMap = {};
+          wb.SheetNames.forEach((name) => {
+            sheetsMap[name] = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' });
+          });
+          setXlsxSheets(sheetsMap);
+          setXlsxSheetNames(wb.SheetNames);
+          setXlsxActiveSheet(wb.SheetNames[0] || '');
+          setXlsxLoading(false);
+        })
+        .catch((err) => {
+          console.error("Spreadsheet parsing error:", err);
+          setXlsxError("Failed to parse spreadsheet content.");
+          setXlsxLoading(false);
+        });
+    }
+  }, [isOpen, fileId, isExcel, isCsv, url]);
+
+  // --- ZIP ARCHIVE INSPECTOR PARSER EFFECT ---
+  useEffect(() => {
+    if (isOpen && isArchive && url) {
+      setZipLoading(true);
+      setZipError(null);
+      fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch archive file");
+          return res.arrayBuffer();
+        })
+        .then((buffer) => JSZip.loadAsync(buffer))
+        .then((zip) => {
+          const entries = [];
+          zip.forEach((relativePath, entry) => {
+            entries.push({
+              name: relativePath,
+              isDir: entry.dir,
+              size: entry._data ? entry._data.uncompressedSize || 0 : 0,
+              date: entry.date ? new Date(entry.date) : null
+            });
+          });
+          setZipEntries(entries);
+          setZipLoading(false);
+        })
+        .catch((err) => {
+          console.error("ZIP parsing error:", err);
+          setZipError("Failed to extract zip archive structure.");
+          setZipLoading(false);
+        });
+    }
+  }, [isOpen, fileId, isArchive, url]);
 
   // --- AUDIO / VIDEO PLAYBACK POSITION TRACKING ---
   useEffect(() => {
@@ -881,14 +979,14 @@ const FilePreviewModal = ({
             {compareVersion ? (
               <div className="w-full h-full flex flex-col bg-white dark:bg-[#0F172A] animate-fade-in">
                 {/* Compare Toolbar */}
-                <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shrink-0 text-xs border-b border-slate-800 select-none">
+                <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-4 py-2.5 flex items-center justify-between shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 select-none">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#3B82F6]">Comparing:</span>
-                    <span className="text-slate-350">Version {compareVersion.versionNumber} vs Current Version</span>
+                    <span className="text-gray-600 dark:text-slate-350">Version {compareVersion.versionNumber} vs Current Version</span>
                   </div>
                   <button
                     onClick={() => setCompareVersion(null)}
-                    className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold transition flex items-center gap-1"
+                    className="px-3 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-white rounded font-bold transition flex items-center gap-1 border border-gray-200 dark:border-transparent"
                   >
                     Back to Preview
                   </button>
@@ -970,13 +1068,199 @@ const FilePreviewModal = ({
 
                 {/* IMAGE */}
                 {isImage && (
-                  <img
-                    src={url}
-                    alt={file.originalName}
-                    className="max-h-full max-w-full object-contain animate-fade-in"
-                    onLoad={() => setPreviewLoading(false)}
-                    onError={() => setPreviewLoading(false)}
-                  />
+                  <div className="w-full h-[78vh] flex flex-col bg-gray-100 dark:bg-slate-950 items-center justify-center relative overflow-hidden">
+                    {/* Image Controls Header Bar */}
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-800 backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-3 z-20 text-gray-900 dark:text-white text-xs shadow-lg select-none">
+                      <button onClick={() => setImageZoom(Math.max(0.5, imageZoom - 0.25))} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition" title="Zoom Out"><ZoomOut className="w-4 h-4"/></button>
+                      <span className="font-mono text-gray-700 dark:text-slate-300 min-w-[3rem] text-center">{Math.round(imageZoom * 100)}%</span>
+                      <button onClick={() => setImageZoom(Math.min(4, imageZoom + 0.25))} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition" title="Zoom In"><ZoomIn className="w-4 h-4"/></button>
+                      <div className="w-px h-4 bg-gray-200 dark:bg-slate-800" />
+                      <button onClick={() => setImageRotate((imageRotate + 90) % 360)} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition flex items-center gap-1" title="Rotate 90°"><RotateCw className="w-4 h-4"/> Rotate</button>
+                      <button onClick={() => { setImageZoom(1); setImageRotate(0); }} className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-white rounded text-[11px] font-medium transition">Reset</button>
+                    </div>
+
+                    <div className="flex-1 w-full h-full flex items-center justify-center p-6 overflow-auto">
+                      <img
+                        src={url}
+                        alt={file.originalName}
+                        style={{ transform: `scale(${imageZoom}) rotate(${imageRotate}deg)` }}
+                        className="max-h-full max-w-full object-contain transition-transform duration-200 rounded-lg shadow-2xl"
+                        onLoad={() => setPreviewLoading(false)}
+                        onError={() => setPreviewLoading(false)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* WORD DOCUMENT (DOCX / DOC) */}
+                {isDocx && (
+                  <div className="w-full h-[78vh] flex flex-col bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                    {/* DOCX Toolbar */}
+                    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[10px]">Word DOCX</span>
+                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate max-w-[200px]">{activeFile.originalName}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex items-center">
+                          <Search className="w-3.5 h-3.5 absolute left-2.5 text-gray-400 dark:text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Search document..."
+                            value={docxSearchTerm}
+                            onChange={(e) => setDocxSearchTerm(e.target.value)}
+                            className="pl-8 pr-3 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
+                          <button onClick={() => setDocxZoom(Math.max(50, docxZoom - 10))} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-slate-300"><ZoomOut className="w-3.5 h-3.5"/></button>
+                          <span className="px-1 text-[11px] font-mono w-10 text-center text-gray-800 dark:text-white">{docxZoom}%</span>
+                          <button onClick={() => setDocxZoom(Math.min(200, docxZoom + 10))} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-slate-300"><ZoomIn className="w-3.5 h-3.5"/></button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Word Paper Document Area */}
+                    <div className="flex-1 overflow-auto p-6 bg-gray-200/60 dark:bg-slate-950 flex justify-center">
+                      {docxLoading ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500 dark:text-slate-400">
+                          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                          <span className="text-xs">Reading Word document...</span>
+                        </div>
+                      ) : docxError ? (
+                        <div className="text-center p-8 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 max-w-md my-auto">
+                          <FileText className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+                          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">{docxError}</p>
+                          <iframe src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`} className="w-full h-64 border-0 rounded-lg bg-white" title="Doc Fallback" />
+                        </div>
+                      ) : (
+                        <div
+                          className="docx-paper bg-white text-gray-900 shadow-2xl rounded-xl p-10 md:p-14 max-w-4xl w-full min-h-[90%] transition-transform origin-top leading-relaxed text-left select-text"
+                          style={{ transform: `scale(${docxZoom / 100})` }}
+                          dangerouslySetInnerHTML={{ __html: docxHtml }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SPREADSHEET (XLSX / XLS / CSV) */}
+                {(isExcel || isCsv) && (
+                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                    {/* Spreadsheet Toolbar */}
+                    <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
+                      <div className="flex items-center gap-2 overflow-x-auto max-w-[60%] py-0.5">
+                        <span className="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[10px] shrink-0">Excel Sheet</span>
+                        {xlsxSheetNames.map((name) => (
+                          <button
+                            key={name}
+                            onClick={() => setXlsxActiveSheet(name)}
+                            className={`px-3 py-1 rounded-md font-medium text-xs transition shrink-0 ${xlsxActiveSheet === name ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-200 dark:bg-slate-800 text-gray-700 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                          >
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative flex items-center">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 text-gray-400 dark:text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Filter cells..."
+                          value={xlsxSearchTerm}
+                          onChange={(e) => setXlsxSearchTerm(e.target.value)}
+                          className="pl-8 pr-3 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Table Grid */}
+                    <div className="flex-1 overflow-auto bg-white dark:bg-slate-950 p-2">
+                      {xlsxLoading ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500 dark:text-slate-400">
+                          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                          <span className="text-xs">Parsing spreadsheet rows...</span>
+                        </div>
+                      ) : (
+                        <div className="overflow-auto max-h-full border border-gray-200 dark:border-slate-800 rounded-lg">
+                          <table className="w-full border-collapse text-left font-mono text-xs select-text">
+                            <thead>
+                              <tr className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-slate-400 sticky top-0 z-10 border-b border-gray-200 dark:border-slate-800">
+                                <th className="p-2 border-r border-gray-200 dark:border-slate-800 text-center w-12 bg-gray-100 dark:bg-slate-900 select-none">#</th>
+                                {(xlsxSheets[xlsxActiveSheet]?.[0] || []).map((_, colIdx) => (
+                                  <th key={colIdx} className="p-2 border-r border-gray-200 dark:border-slate-800 font-bold text-gray-700 dark:text-slate-300 text-center bg-gray-100 dark:bg-slate-900 select-none">
+                                    {String.fromCharCode(65 + (colIdx % 26))}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(xlsxSheets[xlsxActiveSheet] || [])
+                                .filter((row) =>
+                                  !xlsxSearchTerm || row.some((cell) => String(cell || '').toLowerCase().includes(xlsxSearchTerm.toLowerCase()))
+                                )
+                                .map((row, rowIdx) => (
+                                  <tr key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-slate-900/60 border-b border-gray-200 dark:border-slate-800/60 transition-colors">
+                                    <td className="p-2 border-r border-gray-200 dark:border-slate-800 text-center text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-900/40 select-none font-bold">{rowIdx + 1}</td>
+                                    {row.map((cell, colIdx) => (
+                                      <td key={colIdx} className="p-2 border-r border-gray-200 dark:border-slate-800/60 text-gray-800 dark:text-slate-300 whitespace-nowrap max-w-xs truncate">
+                                        {String(cell ?? '')}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ARCHIVE (ZIP / RAR / 7Z) */}
+                {isArchive && (
+                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                    {/* Archive Header Toolbar */}
+                    <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex items-center justify-between shrink-0 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-amber-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[10px]">ZIP Archive</span>
+                        <span className="text-gray-500 dark:text-slate-400">{zipEntries.length} items inside</span>
+                      </div>
+                      <div className="relative flex items-center">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 text-gray-400 dark:text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Search archive files..."
+                          value={zipSearchTerm}
+                          onChange={(e) => setZipSearchTerm(e.target.value)}
+                          className="pl-8 pr-3 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Archive File Tree */}
+                    <div className="flex-1 overflow-auto p-4 bg-white dark:bg-slate-950">
+                      {zipLoading ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500 dark:text-slate-400">
+                          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                          <span className="text-xs">Reading archive contents...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 font-mono text-xs">
+                          {zipEntries
+                            .filter((item) => !zipSearchTerm || item.name.toLowerCase().includes(zipSearchTerm.toLowerCase()))
+                            .map((item, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-slate-900/60 hover:bg-gray-100 dark:hover:bg-slate-900 border border-gray-200 dark:border-slate-800/60 text-gray-800 dark:text-slate-300 transition">
+                                <div className="flex items-center gap-2.5 truncate">
+                                  {item.isDir ? <FolderArchive className="w-4 h-4 text-amber-500 shrink-0" /> : <FileText className="w-4 h-4 text-gray-400 dark:text-slate-400 shrink-0" />}
+                                  <span className="truncate">{item.name}</span>
+                                </div>
+                                <span className="text-[11px] text-gray-400 dark:text-slate-500 shrink-0 ml-4">{item.isDir ? 'Folder' : formatBytes(item.size)}</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {/* VIDEO */}
@@ -1017,17 +1301,17 @@ const FilePreviewModal = ({
                 {isPdf && (
                   <div className="w-full h-[78vh] flex flex-col relative" ref={containerRef}>
                     {/* Annotation toolbar */}
-                    <div className="bg-slate-900 text-white px-4 py-2 flex flex-wrap gap-2 items-center shrink-0 text-xs border-b border-slate-800 z-10 select-none">
-                      <span className="font-semibold text-slate-400 mr-2">PDF Tool:</span>
+                    <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-4 py-2 flex flex-wrap gap-2 items-center shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 z-10 select-none">
+                      <span className="font-semibold text-gray-500 dark:text-slate-400 mr-2">PDF Tool:</span>
                       <button 
                         onClick={() => setAnnotationMode(annotationMode === 'draw' ? null : 'draw')} 
-                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
                       >
                         ✏️ Draw
                       </button>
                       <button 
                         onClick={() => setAnnotationMode(annotationMode === 'highlight' ? null : 'highlight')} 
-                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
                       >
                         🟨 Highlight
                       </button>
@@ -1043,7 +1327,7 @@ const FilePreviewModal = ({
 
                     {/* Main PDF iframe */}
                     <iframe
-                      src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+                      src={url}
                       title={file.originalName}
                       className="w-full flex-1 border-0 bg-white"
                       onLoad={() => setPreviewLoading(false)}
@@ -1068,19 +1352,19 @@ const FilePreviewModal = ({
 
                 {/* TEXT & CODE IN-BROWSER WORKSPACE EDITOR */}
                 {isText && (
-                  <div className="w-full h-[78vh] flex flex-col bg-slate-950 select-none">
+                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 select-none">
                     {/* Editor Header Toolbar */}
-                    <div className="bg-slate-900 border-b border-slate-800/80 px-4 py-2 flex items-center justify-between shrink-0">
+                    <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800/80 px-4 py-2 flex items-center justify-between shrink-0">
                       <div className="flex gap-2">
                         <button
                           onClick={() => setViewMode("preview")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "preview" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "preview" ? "bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"}`}
                         >
                           👁️ Preview
                         </button>
                         <button
                           onClick={() => setViewMode("editor")}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "editor" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "editor" ? "bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"}`}
                         >
                           ✏️ Edit Code
                         </button>
@@ -1089,7 +1373,7 @@ const FilePreviewModal = ({
                         <button
                           onClick={handleSaveContent}
                           disabled={isSaving || editorContent === originalContent}
-                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm"
+                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-200 dark:disabled:bg-slate-800 disabled:text-gray-400 dark:disabled:text-slate-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm"
                         >
                           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                           Save Changes
@@ -1112,9 +1396,9 @@ const FilePreviewModal = ({
                           />
                         )
                       ) : (
-                        <div className="flex h-full font-mono text-sm leading-relaxed text-slate-300 select-text text-left">
+                        <div className="flex h-full font-mono text-sm leading-relaxed text-gray-800 dark:text-slate-300 select-text text-left">
                           {/* Fake Line Numbers */}
-                          <div className="px-3 py-4 text-slate-600 bg-slate-900 border-r border-slate-800 select-none text-right min-w-[3.5rem] leading-relaxed">
+                          <div className="px-3 py-4 text-gray-400 dark:text-slate-600 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 select-none text-right min-w-[3.5rem] leading-relaxed">
                             {Array.from({ length: editorContent.split('\n').length || 1 }).map((_, i) => (
                               <div key={i}>{i + 1}</div>
                             ))}
@@ -1122,7 +1406,7 @@ const FilePreviewModal = ({
                           <textarea
                             value={editorContent}
                             onChange={(e) => setEditorContent(e.target.value)}
-                            className="flex-1 p-4 bg-slate-950 text-slate-200 font-mono text-sm outline-none resize-none h-full border-0 select-text leading-relaxed font-normal whitespace-pre overflow-auto"
+                            className="flex-1 p-4 bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 font-mono text-sm outline-none resize-none h-full border-0 select-text leading-relaxed font-normal whitespace-pre overflow-auto"
                             placeholder="Write your code or text here..."
                           />
                         </div>
@@ -1131,8 +1415,8 @@ const FilePreviewModal = ({
                   </div>
                 )}
 
-                {/* OFFICE FILES */}
-                {isOffice && (
+                {/* PPT / OTHER OFFICE FILES FALLBACK */}
+                {isPpt && (
                   <iframe
                     src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
                     title={file.originalName}
@@ -1141,23 +1425,25 @@ const FilePreviewModal = ({
                   />
                 )}
 
-                {/* OTHER FILES */}
-                {!isImage && !isVideo && !isAudio && !isPdf && !isText && !isOffice && (
-                  <div className="text-center p-10">
+                {/* OTHER BINARY FILES FALLBACK */}
+                {!isImage && !isDocx && !isExcel && !isCsv && !isArchive && !isVideo && !isAudio && !isPdf && !isText && !isPpt && (
+                  <div className="text-center p-10 max-w-lg mx-auto">
                     {getFileIcon()}
-                    <p className="text-xl font-semibold text-gray-700 dark:text-[#94A3B8] mt-4">
-                      Preview not available
-                    </p>
-                    <p className="text-gray-500 dark:text-[#94A3B8] mt-2">
-                      This file type cannot be previewed directly.
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mt-4">
+                      {activeFile.originalName}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-[#94A3B8] mt-1 font-mono">
+                      {mime || 'binary/octet-stream'} • {formatBytes(activeFile.size)}
                     </p>
                     <a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-6 inline-block px-6 py-3 bg-[#3B82F6] text-white rounded-xl hover:bg-[#2563EB] transition"
+                      download
+                      className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-xs font-bold transition shadow-md"
                     >
-                      Open / Download File
+                      <Download className="w-4 h-4" />
+                      Download File
                     </a>
                   </div>
                 )}

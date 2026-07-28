@@ -16,7 +16,14 @@ export function applyTheme(theme) {
   } else {
     root.classList.remove('dark');
   }
-  localStorage.setItem(THEME_KEY, theme);
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (e) {}
+}
+
+// Apply initial theme immediately
+if (typeof window !== 'undefined') {
+  applyTheme(getStoredTheme());
 }
 
 const themeSlice = createSlice({

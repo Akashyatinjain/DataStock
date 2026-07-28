@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "15m";
+const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || "7d";
 const JWT_ALGORITHM = "HS256";
 
 export const createAccessToken = (user) => {

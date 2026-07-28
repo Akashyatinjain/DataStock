@@ -766,7 +766,7 @@ const Dashboard = () => {
   }, [activeTab, folders, selectedFolderId, sharedWithMe]);
 
   const filteredFolders = useMemo(() =>
-    displayFolders.filter(f => f.name?.toLowerCase().includes(searchQuery.toLowerCase())),
+    displayFolders.filter(f => (f.name || '').toLowerCase().includes(searchQuery.toLowerCase())),
     [displayFolders, searchQuery]
   );
 
@@ -829,8 +829,8 @@ const Dashboard = () => {
 
   const filteredFiles = useMemo(() =>
     decryptedDisplayFiles.filter(f =>
-      f.originalName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.ocrText?.toLowerCase().includes(searchQuery.toLowerCase())
+      (f.originalName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.ocrText || '').toLowerCase().includes(searchQuery.toLowerCase())
     ),
     [decryptedDisplayFiles, searchQuery]
   );
@@ -1360,18 +1360,21 @@ const Dashboard = () => {
 
   const isTrashView = activeTab === 'trash';
 
-  const totalCatFiles = (imageCount + videoCount + pdfCount + docCount) || 1;
-  const imgPct = Math.round((imageCount / totalCatFiles) * 100);
-  const vidPct = Math.round((videoCount / totalCatFiles) * 100);
-  const pdfPct = Math.round((pdfCount / totalCatFiles) * 100);
-  const docPct = Math.max(0, 100 - imgPct - vidPct - pdfPct);
+  const hasFiles = (imageCount + videoCount + pdfCount + docCount) > 0;
+  const totalCatFiles = hasFiles ? (imageCount + videoCount + pdfCount + docCount) : 1;
+  const imgPct = hasFiles ? Math.round((imageCount / totalCatFiles) * 100) : 0;
+  const vidPct = hasFiles ? Math.round((videoCount / totalCatFiles) * 100) : 0;
+  const pdfPct = hasFiles ? Math.round((pdfCount / totalCatFiles) * 100) : 0;
+  const docPct = hasFiles ? Math.max(0, 100 - imgPct - vidPct - pdfPct) : 0;
 
   const imgEnd = imgPct;
   const vidEnd = imgEnd + vidPct;
   const pdfEnd = vidEnd + pdfPct;
 
   const pieChartStyle = {
-    background: `conic-gradient(#3B82F6 0% ${imgEnd}%, #8B5CF6 ${imgEnd}% ${vidEnd}%, #F97316 ${vidEnd}% ${pdfEnd}%, #10B981 ${pdfEnd}% 100%)`
+    background: hasFiles 
+      ? `conic-gradient(#3B82F6 0% ${imgEnd}%, #8B5CF6 ${imgEnd}% ${vidEnd}%, #F97316 ${vidEnd}% ${pdfEnd}%, #10B981 ${pdfEnd}% 100%)`
+      : 'rgba(148, 163, 184, 0.2)'
   };
 
   return (

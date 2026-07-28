@@ -31,8 +31,8 @@ setIO(io);
 
 io.use(async (socket, next) => {
   try {
-    const authToken = socket.handshake.auth?.token;
-    const cookieHeader = socket.handshake.headers?.cookie;
+    const authToken = socket.handshake.auth?.token; // waiting for the token from the frontend
+    const cookieHeader = socket.handshake.headers?.cookie; // save the cookies 
     const cookies = cookieHeader ? cookie.parse(cookieHeader) : {};
     const token = authToken || cookies.token;
 
@@ -64,7 +64,7 @@ const onlineUsers = new Map();
 const broadcastFolderUsers = (folderId) => {
   const viewersInFolder = Array.from(activeViewers.values())
     .filter((viewer) => viewer.folderId === folderId);
-  
+
   // De-duplicate users by userId in case they have multiple tabs/sockets open
   const uniqueViewers = Array.from(new Map(viewersInFolder.map(v => [v.id, v])).values());
   io.to(`folder:${folderId}`).emit("folder_users_update", {

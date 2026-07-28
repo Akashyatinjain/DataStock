@@ -112,14 +112,14 @@ export default function SidebarFolders({
                       e.stopPropagation();
                       onShareFolder?.(folder);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-[#3B82F6] transition rounded"
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-gray-500 dark:text-slate-400 hover:text-[#3B82F6] dark:hover:text-[#3B82F6] hover:bg-blue-50 dark:hover:bg-blue-950/30 transition rounded-lg"
                     title="Share folder"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => onDeleteFolder(e, id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition rounded"
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-gray-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition rounded-lg"
                     title="Delete folder"
                   >
                     {deletingFolderId === id ? (

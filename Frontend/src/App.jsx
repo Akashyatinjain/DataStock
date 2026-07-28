@@ -12,6 +12,7 @@ import PublicSharePage from './pages/PublicSharePage';
 import HelpPage from './pages/help';
 import Pricing from './pages/Pricing';
 import PaymentSuccess from './pages/PaymentSuccess';
+import Trash from './pages/Trash';
 function App() {
   return (
     <BrowserRouter>
@@ -48,6 +49,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trash"
+          element={
+            <ProtectedRoute>
+              <Trash />
             </ProtectedRoute>
           }
         />

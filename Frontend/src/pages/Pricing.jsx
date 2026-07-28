@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { startCheckout } from "../store/slices/paymentSlice";
 import useSubscription from "../hooks/useSubscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import { getToken } from "../utils/auth";
 
 const PLANS = [
   {
@@ -89,7 +90,7 @@ export default function Pricing() {
   const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);
   const [error, setError] = useState("");
 
-  const token = localStorage.getItem("token");
+  const token = getToken();
   const isLoggedIn = !!token;
 
   const {

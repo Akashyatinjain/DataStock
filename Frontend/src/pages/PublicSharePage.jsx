@@ -73,6 +73,11 @@ const FilePreview = ({ file, allowDownload }) => {
   const [textContent, setTextContent] = useState('');
   const [textLoading, setTextLoading] = useState(false);
 
+  const [zipEntries, setZipEntries] = useState([]);
+  const [zipLoading, setZipLoading] = useState(false);
+
+  const [pdfViewMode, setPdfViewMode] = useState('gview');
+
   useEffect(() => {
     if (isDocx && url) {
       setDocxLoading(true);
@@ -108,6 +113,28 @@ const FilePreview = ({ file, allowDownload }) => {
   }, [isExcel, url]);
 
   useEffect(() => {
+    if (isArchive && url) {
+      setZipLoading(true);
+      fetch(url)
+        .then(res => res.arrayBuffer())
+        .then(buffer => JSZip.loadAsync(buffer))
+        .then(zip => {
+          const entries = [];
+          zip.forEach((relativePath, entry) => {
+            entries.push({
+              name: relativePath,
+              isDir: entry.dir,
+              size: entry._data ? entry._data.uncompressedSize || 0 : 0,
+            });
+          });
+          setZipEntries(entries);
+          setZipLoading(false);
+        })
+        .catch(() => setZipLoading(false));
+    }
+  }, [isArchive, url]);
+
+  useEffect(() => {
     if (isText && url) {
       setTextLoading(true);
       fetch(url)
@@ -125,13 +152,13 @@ const FilePreview = ({ file, allowDownload }) => {
       <img
         src={url}
         alt={file.originalName}
-        className="max-w-full max-h-[60vh] object-contain rounded-2xl shadow-xl"
+        className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-xl"
       />
     );
   }
   if (isVideo) {
     return (
-      <video controls className="max-w-full max-h-[60vh] rounded-2xl shadow-xl">
+      <video controls className="w-full max-h-[75vh] rounded-2xl shadow-xl">
         <source src={url} type={mime} />
       </video>
     );
@@ -149,7 +176,10 @@ const FilePreview = ({ file, allowDownload }) => {
   }
   if (isDocx) {
     return (
-      <div className="w-full max-w-3xl h-[60vh] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] overflow-auto p-8 text-left text-slate-900 dark:text-slate-100">
+      <div
+        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] overflow-auto p-8 text-left text-slate-900 dark:text-slate-100"
+        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+      >
         {docxLoading ? (
           <div className="flex items-center justify-center h-full gap-2 text-slate-400">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
@@ -163,7 +193,10 @@ const FilePreview = ({ file, allowDownload }) => {
   }
   if (isExcel) {
     return (
-      <div className="w-full max-w-4xl h-[60vh] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 flex flex-col overflow-hidden text-left">
+      <div
+        className="w-full h-[700px] min-h-[600px] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 flex flex-col overflow-hidden text-left"
+        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+      >
         <div className="bg-slate-900 p-2 flex gap-2 border-b border-slate-800 overflow-x-auto">
           {xlsxSheetNames.map(n => (
             <button
@@ -198,18 +231,97 @@ const FilePreview = ({ file, allowDownload }) => {
       </div>
     );
   }
-  if (isPdf) {
+  if (isArchive) {
     return (
-      <iframe
-        src={url}
-        title={file.originalName}
-        className="w-full h-[65vh] rounded-2xl shadow-xl border-0 bg-white"
-      />
+      <div
+        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
+        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+      >
+        <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">ZIP Archive</span>
+            <span className="text-xs text-gray-500 dark:text-[#94A3B8]">{zipEntries.length} items inside</span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-auto p-4 space-y-2">
+          {zipLoading ? (
+            <div className="flex items-center justify-center h-full gap-2 text-slate-400">
+              <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+              <span>Reading archive contents...</span>
+            </div>
+          ) : (
+            zipEntries.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#334155]/40 border border-gray-100 dark:border-[#334155] text-xs">
+                <div className="flex items-center gap-2.5 truncate font-mono text-gray-800 dark:text-gray-200">
+                  {item.isDir ? <FileArchive className="w-4 h-4 text-amber-500 shrink-0" /> : <FileText className="w-4 h-4 text-gray-400 shrink-0" />}
+                  <span className="truncate">{item.name}</span>
+                </div>
+                <span className="text-gray-400 dark:text-[#94A3B8] font-mono shrink-0 ml-4">{item.isDir ? 'Folder' : formatSize(item.size)}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+  if (isPdf) {
+    const embedUrl = pdfViewMode === 'gview'
+      ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+      : url;
+
+    return (
+      <div
+        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
+        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+      >
+        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] px-4 py-2 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px]">
+              PDF Document
+            </span>
+            <span className="font-medium text-gray-700 dark:text-slate-300 truncate max-w-[200px] sm:max-w-md">
+              {file.originalName}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
+              className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition flex items-center gap-1"
+              title="Toggle Viewer Engine"
+            >
+              {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
+            </button>
+
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition"
+            >
+              Open in New Tab ↗
+            </a>
+          </div>
+        </div>
+
+        <div className="flex-1 w-full h-full bg-white relative">
+          <iframe
+            src={embedUrl}
+            title={file.originalName}
+            className="w-full h-full border-0 bg-white"
+            style={{ width: '100%', height: '100%', minHeight: '550px' }}
+          />
+        </div>
+      </div>
     );
   }
   if (isText) {
     return (
-      <div className="w-full max-w-3xl h-[60vh] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 p-6 overflow-auto text-left font-mono text-xs text-slate-200 whitespace-pre">
+      <div
+        className="w-full h-[75vh] min-h-[600px] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 p-6 overflow-auto text-left font-mono text-xs text-slate-200 whitespace-pre"
+        style={{ width: '100%', height: '75vh', minHeight: '600px' }}
+      >
         {textLoading ? 'Loading text file...' : textContent}
       </div>
     );
@@ -377,7 +489,7 @@ const PublicSharePage = () => {
 
         {/* ── File view ── */}
         {!loading && !isPasswordProtected && file && (
-          <div className="w-full max-w-4xl animate-fade-in">
+          <div className="w-full max-w-5xl animate-fade-in">
             {/* File header card */}
             <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="w-16 h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
@@ -415,7 +527,10 @@ const PublicSharePage = () => {
             </div>
 
             {/* Preview area */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-6 flex items-center justify-center min-h-75">
+            <div
+              className="w-full bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-3 sm:p-6 flex flex-col items-center justify-center"
+              style={{ width: '100%', minHeight: '740px' }}
+            >
               <FilePreview file={file} allowDownload={allowDownload} />
             </div>
 

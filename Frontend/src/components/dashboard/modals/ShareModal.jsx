@@ -47,9 +47,9 @@ const PermBadge = ({ permission }) => (
   </span>
 );
 
-const Avatar = ({ user, size = 8 }) => (
+const Avatar = ({ user, size = 'w-8 h-8' }) => (
   <div
-    className={`w-${size} h-${size} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
+    className={`${size} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
   >
     {user?.imageUrl ? (
       <img src={user.imageUrl} alt={user.username} className="w-full h-full object-cover" />

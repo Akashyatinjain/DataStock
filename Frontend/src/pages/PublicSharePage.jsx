@@ -271,24 +271,25 @@ const FilePreview = ({ file, allowDownload }) => {
 
     return (
       <div
-        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
-        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+        className="w-full h-[520px] sm:h-[700px] min-h-[480px] sm:min-h-[600px] bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
+        style={{ width: '100%', minHeight: '480px' }}
       >
-        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] px-4 py-2 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px]">
-              PDF Document
+        {/* Responsive Mobile/Desktop Top Control Toolbar */}
+        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] p-2.5 sm:px-4 sm:py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shrink-0 select-none">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
+              PDF
             </span>
-            <span className="font-medium text-gray-700 dark:text-slate-300 truncate max-w-[200px] sm:max-w-md">
+            <span className="font-medium text-gray-700 dark:text-slate-300 truncate text-xs sm:text-sm">
               {file.originalName}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 justify-end w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
-              className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition flex items-center gap-1"
+              className="flex-1 sm:flex-none px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] sm:text-xs text-center"
               title="Toggle Viewer Engine"
             >
               {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
@@ -298,9 +299,9 @@ const FilePreview = ({ file, allowDownload }) => {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition"
+              className="flex-1 sm:flex-none px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition text-[11px] sm:text-xs text-center whitespace-nowrap"
             >
-              Open in New Tab ↗
+              Open ↗
             </a>
           </div>
         </div>
@@ -310,7 +311,7 @@ const FilePreview = ({ file, allowDownload }) => {
             src={embedUrl}
             title={file.originalName}
             className="w-full h-full border-0 bg-white"
-            style={{ width: '100%', height: '100%', minHeight: '550px' }}
+            style={{ width: '100%', height: '100%', minHeight: '440px' }}
           />
         </div>
       </div>
@@ -408,7 +409,7 @@ const PublicSharePage = () => {
       </nav>
 
       {/* ── Content ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+      <main className="flex-1 flex flex-col items-center justify-center px-2.5 sm:px-6 py-3 sm:py-8">
 
         {/* ── Loading ── */}
         {loading && (
@@ -491,25 +492,27 @@ const PublicSharePage = () => {
         {!loading && !isPasswordProtected && file && (
           <div className="w-full max-w-5xl animate-fade-in">
             {/* File header card */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="w-16 h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
-                {getFileIcon(file.mimeType)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate">{file.originalName}</h1>
-                <div className="flex items-center gap-4 mt-1.5">
-                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-[#94A3B8]">
-                    <HardDrive className="w-3.5 h-3.5" />
-                    {formatSize(file.size)}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-[#94A3B8]">
-                    <Clock className="w-3.5 h-3.5" />
-                    {new Date(file.createdAt).toLocaleDateString('en-IN', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
+                  {getFileIcon(file.mimeType)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate leading-snug">{file.originalName}</h1>
+                  <div className="flex items-center gap-3 sm:gap-4 mt-1 flex-wrap">
+                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400 dark:text-[#94A3B8]">
+                      <HardDrive className="w-3.5 h-3.5" />
+                      {formatSize(file.size)}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400 dark:text-[#94A3B8]">
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(file.createdAt).toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
               {allowDownload && (
@@ -518,7 +521,7 @@ const PublicSharePage = () => {
                   target="_blank"
                   rel="noreferrer"
                   download
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-sm transition shadow-sm shrink-0"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs sm:text-sm transition shadow-sm w-full sm:w-auto shrink-0"
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -528,8 +531,8 @@ const PublicSharePage = () => {
 
             {/* Preview area */}
             <div
-              className="w-full bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-3 sm:p-6 flex flex-col items-center justify-center"
-              style={{ width: '100%', minHeight: '740px' }}
+              className="w-full bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-1.5 sm:p-6 flex flex-col items-center justify-center"
+              style={{ width: '100%', minHeight: '500px' }}
             >
               <FilePreview file={file} allowDownload={allowDownload} />
             </div>

@@ -243,6 +243,7 @@ const Dashboard = () => {
 
   const [encryptNewUploads, setEncryptNewUploads] = useState(false);
   const [bannerPass, setBannerPass] = useState("");
+  const [isE2eeBannerDismissed, setIsE2eeBannerDismissed] = useState(false);
 
   const handleUnlockBannerSubmit = async (e) => {
     e.preventDefault();
@@ -1563,9 +1564,12 @@ const Dashboard = () => {
                 </div>
               )}
               {activeTab === 'my-drive' && !selectedFolder ? (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F8FAFC] tracking-tight truncate">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                  <div className="flex items-baseline gap-3">
+                    <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight">
+                      My Drive
+                    </h1>
+                    <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
                       {(() => {
                         const hr = new Date().getHours();
                         const rawName = user?.username || 'Akash';
@@ -1575,20 +1579,17 @@ const Dashboard = () => {
                         if (hr < 17) return `Good afternoon, ${name} 👋`;
                         return `Good evening, ${name} 👋`;
                       })()}
-                    </h1>
-                    <p className="text-xs text-gray-400 font-bold mt-1.5 uppercase tracking-wider">
-                      {totalFileCount} {totalFileCount === 1 ? 'File' : 'Files'} • {totalFoldersCount} {totalFoldersCount === 1 ? 'Folder' : 'Folders'} • {collaboratorsHeaderText} • {formatFileSize(totalStorage - usedStorage)} Available
-                    </p>
+                    </span>
                   </div>
 
                   {/* Clean Header Collaborators Stack */}
                   {driveCollaborators.length > 0 && (
-                    <div className="flex items-center gap-2 self-start sm:self-center bg-gray-50/50 dark:bg-slate-800/40 border border-gray-100/80 dark:border-slate-800/60 rounded-full px-3.5 py-1.5 shadow-3xs">
+                    <div className="flex items-center gap-2 self-start sm:self-center bg-gray-50/50 dark:bg-slate-800/40 border border-gray-100/80 dark:border-slate-800/60 rounded-full px-3 py-1 shadow-3xs">
                       <div className="flex items-center -space-x-2">
                         {driveCollaborators.slice(0, 4).map((collab) => (
                           <div
                             key={`header-collab-${collab.id}`}
-                            className={`w-7 h-7 rounded-full border-2 bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-[10px] font-extrabold overflow-hidden shadow-xs hover:translate-y-[-2px] transition duration-200 ${collab.status === 'online'
+                            className={`w-6 h-6 rounded-full border-2 bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-[9px] font-extrabold overflow-hidden shadow-xs hover:translate-y-[-2px] transition duration-200 ${collab.status === 'online'
                                 ? 'border-emerald-500 ring-1 ring-emerald-500/20'
                                 : 'border-white dark:border-slate-800 opacity-60'
                               }`}
@@ -1602,13 +1603,13 @@ const Dashboard = () => {
                           </div>
                         ))}
                         {driveCollaborators.length > 4 && (
-                          <div className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-[10px] font-bold shadow-xs">
+                          <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-[9px] font-bold shadow-xs">
                             +{driveCollaborators.length - 4}
                           </div>
                         )}
                       </div>
                       <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
-                        {driveCollaborators.filter(c => c.status === 'online').length > 0 ? "Collaborating Live" : "Collaborators"}
+                        {driveCollaborators.filter(c => c.status === 'online').length > 0 ? "Live" : "Collaborators"}
                       </span>
                     </div>
                   )}
@@ -1724,219 +1725,116 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          {isE2eeSetup && !isE2eeUnlocked && (
-            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-5 mb-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 animate-slide-down">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
-                  <Lock className="w-5 h-5 animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-gray-900 dark:text-[#F8FAFC]">
-                    E2EE Safe Storage is Locked
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Enter your passphrase to unlock and decrypt your end-to-end encrypted files.
-                  </p>
-                </div>
+          {isE2eeSetup && !isE2eeUnlocked && !isE2eeBannerDismissed && (
+            <div className="bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/20 dark:border-amber-900/40 rounded-xl px-4 py-2.5 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs animate-slide-down">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  E2EE Safe Storage is Locked
+                </span>
+                <span className="hidden md:inline text-gray-400">
+                  — Passphrase required for encrypted files
+                </span>
               </div>
 
-              <form onSubmit={handleUnlockBannerSubmit} className="flex gap-2 w-full md:w-auto shrink-0">
-                <input
-                  type="password"
-                  placeholder="Enter Passphrase"
-                  value={bannerPass}
-                  onChange={(e) => setBannerPass(e.target.value)}
-                  className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-xs focus:outline-[#3B82F6] min-w-[150px] flex-1 md:flex-initial"
-                />
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+                <form onSubmit={handleUnlockBannerSubmit} className="flex items-center gap-1.5">
+                  <input
+                    type="password"
+                    placeholder="Passphrase"
+                    value={bannerPass}
+                    onChange={(e) => setBannerPass(e.target.value)}
+                    className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] text-gray-800 dark:text-[#F8FAFC] rounded-lg px-3 py-1 text-xs focus:outline-[#3B82F6] w-32"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition"
+                  >
+                    Unlock
+                  </button>
+                </form>
                 <button
-                  type="submit"
-                  className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition"
+                  onClick={() => setIsE2eeBannerDismissed(true)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition"
+                  title="Dismiss alert"
                 >
-                  Unlock
+                  <X className="w-4 h-4" />
                 </button>
-              </form>
+              </div>
             </div>
           )}
 
-          {isE2eeSetup && isE2eeUnlocked && (
-            <div className="bg-emerald-50/50 dark:bg-emerald-950/15 border border-emerald-200/50 dark:border-emerald-900/40 rounded-xl px-4 py-2 mb-5 flex items-center justify-between text-xs font-semibold text-emerald-800 dark:text-emerald-300 animate-fade-in shadow-xs">
+          {isE2eeSetup && isE2eeUnlocked && !isE2eeBannerDismissed && (
+            <div className="bg-emerald-500/10 dark:bg-emerald-950/20 border border-emerald-500/20 dark:border-emerald-900/30 rounded-xl px-4 py-2 mb-4 flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-300 animate-fade-in">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Zero-Knowledge Vault Protected (AES-256 Encryption Active)</span>
+                <span>Zero-Knowledge Vault Active</span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-100/40 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md border border-emerald-200/40 dark:border-emerald-900/20">
-                Unlocked
-              </span>
+              <button
+                onClick={() => setIsE2eeBannerDismissed(true)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+                title="Dismiss notification"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
-          {/* ── STATS ROW ── */}
+          {/* ── COMPACT QUICK METRICS STRIP ── */}
           {activeTab === 'my-drive' && !selectedFolder && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5 animate-fade-up">
-              {/* Storage card (Full Width on First Row) */}
-              <div className="sm:col-span-2 bg-gradient-to-br from-white to-slate-50/50 dark:from-[#1E293B] dark:to-[#1a2537] rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md border border-transparent transition hover:shadow-lg duration-300">
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Storage Usage</h2>
-                    <div className="w-8.5 h-8.5 bg-blue-50 dark:bg-blue-950/20 rounded-xl flex items-center justify-center text-[#3B82F6] shrink-0">
-                      <HardDrive className="w-4.5 h-4.5" />
-                    </div>
+            <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155]/80 rounded-xl p-3 mb-4 shadow-3xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs animate-fade-up">
+              {/* Left: Storage Summary & Bar */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-950/30 rounded-lg flex items-center justify-center text-[#3B82F6] shrink-0">
+                  <HardDrive className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    <span className="truncate">Storage: <strong className="text-gray-900 dark:text-white">{usedFormatted}</strong> / {totalFormatted}</span>
+                    <span className="text-[10px] text-gray-400 font-bold ml-2 shrink-0">{Math.round(storagePercentage)}%</span>
                   </div>
-
-                  <p className="text-lg sm:text-xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">
-                    {usedFormatted} <span className="text-[10px] sm:text-xs font-medium text-gray-400">used of {totalFormatted}</span>
-                  </p>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-2 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden mt-3 mb-1.5">
+                  <div className="w-full h-1.5 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-blue-500 to-indigo-600 animate-pulse"
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
                       style={{ width: `${storagePercentage}%` }}
                     />
                   </div>
-
-                  <div className="flex justify-between text-[9px] text-gray-400 font-bold uppercase tracking-wider">
-                    <span>{usedFormatted} used</span>
-                    <span>{(totalGB - usedGB).toFixed(2)} GB left</span>
-                  </div>
-                </div>
-
-                {/* Pie Chart Analytics Integration */}
-                <div className="flex flex-col sm:flex-row items-center gap-5 mt-3 pt-3 border-t border-gray-100 dark:border-[#334155]/60">
-                  {/* Donut Chart */}
-                  <div className="relative w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-inner hover:scale-105 transition-transform duration-300" style={pieChartStyle}>
-                    <div className="absolute w-10 h-10 bg-white dark:bg-[#1E293B] rounded-full flex items-center justify-center text-[9px] font-black text-gray-800 dark:text-slate-100">
-                      {Math.round(storagePercentage)}%
-                    </div>
-                  </div>
-
-                  {/* Legend */}
-                  <div className="grid grid-cols-2 gap-x-3 sm:gap-x-5 gap-y-2.5 w-full">
-                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold">
-                      <span className="flex items-center gap-1.5 text-gray-500 truncate">
-                        <span className="w-2 h-2 rounded-full bg-[#3B82F6] shrink-0" />
-                        Images
-                      </span>
-                      <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC] shrink-0">{imgPct}% ({imageCount})</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold">
-                      <span className="flex items-center gap-1.5 text-gray-500 truncate">
-                        <span className="w-2 h-2 rounded-full bg-[#8B5CF6] shrink-0" />
-                        Videos
-                      </span>
-                      <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC] shrink-0">{vidPct}% ({videoCount})</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold">
-                      <span className="flex items-center gap-1.5 text-gray-500 truncate">
-                        <span className="w-2 h-2 rounded-full bg-[#F97316] shrink-0" />
-                        PDFs
-                      </span>
-                      <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC] shrink-0">{pdfPct}% ({pdfCount})</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold">
-                      <span className="flex items-center gap-1.5 text-gray-500 truncate">
-                        <span className="w-2 h-2 rounded-full bg-[#10B981] shrink-0" />
-                        Docs
-                      </span>
-                      <span className="font-extrabold text-gray-700 dark:text-[#F8FAFC] shrink-0">{docPct}% ({docCount})</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* File count card (Second Row - Left side) */}
-              <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155]/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-gray-300 dark:hover:border-slate-500 transition duration-300 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Total Files</h2>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-sky-50 dark:bg-sky-950/20 rounded-lg sm:rounded-xl flex items-center justify-center text-sky-500 shrink-0">
-                    <Folder className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">{totalFileCount}</p>
-                    <span className="text-[10px] sm:text-xs font-bold text-emerald-500 flex items-center gap-0.5 shrink-0 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded-full">
-                      <span>↑</span> +{Math.max(1, Math.floor(totalFileCount / 3))} this week
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-gray-100 dark:border-[#334155]/60 text-[10px] sm:text-[11px] text-gray-400 font-semibold uppercase tracking-wider select-none">
-                    <div
-                      onClick={() => setActiveTab('my-drive')}
-                      className="cursor-pointer hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition-colors duration-150"
-                      title="View My Drive Folders"
-                    >
-                      <span className="font-bold text-gray-700 dark:text-gray-300 hover:text-[#3B82F6] dark:hover:text-blue-400 transition-colors">{totalFoldersCount}</span> Folders
-                    </div>
-                    <div
-                      onClick={() => setActiveTab('shared')}
-                      className="cursor-pointer hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition-colors duration-150"
-                      title="View Shared Files"
-                    >
-                      <span className="font-bold text-gray-700 dark:text-gray-300 hover:text-[#3B82F6] dark:hover:text-blue-400 transition-colors">{totalSharedFilesCount}</span> Shared
-                    </div>
-                  </div>
-                </div>
+              {/* Center: File & Folder metrics pill */}
+              <div className="flex items-center gap-3 px-3 py-1 bg-gray-50 dark:bg-slate-800/60 rounded-lg border border-gray-100 dark:border-slate-800/80 shrink-0 text-gray-600 dark:text-gray-300 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Folder className="w-3.5 h-3.5 text-sky-500" />
+                  <strong>{totalFileCount}</strong> Files
+                </span>
+                <span className="text-gray-300 dark:text-slate-600">•</span>
+                <span><strong>{totalFoldersCount}</strong> Folders</span>
+                <span className="text-gray-300 dark:text-slate-600">•</span>
+                <span><strong>{totalSharedFilesCount}</strong> Shared</span>
               </div>
 
-              {/* Vault Security card (Second Row - Right side) */}
-              <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155]/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-gray-300 dark:hover:border-slate-500 transition duration-300 flex flex-col justify-between">
-                <div className="flex items-center justify-between mb-3.5">
-                  <h2 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide uppercase">Vault Security</h2>
-                  <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border uppercase tracking-wide shrink-0 ${isE2eeSetup ? 'text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 border-blue-100/50' : 'text-amber-500 bg-amber-50 dark:bg-amber-950/20 border-amber-100/50'}`}>
-                    {isE2eeSetup ? 'Active' : 'Setup Required'}
-                  </span>
-                </div>
+              {/* Right: Vault Status & Detailed Analytics Link */}
+              <div className="flex items-center gap-2 shrink-0 justify-between md:justify-end">
+                <button
+                  onClick={() => handleOpenStatus("vault")}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-semibold transition"
+                  title="View Vault Status"
+                >
+                  {isE2eeUnlocked ? (
+                    <Unlock className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  )}
+                  <span className="text-[11px]">{isE2eeSetup ? (isE2eeUnlocked ? 'Vault Unlocked' : 'Vault Locked') : 'Vault Inactive'}</span>
+                </button>
 
-                <div className="space-y-2">
-                  <div
-                    onClick={() => handleOpenStatus("vault")}
-                    className="flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl cursor-pointer transition-colors duration-150 group min-w-0"
-                    title="Click to verify Vault security parameters"
-                  >
-                    <span className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 truncate pr-1">
-                      {isE2eeUnlocked ? (
-                        <Unlock className="w-3.5 h-3.5 text-emerald-500 group-hover:scale-105 transition-transform shrink-0" />
-                      ) : (
-                        <Lock className="w-3.5 h-3.5 text-amber-500 group-hover:scale-105 transition-transform shrink-0" />
-                      )}
-                      <span className="truncate">Vault Status</span>
-                    </span>
-                    <span className="flex items-center gap-1 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider shrink-0">
-                      <span className={`w-1.5 h-1.5 rounded-full ${isE2eeSetup ? (isE2eeUnlocked ? 'bg-emerald-500' : 'bg-amber-500') : 'bg-gray-400'} shrink-0`} />
-                      <span className={isE2eeSetup ? (isE2eeUnlocked ? 'text-emerald-500' : 'text-amber-500') : 'text-gray-400'}>{isE2eeSetup ? (isE2eeUnlocked ? 'Unlocked' : 'Locked') : 'Inactive'}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl cursor-default transition-colors duration-150 min-w-0">
-                    <span className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 truncate pr-1">
-                      <Shield className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
-                      <span className="truncate">Encrypted Files</span>
-                    </span>
-                    <span className="text-[10px] sm:text-xs font-extrabold text-gray-700 dark:text-[#F8FAFC] shrink-0">
-                      {(allFiles || []).filter(f => f.isEncrypted).length} Secure
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl cursor-default transition-colors duration-150 min-w-0">
-                    <span className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 truncate pr-1">
-                      <Users className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                      <span className="truncate">Two-Factor Auth</span>
-                    </span>
-                    <span className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500 shrink-0">
-                      {user?.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-3.5 pt-3 border-t border-gray-100 dark:border-[#334155]/60 flex justify-end">
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="text-[10px] sm:text-xs font-bold text-[#3B82F6] hover:text-[#2563EB] transition-colors flex items-center gap-0.5"
-                  >
-                    Configure Settings →
-                  </button>
-                </div>
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  className="text-[11px] font-extrabold text-[#3B82F6] hover:underline px-1 py-1"
+                >
+                  Analytics →
+                </button>
               </div>
             </div>
           )}
@@ -2092,51 +1990,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* ── RECENT ACTIVITY WIDGET ── */}
-          {activeTab === 'my-drive' && !loading && (allFiles.length > 0 || folders.length > 0) && (
-            <div className="mb-6 animate-fade-up">
-              <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Recent Activity</h3>
-              <div className="space-y-2">
-                {[...decryptedAllFiles, ...folders]
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .slice(0, 4)
-                  .map((item, idx) => {
-                    const isFolder = !item.mimeType;
-                    const timeString = new Date(item.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-                    let badge = "🟢 Uploaded";
-                    let color = "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30";
-
-                    if (isFolder) {
-                      badge = "🟡 Created Folder";
-                      color = "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30";
-                    } else if (item.isShared || item.sharedWith?.length > 0) {
-                      badge = "🔵 Shared Item";
-                      color = "text-blue-500 bg-blue-50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30";
-                    } else if (item.isEncrypted) {
-                      badge = "🔒 Encrypted";
-                      color = "text-orange-500 bg-orange-50 dark:bg-orange-950/20 border border-orange-100/50 dark:border-orange-900/30";
-                    }
-
-                    return (
-                      <div key={`activity-${idx}`} className="flex items-center justify-between text-xs hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-xl transition duration-150 border-b border-gray-50/50 dark:border-[#334155]/20 last:border-0">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className={`px-2 py-0.5 rounded-full font-extrabold text-[8.5px] uppercase tracking-wider shrink-0 ${color}`}>
-                            {badge}
-                          </span>
-                          <span className="font-semibold text-gray-800 dark:text-[#F8FAFC] truncate">
-                            {item.originalName || item.name}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider shrink-0 pl-4">
-                          {timeString}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
 
           {/* ── GRID VIEW ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (

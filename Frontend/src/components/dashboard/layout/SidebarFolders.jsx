@@ -46,21 +46,19 @@ export default function SidebarFolders({
   };
 
   return (
-    <>
-      <div className="my-3.5" />
-      <div>
-        <div className="flex items-center justify-between mb-3 px-2">
-          <p className="text-xs font-extrabold tracking-wide text-gray-400 dark:text-slate-500">
-            Folders ({folders.length})
-          </p>
-          <button
-            onClick={onNewFolder}
-            className="text-[#3B82F6] hover:text-[#3B82F6]"
-            title="New folder"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="pt-3 mt-3 border-t border-gray-100 dark:border-slate-800/80">
+      <div className="flex items-center justify-between mb-2 px-2">
+        <p className="text-xs font-bold tracking-wider uppercase text-gray-400 dark:text-slate-500">
+          Folders ({folders.length})
+        </p>
+        <button
+          onClick={onNewFolder}
+          className="text-[#3B82F6] hover:text-[#2563EB] transition"
+          title="New folder"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
 
         <div className="space-y-1">
           {loading ? (
@@ -133,7 +131,6 @@ export default function SidebarFolders({
             })
           )}
         </div>
-      </div>
-    </>
+    </div>
   );
 }

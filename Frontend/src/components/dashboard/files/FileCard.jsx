@@ -115,11 +115,12 @@ const FileCard = ({
       }}
       className={`
         relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
-        transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[270px]
+        transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
+        ${file.mimeType?.includes('image') ? 'h-[185px]' : 'h-[145px]'}
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-100 dark:border-[#334155] hover:border-blue-200 dark:hover:border-[#3B82F6] hover:shadow-lg hover:-translate-y-0.5 shadow-xs'}
-        ${isSelected ? 'border-[#3B82F6] ring-2 ring-green-500/20' : ''}
+          : 'border-gray-100/80 dark:border-slate-800/80 hover:border-[#3B82F6]/60 dark:hover:border-[#3B82F6]/60 hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] shadow-3xs'}
+        ${isSelected ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}
@@ -145,7 +146,7 @@ const FileCard = ({
       {/* Checkbox Overlay */}
       {!isTrashView && onToggleSelect && (
         <div
-          className={`absolute top-3 left-3 z-20 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          className={`absolute top-2.5 left-2.5 z-20 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
@@ -156,7 +157,7 @@ const FileCard = ({
             type="checkbox"
             checked={!!isSelected}
             onChange={onToggleSelect}
-            className="w-4.5 h-4.5 text-[#3B82F6] bg-white dark:bg-[#334155] border-gray-300 dark:border-[#334155] rounded-md focus:ring-[#3B82F6] cursor-pointer shadow-sm focus:ring-2 focus:ring-offset-0"
+            className="w-4 h-4 text-[#3B82F6] rounded border-gray-300 focus:ring-[#3B82F6] cursor-pointer shadow-xs"
           />
         </div>
       )}
@@ -181,16 +182,14 @@ const FileCard = ({
       {/* Top Banner (Thumbnail or File icon) */}
       <div className="relative">
         {isLocked ? (
-          <div className="h-32 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/30 border-b border-gray-100 dark:border-[#334155]/60 relative select-none">
-            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-xs mb-2">
-              <Lock className="w-5 h-5 text-amber-500" />
-            </div>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              Encrypted Safe Storage
+          <div className="h-14 flex items-center justify-center gap-2 bg-amber-500/5 dark:bg-amber-950/20 border-b border-gray-100 dark:border-slate-800 relative select-none">
+            <Lock className="w-4 h-4 text-amber-500" />
+            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+              Encrypted File
             </span>
           </div>
         ) : file.mimeType?.includes('image') ? (
-          <div className="h-32 overflow-hidden bg-gray-50 dark:bg-[#334155] relative flex items-center justify-center">
+          <div className="h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
             <img
               src={file.url}
               alt={file.originalName}
@@ -199,10 +198,10 @@ const FileCard = ({
           </div>
         ) : (
           <div
-            className={`h-32 flex items-center justify-center ${type.bg} relative transition-transform duration-500`}
+            className={`h-14 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
           >
             <Icon
-              className={`w-12 h-12 ${type.color} opacity-70 group-hover:scale-110 duration-300`}
+              className={`w-7 h-7 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
             />
           </div>
         )}
@@ -210,13 +209,13 @@ const FileCard = ({
         {/* Favorite Star */}
         {!isTrashView && (
           <div
-            className="absolute top-2.5 right-2.5 z-10"
+            className="absolute top-2 right-2 z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => onToggleStar(file.id)}
               disabled={isStarring}
-              className={`p-1.5 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
+              className={`p-1 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
                 isStarred
                   ? 'text-yellow-500'
                   : 'text-gray-400 hover:text-yellow-500'
@@ -231,7 +230,7 @@ const FileCard = ({
       </div>
 
       {/* Body Details */}
-      <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
+      <div className="p-3 flex-1 flex flex-col justify-between min-w-0">
         <div>
           {/* File Name */}
           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">

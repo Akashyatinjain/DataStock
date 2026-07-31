@@ -108,17 +108,22 @@ export default function FolderCard({
   return (
     <div
       onClick={handleOpen}
-      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155]/60 hover:border-blue-200 dark:hover:border-blue-500/40 rounded-2xl p-4.5 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer select-none flex flex-col justify-between h-[210px] animate-fade-up hover:scale-[1.02] hover:-translate-y-0.5"
+      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100/80 dark:border-slate-800/80 hover:border-[#3B82F6]/60 dark:hover:border-[#3B82F6]/60 rounded-2xl p-3.5 shadow-3xs hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] transition-all duration-200 cursor-pointer select-none flex flex-col justify-between h-[105px] animate-fade-up"
     >
       {/* Row 1: Icon + Name and Dropdown Action */}
       <div className="flex items-center justify-between min-w-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${scheme.bg}`}>
-            <Folder className={`w-6 h-6 ${scheme.text}`} />
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${scheme.bg}`}>
+            <Folder className={`w-5 h-5 ${scheme.text}`} />
           </div>
-          <h4 className="font-extrabold text-gray-900 dark:text-[#F8FAFC] text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
-            {folder.name}
-          </h4>
+          <div className="min-w-0">
+            <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] text-xs sm:text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
+              {folder.name}
+            </h4>
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5 truncate">
+              {getModifiedLabel()}
+            </p>
+          </div>
         </div>
 
         {/* Action Dropdown Menu */}
@@ -168,44 +173,38 @@ export default function FolderCard({
         </div>
       </div>
 
-      {/* Row 2: File Count & Size */}
-      <div className="flex items-center gap-3 text-xs font-bold text-gray-500 dark:text-[#94A3B8] mt-2.5">
-        <span>{fileCount} {fileCount === 1 ? 'File' : 'Files'}</span>
-        <span className="text-gray-300 dark:text-gray-700">•</span>
-        <span>{formatFolderSize(folderSize)}</span>
-      </div>
-
-      {/* Row 3: Modified Time */}
-      <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">
-        {getModifiedLabel()}
-      </div>
-
-      {/* Row 4: Shared Badge */}
-      <div className="flex items-center gap-1 mt-2 text-xs font-semibold text-gray-500 dark:text-[#94A3B8]">
+      {/* Row 2: Stats & Shared Badge */}
+      <div className="flex items-center justify-between text-[11px] font-medium text-gray-500 dark:text-slate-400 mt-2 pt-2 border-t border-gray-100/60 dark:border-slate-800/60">
+        <span>{fileCount} {fileCount === 1 ? 'file' : 'files'} · {formatFolderSize(folderSize)}</span>
         {isShared ? (
-          <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-950/20 px-2 py-0.5 rounded-lg border border-blue-100/50 dark:border-blue-900/30">
-            <Users className="w-3.5 h-3.5 animate-pulse" />
-            <span>Shared with {folder.sharedWith?.length || (folder._isDirectlyShared ? 1 : 0)}</span>
-          </span>
+          <div className="flex items-center gap-1.5">
+            {folder.sharedWith && folder.sharedWith.length > 0 && (
+              <div className="flex items-center -space-x-1.5">
+                {folder.sharedWith.slice(0, 3).map((sw, idx) => (
+                  <div
+                    key={`sw-${idx}`}
+                    className="w-4.5 h-4.5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 border border-white dark:border-[#1E293B] flex items-center justify-center text-[8px] font-bold text-white uppercase shadow-2xs"
+                    title={sw.sharedTo?.username || sw.sharedTo?.email}
+                  >
+                    {sw.sharedTo?.username?.charAt(0) || sw.sharedTo?.email?.charAt(0) || 'U'}
+                  </div>
+                ))}
+              </div>
+            )}
+            <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold bg-blue-50/60 dark:bg-blue-950/30 px-1.5 py-0.5 rounded-md text-[10px]">
+              <Users className="w-3 h-3" />
+              <span>Shared</span>
+            </span>
+          </div>
         ) : (
-          <span className="flex items-center gap-1 text-gray-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/30 px-2 py-0.5 rounded-lg border border-slate-100/50 dark:border-slate-800/30">
-            <Users className="w-3.5 h-3.5 opacity-40" />
-            <span>Only You</span>
-          </span>
+          <span className="text-[10px] text-gray-400 font-medium">Only You</span>
         )}
-      </div>
-
-      {/* Open Folder Button */}
-      <div className="mt-3 pt-2.5 border-t border-gray-100/70 dark:border-[#334155]/40">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#334155] text-[11px] font-bold text-gray-500 dark:text-[#94A3B8] group-hover:text-[#3B82F6] group-hover:border-blue-300 dark:group-hover:border-blue-500/40 transition-all duration-200">
-          Open Folder <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-        </span>
       </div>
 
       {isDownloading && (
         <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
-          <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
-          <span className="text-xs font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
+          <Loader2 className="w-6 h-6 text-[#3B82F6] animate-spin mb-1" />
+          <span className="text-[11px] font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
         </div>
       )}
     </div>

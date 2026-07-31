@@ -1522,7 +1522,7 @@ const Dashboard = () => {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className="p-4 sm:px-10 lg:px-12 sm:py-6 lg:py-8 max-w-[1600px] relative"
+          className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 max-w-[1920px] w-full relative"
         >
           {isDraggingFile && (
             <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
@@ -1725,77 +1725,22 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          {isE2eeSetup && !isE2eeUnlocked && !isE2eeBannerDismissed && (
-            <div className="bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/20 dark:border-amber-900/40 rounded-xl px-4 py-2.5 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs animate-slide-down">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Lock className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="font-semibold text-gray-800 dark:text-gray-200 truncate">
-                  E2EE Safe Storage is Locked
-                </span>
-                <span className="hidden md:inline text-gray-400">
-                  — Passphrase required for encrypted files
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-                <form onSubmit={handleUnlockBannerSubmit} className="flex items-center gap-1.5">
-                  <input
-                    type="password"
-                    placeholder="Passphrase"
-                    value={bannerPass}
-                    onChange={(e) => setBannerPass(e.target.value)}
-                    className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] text-gray-800 dark:text-[#F8FAFC] rounded-lg px-3 py-1 text-xs focus:outline-[#3B82F6] w-32"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg text-xs font-semibold shrink-0 transition"
-                  >
-                    Unlock
-                  </button>
-                </form>
-                <button
-                  onClick={() => setIsE2eeBannerDismissed(true)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition"
-                  title="Dismiss alert"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {isE2eeSetup && isE2eeUnlocked && !isE2eeBannerDismissed && (
-            <div className="bg-emerald-500/10 dark:bg-emerald-950/20 border border-emerald-500/20 dark:border-emerald-900/30 rounded-xl px-4 py-2 mb-4 flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-300 animate-fade-in">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Zero-Knowledge Vault Active</span>
-              </div>
-              <button
-                onClick={() => setIsE2eeBannerDismissed(true)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
-                title="Dismiss notification"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
           {/* ── COMPACT QUICK METRICS STRIP ── */}
           {activeTab === 'my-drive' && !selectedFolder && (
-            <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155]/80 rounded-xl p-3 mb-4 shadow-3xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs animate-fade-up">
+            <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm border border-gray-100 dark:border-slate-800/80 rounded-xl p-2.5 mb-3 shadow-3xs flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-fade-up">
               {/* Left: Storage Summary & Bar */}
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-7 h-7 bg-blue-50 dark:bg-blue-950/30 rounded-lg flex items-center justify-center text-[#3B82F6] shrink-0">
                   <HardDrive className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    <span className="truncate">Storage: <strong className="text-gray-900 dark:text-white">{usedFormatted}</strong> / {totalFormatted}</span>
+                  <div className="flex items-center justify-between text-[11px] font-medium text-gray-600 dark:text-slate-400 mb-1">
+                    <span className="truncate">Storage: <strong className="text-gray-900 dark:text-white font-bold">{usedFormatted}</strong> / {totalFormatted}</span>
                     <span className="text-[10px] text-gray-400 font-bold ml-2 shrink-0">{Math.round(storagePercentage)}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500"
                       style={{ width: `${storagePercentage}%` }}
                     />
                   </div>
@@ -1803,35 +1748,50 @@ const Dashboard = () => {
               </div>
 
               {/* Center: File & Folder metrics pill */}
-              <div className="flex items-center gap-3 px-3 py-1 bg-gray-50 dark:bg-slate-800/60 rounded-lg border border-gray-100 dark:border-slate-800/80 shrink-0 text-gray-600 dark:text-gray-300 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Folder className="w-3.5 h-3.5 text-sky-500" />
+              <div className="flex items-center gap-2.5 px-3 py-1 bg-gray-50/80 dark:bg-slate-800/50 rounded-lg border border-gray-100/60 dark:border-slate-800/60 shrink-0 text-gray-500 dark:text-slate-400 text-[11px]">
+                <span className="flex items-center gap-1 font-semibold text-gray-700 dark:text-slate-300">
+                  <Folder className="w-3.5 h-3.5 text-cyan-500" />
                   <strong>{totalFileCount}</strong> Files
                 </span>
-                <span className="text-gray-300 dark:text-slate-600">•</span>
+                <span className="text-gray-300 dark:text-slate-700">•</span>
                 <span><strong>{totalFoldersCount}</strong> Folders</span>
-                <span className="text-gray-300 dark:text-slate-600">•</span>
+                <span className="text-gray-300 dark:text-slate-700">•</span>
                 <span><strong>{totalSharedFilesCount}</strong> Shared</span>
               </div>
 
-              {/* Right: Vault Status & Detailed Analytics Link */}
+              {/* Right: DataStock Vault Status & Inline Unlock */}
               <div className="flex items-center gap-2 shrink-0 justify-between md:justify-end">
-                <button
-                  onClick={() => handleOpenStatus("vault")}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-semibold transition"
-                  title="View Vault Status"
-                >
-                  {isE2eeUnlocked ? (
+                {isE2eeSetup && !isE2eeUnlocked ? (
+                  <form onSubmit={handleUnlockBannerSubmit} className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg px-2 py-0.5">
+                    <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <input
+                      type="password"
+                      placeholder="Passphrase"
+                      value={bannerPass}
+                      onChange={(e) => setBannerPass(e.target.value)}
+                      className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded px-2 py-0.5 text-[11px] focus:outline-none w-24"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-amber-600 hover:bg-amber-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shrink-0 transition"
+                    >
+                      Unlock
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => handleOpenStatus("vault")}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 text-gray-700 dark:text-gray-300 font-semibold transition"
+                    title="View DataStock Zero-Knowledge Vault Status"
+                  >
                     <Unlock className="w-3.5 h-3.5 text-emerald-500" />
-                  ) : (
-                    <Lock className="w-3.5 h-3.5 text-amber-500" />
-                  )}
-                  <span className="text-[11px]">{isE2eeSetup ? (isE2eeUnlocked ? 'Vault Unlocked' : 'Vault Locked') : 'Vault Inactive'}</span>
-                </button>
+                    <span className="text-[11px] font-bold">Vault Active</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className="text-[11px] font-extrabold text-[#3B82F6] hover:underline px-1 py-1"
+                  className="text-[11px] font-bold text-[#3B82F6] hover:text-[#2563EB] hover:underline px-1 py-1"
                 >
                   Analytics →
                 </button>
@@ -1843,11 +1803,12 @@ const Dashboard = () => {
 
           {/* ── SECTION HEADER ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
-            <div className="flex items-center justify-between mb-4 mt-6">
+            <div className="flex items-center justify-between mb-2 mt-4">
               <div className="flex items-center gap-3">
-                <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
-                  Files — {filteredFiles.length}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Files</h3>
+                  <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">({filteredFiles.length})</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -1954,11 +1915,14 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* ── SUGGESTED FILES ── */}
+          {/* ── RECENT FILES ── */}
           {activeTab === 'my-drive' && !loading && suggestedFiles.length > 0 && (
-            <div className="mb-6 animate-fade-up">
-              <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-3">Suggested Files</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+            <div className="mb-4 animate-fade-up">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Recent Files</h3>
+                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{suggestedFiles.length} Recent</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
                 {suggestedFiles.map(file => (
                   <SuggestedFileCard
                     key={`suggested-${file.id}`}
@@ -1972,9 +1936,12 @@ const Dashboard = () => {
 
           {/* ── FOLDERS GRID ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
-            <div className="mb-6 animate-fade-up">
-              <h3 className="text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide mb-2.5">Folders</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
+            <div className="mb-4 animate-fade-up">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Folders</h3>
+                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{filteredFolders.length} Folders</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
                 {filteredFolders.map(folder => (
                   <FolderCard
                     key={folder.id}
@@ -1994,7 +1961,7 @@ const Dashboard = () => {
 
           {/* ── GRID VIEW ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
               {filteredFiles.map(file => (
                 <FileCard
                   key={file.id}

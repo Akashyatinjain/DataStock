@@ -30,11 +30,12 @@ export default function SidebarNav({
   };
 
   return (
-    <nav className="mt-6 space-y-1">
+    <nav className="mt-4 space-y-1">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isMyDrive = item.id === 'my-drive';
         const isDragOver = isMyDrive && dragOverMyDrive;
+        const isActive = activeTab === item.id;
 
         return (
           <button
@@ -51,20 +52,20 @@ export default function SidebarNav({
               }
             } : undefined}
             className={`
-              w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium
-              ${activeTab === item.id
-                ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-bold shadow-xs'
-                : 'text-gray-600 dark:text-[#94A3B8] hover:bg-gray-100 dark:hover:bg-[#334155]'}
-              ${isDragOver ? 'bg-blue-100 dark:bg-green-950/60 border border-[#3B82F6] scale-105 shadow-md' : ''}
-              hover:scale-[1.02] active:scale-[0.98] duration-150
+              w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-xs sm:text-sm font-medium
+              ${isActive
+                ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-semibold'
+                : 'text-gray-600 dark:text-[#94A3B8] hover:bg-gray-100/80 dark:hover:bg-[#334155]/60'}
+              ${isDragOver ? 'bg-blue-100 dark:bg-blue-950/60 border border-[#3B82F6] scale-102 shadow-sm' : ''}
+              hover:translate-x-0.5 duration-150
             `}
           >
-            <Icon className={`w-5 h-5 transition-colors duration-200 ${getIconColorClass(item.id, activeTab === item.id)}`} />
+            <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors duration-200 ${isActive ? 'text-[#3B82F6]' : 'text-gray-400 dark:text-slate-400'}`} />
             {showLabels && (
               <>
-                <span className="flex-1 text-left">{item.label}</span>
-                {activeTab === item.id && (
-                  <div className="w-2 h-2 bg-[#3B82F6] rounded-full" />
+                <span className="flex-1 text-left truncate">{item.label}</span>
+                {isActive && (
+                  <div className="w-1.5 h-1.5 bg-[#3B82F6] rounded-full shrink-0" />
                 )}
               </>
             )}

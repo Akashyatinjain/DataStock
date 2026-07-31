@@ -99,8 +99,8 @@ const Header = ({
     : 'p-2 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-lg transition-colors duration-200';
 
   const inputClass = isDark
-    ? 'w-96 md:w-[32rem] lg:w-[44rem] pl-10 pr-8 py-2 bg-slate-800/60 text-slate-100 placeholder-slate-400 border border-slate-700/50 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-slate-800/80 transition-all'
-    : 'w-96 md:w-[32rem] lg:w-[44rem] pl-10 pr-8 py-2 bg-gray-100 text-gray-800 placeholder-gray-500 border border-transparent rounded-lg focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:border-gray-300 transition-all';
+    ? 'w-80 md:w-[28rem] lg:w-[38rem] pl-10 pr-12 py-2 bg-slate-800/90 text-slate-100 placeholder-slate-400 border border-slate-700/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/40 focus:border-[#3B82F6] focus:bg-[#0F172A] transition-all shadow-3xs'
+    : 'w-80 md:w-[28rem] lg:w-[38rem] pl-10 pr-12 py-2 bg-gray-100/90 text-gray-900 placeholder-gray-500 border border-gray-200/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] focus:bg-white transition-all shadow-3xs';
 
   const upgradeBtnClass = isDark
     ? 'h-10 items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/50 px-2.5 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800 lg:gap-2.5 lg:px-3'
@@ -165,13 +165,18 @@ const Header = ({
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-                <div className="w-8 h-8 bg-linear-to-br bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <div className="flex items-center space-x-2.5 cursor-pointer group" onClick={() => navigate('/')}>
+                <div className="w-8.5 h-8.5 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-200">
                   <Cloud className="w-5 h-5 text-white" />
                 </div>
-                <span className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'} hidden sm:block`}>
-                  DataStock
-                </span>
+                <div className="hidden sm:flex flex-col">
+                  <span className={`font-extrabold text-lg leading-none tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Data<span className="text-[#3B82F6]">Stock</span>
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mt-0.5">
+                    Zero-Knowledge Workspace
+                  </span>
+                </div>
               </div>
 
               <div className="hidden md:flex items-center">
@@ -185,9 +190,9 @@ const Header = ({
                     className={inputClass}
                   />
                   {!searchQuery && (
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 pointer-events-none select-none text-[10px] font-bold text-gray-400 dark:text-slate-500 bg-gray-150 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-700/80 px-1.5 py-0.5 rounded shadow-2xs">
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none select-none text-xs font-bold text-gray-600 dark:text-slate-200 bg-gray-200/90 dark:bg-slate-700/90 border border-gray-300/80 dark:border-slate-600/80 px-2 py-0.5 rounded-md shadow-2xs">
                       <span>Ctrl</span>
-                      <span>K</span>
+                      <span className="text-[11px] font-black">K</span>
                     </div>
                   )}
                   {searchQuery && (
@@ -204,29 +209,6 @@ const Header = ({
             </div>
 
             <div className="flex items-center space-x-2 sm:space-x-3.5 lg:space-x-5">
-              <button 
-                onClick={() => navigate('/pricing')}
-                className={`${upgradeBtnClass} group hidden md:flex max-w-44 lg:max-w-none`}
-              >
-                <div className={upgradeIconClass}>
-                  <Star size={15} />
-                </div>
-                <div className="min-w-0 text-left">
-                  <p className={`${upgradeTitleClass} truncate`}>
-                    <span className="lg:hidden">
-                      {subscriptionPlan === 'BASIC' ? 'Upgrade' : 'Plan'}
-                    </span>
-                    <span className="hidden lg:inline">
-                      {subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
-                    </span>
-                  </p>
-                  <p className={`${upgradeMetaClass} hidden lg:block`}>
-                    {subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${subscriptionPlan}`}
-                  </p>
-                </div>
-                <ArrowLeft size={14} className={`ml-0.5 rotate-180 transition-colors duration-200 ${isDark ? 'text-slate-500 group-hover:text-[#3B82F6]' : 'text-gray-400 group-hover:text-emerald-700'}`} />
-              </button>
-
               <ThemeToggle />
 
               <button

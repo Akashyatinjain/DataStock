@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="Frontend/public/vite.svg" alt="DataStock Logo" width="80" height="80" />
+  <img src="Frontend/public/datastock-logo.svg" alt="DataStock Logo" width="80" height="80" />
 
   # ☁️ DataStock
   ### Next-Generation Zero-Knowledge Cloud Storage & Collaboration Platform

@@ -39,6 +39,7 @@ import {
   encryptSymmetricKeyWithRsa,
   importRsaPublicKeyFromJwk
 } from '../../utils/cryptoHelper';
+import MediaPlayer from './MediaPlayer';
 
 const FilePreviewModal = ({
   file,
@@ -1287,37 +1288,16 @@ const FilePreviewModal = ({
                   </div>
                 )}
 
-                {/* VIDEO */}
-                {isVideo && (
-                  <video
-                    ref={mediaRef}
-                    controls
-                    onTimeUpdate={handleTimeUpdate}
-                    className="max-h-full max-w-full rounded-xl shadow-md"
-                    onLoadedData={() => setPreviewLoading(false)}
-                    onError={() => setPreviewLoading(false)}
-                  >
-                    <source src={url} type={mime} />
-                  </video>
-                )}
-
-                {/* AUDIO */}
-                {isAudio && (
-                  <div className="bg-white dark:bg-[#1E293B] p-10 rounded-2xl shadow-lg text-center border border-gray-100 dark:border-[#334155] w-80 max-w-full">
-                    <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4 animate-bounce" style={{ animationDuration: '3s' }} />
-                    <p className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-200 truncate">
-                      {activeFile.originalName}
-                    </p>
-                    <audio
-                      ref={mediaRef}
-                      controls
-                      onTimeUpdate={handleTimeUpdate}
-                      className="w-full"
-                      onLoadedData={() => setPreviewLoading(false)}
-                      onError={() => setPreviewLoading(false)}
-                    >
-                      <source src={url} type={mime} />
-                    </audio>
+                {/* VIDEO OR AUDIO WITH CUSTOM MEDIA PLAYER & WAVEFORM EQUALIZER */}
+                {(isVideo || isAudio) && (
+                  <div className="w-full h-[70vh] sm:h-[76vh] max-h-[calc(100vh-140px)] flex items-center justify-center p-1 sm:p-2">
+                    <MediaPlayer
+                      src={url}
+                      title={activeFile?.originalName}
+                      mimeType={mime}
+                      isVideo={isVideo}
+                      isAudio={isAudio}
+                    />
                   </div>
                 )}
 

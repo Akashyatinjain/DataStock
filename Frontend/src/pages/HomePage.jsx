@@ -344,13 +344,13 @@ const HomePage = () => {
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight mb-8 leading-[1.15]">
               Store, organize and share <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-[#3B82F6] via-blue-500 to-indigo-600 dark:from-[#60A5FA] dark:to-indigo-400">
-                files with AI.
+                your files securely.
               </span>
             </h1>
 
             {/* Practical Unique Subtitle */}
             <p className="text-lg sm:text-2xl text-gray-600 dark:text-[#94A3B8] mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-              Store files securely. Share instantly. Find anything using AI.
+              Store files securely. Share instantly. Access anywhere.
             </p>
 
             {/* Call To Action Buttons */}

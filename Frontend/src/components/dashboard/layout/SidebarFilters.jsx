@@ -28,7 +28,7 @@ export default function SidebarFilters({ files, activeTab, setActiveTab, onNavig
                 hover:translate-x-0.5 duration-150
               `}
             >
-              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#3B82F6]' : 'text-gray-400 dark:text-slate-400'}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#3B82F6]' : filter.color || 'text-gray-400 dark:text-slate-400'}`} />
               <span className="flex-1 text-left truncate">{filter.name}</span>
               {count > 0 && (
                 <span className="text-[10px] font-semibold bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">

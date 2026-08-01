@@ -1,13 +1,24 @@
-import { Image, Video, FileText, FileArchive } from 'lucide-react';
+import { 
+  Image, 
+  Video, 
+  FileText, 
+  FileArchive, 
+  FileSpreadsheet, 
+  Presentation,
+  FileCheck
+} from 'lucide-react';
 
 export const getMimeType = (file) =>
   file.type || file.mimeType || file.mimetype || '';
+
+export const getFileName = (file) =>
+  (file.originalName || file.name || file.filename || '').toLowerCase();
 
 export const QUICK_FILTERS = [
   {
     name: 'Images',
     icon: Image,
-    color: 'text-blue-500',
+    color: 'text-[#3B82F6]',
     filter: (f) => getMimeType(f).startsWith('image'),
   },
   {
@@ -19,17 +30,45 @@ export const QUICK_FILTERS = [
   {
     name: 'PDFs',
     icon: FileText,
-    color: 'text-red-500',
-    filter: (f) => getMimeType(f).includes('pdf'),
+    color: 'text-rose-500',
+    filter: (f) => getMimeType(f).includes('pdf') || getFileName(f).endsWith('.pdf'),
+  },
+  {
+    name: 'Word Docs',
+    icon: FileCheck,
+    color: 'text-blue-500',
+    filter: (f) =>
+      getMimeType(f).includes('word') ||
+      getMimeType(f).includes('wordprocessingml') ||
+      ['.docx', '.doc', '.dotx'].some((ext) => getFileName(f).endsWith(ext)),
+  },
+  {
+    name: 'Spreadsheets',
+    icon: FileSpreadsheet,
+    color: 'text-emerald-500',
+    filter: (f) =>
+      getMimeType(f).includes('excel') ||
+      getMimeType(f).includes('spreadsheetml') ||
+      getMimeType(f).includes('csv') ||
+      ['.xlsx', '.xls', '.csv', '.ods'].some((ext) => getFileName(f).endsWith(ext)),
+  },
+  {
+    name: 'Presentations',
+    icon: Presentation,
+    color: 'text-orange-500',
+    filter: (f) =>
+      getMimeType(f).includes('powerpoint') ||
+      getMimeType(f).includes('presentationml') ||
+      ['.pptx', '.ppt', '.odp'].some((ext) => getFileName(f).endsWith(ext)),
   },
   {
     name: 'ZIP Files',
     icon: FileArchive,
-    color: 'text-yellow-500',
+    color: 'text-amber-500',
     filter: (f) =>
-      (f.originalName || f.name || f.filename || '')
-        .toLowerCase()
-        .includes('.zip'),
+      ['.zip', '.rar', '.7z', '.tar', '.gz'].some((ext) => getFileName(f).endsWith(ext)) ||
+      getMimeType(f).includes('zip') ||
+      getMimeType(f).includes('compressed'),
   },
 ];
 

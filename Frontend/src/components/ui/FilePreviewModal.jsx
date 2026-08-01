@@ -227,6 +227,23 @@ const FilePreviewModal = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
+  const formatMimeType = (mimeStr, fileExt, sizeBytes) => {
+    const formattedSize = sizeBytes ? formatBytes(sizeBytes) : '';
+    let label = 'Document';
+    const lowerExt = (fileExt || '').toLowerCase();
+
+    if (['docx', 'doc', 'dotx', 'odt'].includes(lowerExt) || mimeStr?.includes('word')) label = 'Microsoft Word Document';
+    else if (['xlsx', 'xls', 'ods', 'xlsm'].includes(lowerExt) || mimeStr?.includes('excel') || mimeStr?.includes('spreadsheet')) label = 'Microsoft Excel Spreadsheet';
+    else if (['pptx', 'ppt', 'odp'].includes(lowerExt) || mimeStr?.includes('powerpoint') || mimeStr?.includes('presentation')) label = 'Microsoft PowerPoint Presentation';
+    else if (lowerExt === 'pdf' || mimeStr?.includes('pdf')) label = 'PDF Document';
+    else if (mimeStr?.includes('image')) label = `${lowerExt.toUpperCase()} Image`;
+    else if (mimeStr?.includes('video')) label = `${lowerExt.toUpperCase()} Video`;
+    else if (mimeStr?.includes('audio')) label = `${lowerExt.toUpperCase()} Audio`;
+    else if (lowerExt) label = `${lowerExt.toUpperCase()} File`;
+
+    return formattedSize ? `${label} • ${formattedSize}` : label;
+  };
+
   const loadVersions = () => {
     if (!fileId) return;
     setLoadingVersions(true);
@@ -439,17 +456,22 @@ const FilePreviewModal = ({
 
   // --- DOCX CLIENT-SIDE PARSER EFFECT ---
   useEffect(() => {
-    if (isOpen && isDocx && url) {
+    const targetUrl = decryptedUrl || activeFile?.url;
+    if (isOpen && isDocx && targetUrl) {
       setDocxLoading(true);
       setDocxError(null);
-      fetch(url)
+      fetch(targetUrl)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch Word document");
           return res.arrayBuffer();
         })
         .then((buffer) => mammoth.convertToHtml({ arrayBuffer: buffer }))
         .then((result) => {
-          setDocxHtml(result.value || "<p className='text-gray-400 italic'>Empty document</p>");
+          if (result && result.value) {
+            setDocxHtml(result.value);
+          } else {
+            setDocxError("Failed to parse Word document formatting directly.");
+          }
           setDocxLoading(false);
         })
         .catch((err) => {
@@ -458,7 +480,7 @@ const FilePreviewModal = ({
           setDocxLoading(false);
         });
     }
-  }, [isOpen, fileId, isDocx, url]);
+  }, [isOpen, fileId, isDocx, decryptedUrl, activeFile?.url]);
 
   // --- XLSX / CSV SPREADSHEET CLIENT-SIDE PARSER EFFECT ---
   useEffect(() => {
@@ -926,8 +948,8 @@ const FilePreviewModal = ({
               <h2 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
                 {file.originalName}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-[#94A3B8]">
-                {mime}
+              <p className="text-xs font-medium text-gray-500 dark:text-[#94A3B8]">
+                {formatMimeType(mime, ext, activeFile?.size)}
               </p>
             </div>
 
@@ -1121,21 +1143,23 @@ const FilePreviewModal = ({
                     </div>
 
                     {/* Word Paper Document Area */}
-                    <div className="flex-1 overflow-auto p-6 bg-gray-200/60 dark:bg-slate-950 flex justify-center">
+                    <div className="flex-1 overflow-auto p-4 md:p-6 bg-gray-200/60 dark:bg-slate-950 flex justify-center items-center">
                       {docxLoading ? (
                         <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500 dark:text-slate-400">
                           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                          <span className="text-xs">Reading Word document...</span>
+                          <span className="text-xs font-semibold">Reading Word document...</span>
                         </div>
                       ) : docxError ? (
-                        <div className="text-center p-8 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 max-w-md my-auto">
-                          <FileText className="w-12 h-12 text-blue-400 mx-auto mb-3" />
-                          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">{docxError}</p>
-                          <iframe src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`} className="w-full h-64 border-0 rounded-lg bg-white" title="Doc Fallback" />
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <iframe
+                            src={`https://docs.google.com/gview?url=${encodeURIComponent(activeFile?.url || url)}&embedded=true`}
+                            className="w-full h-full min-h-[550px] border-0 rounded-xl bg-white shadow-2xl"
+                            title="Word Document Preview"
+                          />
                         </div>
                       ) : (
                         <div
-                          className="docx-paper bg-white text-gray-900 shadow-2xl rounded-xl p-10 md:p-14 max-w-4xl w-full min-h-[90%] transition-transform origin-top leading-relaxed text-left select-text"
+                          className="docx-paper bg-white text-gray-900 shadow-2xl rounded-xl p-8 md:p-12 max-w-4xl w-full min-h-[90%] transition-transform origin-top leading-relaxed text-left select-text"
                           style={{ transform: `scale(${docxZoom / 100})` }}
                           dangerouslySetInnerHTML={{ __html: docxHtml }}
                         />

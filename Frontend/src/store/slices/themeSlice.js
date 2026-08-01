@@ -6,7 +6,9 @@ export function getStoredTheme() {
   if (typeof window === 'undefined') return 'dark';
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'dark' || stored === 'light') return stored;
-  return 'dark';
+
+  const isMobile = window.innerWidth < 768;
+  return isMobile ? 'light' : 'dark';
 }
 
 export function applyTheme(theme) {

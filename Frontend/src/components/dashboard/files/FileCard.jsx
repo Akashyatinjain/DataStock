@@ -116,7 +116,7 @@ const FileCard = ({
       className={`
         relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
         transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
-        ${file.mimeType?.includes('image') ? 'h-[185px]' : 'h-[145px]'}
+        ${file.mimeType?.includes('image') ? 'h-[195px]' : 'h-[155px]'}
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
           : 'border-gray-100/80 dark:border-slate-800/80 hover:border-[#3B82F6]/60 dark:hover:border-[#3B82F6]/60 hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] shadow-3xs'}
@@ -182,9 +182,9 @@ const FileCard = ({
       {/* Top Banner (Thumbnail or File icon) */}
       <div className="relative">
         {isLocked ? (
-          <div className="h-14 flex items-center justify-center gap-2 bg-amber-500/5 dark:bg-amber-950/20 border-b border-gray-100 dark:border-slate-800 relative select-none">
+          <div className="h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
             <Lock className="w-4 h-4 text-amber-500" />
-            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
               Encrypted File
             </span>
           </div>
@@ -195,13 +195,17 @@ const FileCard = ({
               alt={file.originalName}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+            {/* File type badge overlay directly on image */}
+            <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
+              {type.label}
+            </span>
           </div>
         ) : (
           <div
-            className={`h-14 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
+            className={`h-12 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
           >
             <Icon
-              className={`w-7 h-7 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
+              className={`w-6 h-6 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
             />
           </div>
         )}
@@ -235,36 +239,38 @@ const FileCard = ({
           {/* File Name */}
           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
             <h3
-              className={`truncate text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-[11px] font-bold bg-amber-500/5 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/10' : 'font-bold text-gray-900 dark:text-[#F8FAFC]'}`}
+              className={`truncate text-xs sm:text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-amber-600 dark:text-amber-400 font-bold' : 'font-extrabold text-gray-900 dark:text-[#F8FAFC]'}`}
               title={file.originalName}
             >
               {file.originalName}
             </h3>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1 mb-2">
-            <span
-              className={`inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}
-            >
-              {type.label}
-            </span>
+          <div className="flex flex-wrap items-center gap-1 mb-1.5">
+            {!file.mimeType?.includes('image') && (
+              <span
+                className={`inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}
+              >
+                {type.label}
+              </span>
+            )}
             {isEncrypted && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-100/50 dark:border-orange-900/30">
-                <Lock className="w-2.5 h-2.5" /> Secure
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 border border-orange-200/50 dark:border-orange-900/30">
+                <Lock className="w-2.5 h-2.5" /> {isLocked ? 'Locked' : 'Secure'}
               </span>
             )}
             {isShared && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-900/30">
                 <Users className="w-2.5 h-2.5" /> Shared
               </span>
             )}
             {isArchived && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-100/50 dark:border-purple-900/30">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-900/30">
                 Archived
               </span>
             )}
             {(file.isTrash || isTrashView) && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-100/50 dark:border-red-900/30">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border border-red-200/50 dark:border-red-900/30">
                 Trash
               </span>
             )}
@@ -283,8 +289,8 @@ const FileCard = ({
         </div>
 
         {/* Footer Metrics & Actions */}
-        <div className="flex items-center justify-between pt-2.5 border-t border-gray-50 dark:border-[#334155] mt-auto">
-          <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider truncate mr-2">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#334155] mt-auto">
+          <div className="text-[10px] text-gray-400 font-medium tracking-wide truncate mr-1 flex-1">
             {isLocked ? '🔒 Locked' : formatFileSize(file.size)} •{' '}
             {new Date(file.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',

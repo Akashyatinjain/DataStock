@@ -1847,6 +1847,29 @@ const Dashboard = () => {
             </div>
           )}
 
+          {/* ── FOLDERS GRID ── */}
+          {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
+            <div className="mb-6 animate-fade-up">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Folders</h3>
+                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{filteredFolders.length} Folders</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
+                {filteredFolders.map(folder => (
+                  <FolderCard
+                    key={folder.id}
+                    folder={folder}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    onShare={handleShareFolder}
+                    onDelete={handleDeleteFolder}
+                    currentUserId={user?.id}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── SECTION HEADER & VIEW CONTROLS ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
             <div className="flex items-center justify-between mb-3 mt-4">
@@ -1953,29 +1976,6 @@ const Dashboard = () => {
                   <li>Toggle the 🔒 E2EE switch in the toolbar to encrypt files zero-knowledge.</li>
                   <li>Hold <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-700 rounded text-[10px]">Ctrl</kbd> to select multiple files for batch downloads and shares.</li>
                 </ul>
-              </div>
-            </div>
-          )}
-
-          {/* ── FOLDERS GRID ── */}
-          {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
-            <div className="mb-4 animate-fade-up">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Folders</h3>
-                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{filteredFolders.length} Folders</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
-                {filteredFolders.map(folder => (
-                  <FolderCard
-                    key={folder.id}
-                    folder={folder}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    onShare={handleShareFolder}
-                    onDelete={handleDeleteFolder}
-                    currentUserId={user?.id}
-                  />
-                ))}
               </div>
             </div>
           )}

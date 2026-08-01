@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Loader2,
   Lock,
@@ -52,6 +52,22 @@ const FileCard = ({
     file._isSharedDescendant;
 
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showMenu]);
 
   const longPressTimer = useRef(null);
   const isLongPressActive = useRef(false);
@@ -93,21 +109,19 @@ const FileCard = ({
       const dx = touch.clientX - touchStartPos.current.x;
       const dy = touch.clientY - touchStartPos.current.y;
 
-      // Mobile Swipe Gestures (Point 20)
+      // Mobile Swipe Gestures
       if (Math.abs(dx) > 70 && Math.abs(dy) < 50) {
         if (dx > 0 && !isTrashView) {
-          // Swipe Right: Star file
           onToggleStar(file.id);
           return;
         } else if (dx < 0 && !isTrashView) {
-          // Swipe Left: Trash file
           onDelete(file.id);
           return;
         }
       }
 
       if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-        return; // Swiped/scrolled, ignore preview
+        return;
       }
     }
     if (callback) callback();
@@ -128,8 +142,9 @@ const FileCard = ({
         e.dataTransfer.effectAllowed = 'move';
       }}
       className={`
-        relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
+        relative group bg-white dark:bg-[#1E293B] border rounded-2xl
         transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
+        ${showMenu ? 'z-40 overflow-visible' : 'z-0 overflow-hidden'}
         ${file.mimeType?.includes('image') ? 'sm:h-[195px] h-[168px]' : 'sm:h-[155px] h-[138px]'}
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
@@ -194,7 +209,7 @@ const FileCard = ({
       )}
 
       {/* Top Banner (Thumbnail or File icon) */}
-      <div className="relative">
+      <div className="relative rounded-t-2xl overflow-hidden">
         {isLocked ? (
           <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
             <Lock className="w-4 h-4 text-amber-500" />
@@ -226,29 +241,30 @@ const FileCard = ({
             </span>
           </div>
         )}
-
-        {/* Favorite Star */}
-        {!isTrashView && (
-          <div
-            className="absolute top-2 right-2 z-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => onToggleStar(file.id)}
-              disabled={isStarring}
-              className={`p-1 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
-                isStarred
-                  ? 'text-yellow-500'
-                  : 'text-gray-400 hover:text-yellow-500'
-              }`}
-            >
-              <Star
-                className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`}
-              />
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Favorite Star (Top-right of card, outside banner overflow-hidden) */}
+      {!isTrashView && (
+        <div
+          className="absolute top-2 right-2 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => onToggleStar(file.id)}
+            disabled={isStarring}
+            className={`p-1 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
+              isStarred
+                ? 'text-yellow-500'
+                : 'text-gray-400 hover:text-yellow-500'
+            }`}
+            title="Favorite"
+          >
+            <Star
+              className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`}
+            />
+          </button>
+        </div>
+      )}
 
       {/* Card Content */}
       <div className="p-3 flex-1 flex flex-col justify-between min-w-0">
@@ -315,8 +331,9 @@ const FileCard = ({
             })}
           </div>
 
-          {/* Action Menu (Point 13: Three-dot padding) */}
+          {/* Action Menu (3 Dots) */}
           <div
+            ref={menuRef}
             className="relative pr-1"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -325,89 +342,94 @@ const FileCard = ({
             onTouchEnd={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu((prev) => !prev);
+              }}
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition cursor-pointer"
+              title="Options"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>
 
             {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 bottom-8 mt-1 w-40 bg-white dark:bg-[#2A3547] border border-gray-100 dark:border-[#334155] rounded-xl shadow-lg py-1.5 z-50 animate-fade-in text-left">
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      onPreview(file);
-                    }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-blue-500" /> Preview
-                  </button>
-                  {!isTrashView && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onShare(file);
-                        }}
-                        className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
-                      >
-                        <Share2 className="w-3.5 h-3.5 text-green-500" /> Share
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onToggleArchive(file.id);
-                        }}
-                        className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
-                      >
-                        <Archive className="w-3.5 h-3.5 text-amber-500" />{' '}
-                        {isArchived ? 'Unarchive' : 'Archive'}
-                      </button>
-                      {(file.mimeType === 'application/zip' ||
-                        file.originalName?.endsWith('.zip')) &&
-                        onExtract && (
-                          <button
-                            onClick={() => {
-                              setShowMenu(false);
-                              onExtract(file.id, file.originalName);
-                            }}
-                            className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
-                          >
-                            <Archive className="w-3.5 h-3.5 text-purple-500" />{' '}
-                            Extract ZIP
-                          </button>
-                        )}
-                    </>
-                  )}
-                  {isTrashView && (
+              <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white dark:bg-[#2A3547] border border-gray-200 dark:border-[#334155] rounded-xl shadow-2xl py-1.5 z-50 animate-fade-in text-left">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onPreview(file);
+                  }}
+                  className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-blue-500" /> Preview
+                </button>
+                {!isTrashView && (
+                  <>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setShowMenu(false);
-                        onRestore(file.id);
+                        onShare(file);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-green-500" />{' '}
-                      Restore
+                      <Share2 className="w-3.5 h-3.5 text-green-500" /> Share
                     </button>
-                  )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onToggleArchive(file.id);
+                      }}
+                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <Archive className="w-3.5 h-3.5 text-amber-500" />{' '}
+                      {isArchived ? 'Unarchive' : 'Archive'}
+                    </button>
+                    {(file.mimeType === 'application/zip' ||
+                      file.originalName?.endsWith('.zip')) &&
+                      onExtract && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMenu(false);
+                            onExtract(file.id, file.originalName);
+                          }}
+                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                        >
+                          <Archive className="w-3.5 h-3.5 text-purple-500" />{' '}
+                          Extract ZIP
+                        </button>
+                      )}
+                  </>
+                )}
+                {isTrashView ? (
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      onRestore(file.id);
+                    }}
+                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-green-500" />{' '}
+                    Restore
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowMenu(false);
                       onDelete(file.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2"
+                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-red-500" />{' '}
                     {isTrashView ? 'Delete Forever' : 'Delete'}
                   </button>
-                </div>
-              </>
+                )}
+              </div>
             )}
           </div>
         </div>

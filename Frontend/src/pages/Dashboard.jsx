@@ -38,6 +38,8 @@ import {
   Cloud,
   Shield,
   Sparkles,
+  Search,
+  User,
 } from 'lucide-react';
 
 import Header from '../components/dashboard/layout/Header';
@@ -1522,7 +1524,7 @@ const Dashboard = () => {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 max-w-[1920px] w-full relative"
+          className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 pb-20 sm:pb-28 max-w-[1920px] w-full relative"
         >
           {isDraggingFile && (
             <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
@@ -1565,11 +1567,11 @@ const Dashboard = () => {
               )}
               {activeTab === 'my-drive' && !selectedFolder ? (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-                  <div className="flex items-baseline gap-3">
-                    <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                    <h1 className="text-2xl sm:text-2xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">
                       My Drive
                     </h1>
-                    <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-slate-400 mt-0.5 sm:mt-0">
                       {(() => {
                         const hr = new Date().getHours();
                         const rawName = user?.username || 'Akash';
@@ -1669,8 +1671,21 @@ const Dashboard = () => {
               )}
             </div>
 
+            {/* Mobile Full-Width Upload Action Button */}
+            {!isTrashView && (
+              <div className="sm:hidden my-3 w-full">
+                <label className="cursor-pointer block w-full">
+                  <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
+                  <div className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-2xl font-extrabold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-98 transition-all">
+                    <Plus className="w-5 h-5 stroke-[2.5]" />
+                    <span>Upload File</span>
+                  </div>
+                </label>
+              </div>
+            )}
+
             {activeTab !== 'notifications' && activeTab !== 'analytics' && (
-              <div className="flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
+              <div className="hidden sm:flex flex-wrap items-center justify-end gap-3 min-w-0 w-full lg:w-auto">
                 {/* Empty Trash button */}
                 {isTrashView && trashFiles.length > 0 && (
                   <button
@@ -1685,7 +1700,7 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {/* View toggle */}
+                {/* Desktop View toggle */}
                 <div className="flex items-center bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] rounded-xl p-1 shadow-sm">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -1725,55 +1740,67 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          {/* ── COMPACT QUICK METRICS STRIP ── */}
+
+          {/* ── UNSTACKED RESPONSIVE STORAGE & METRICS CARDS ── */}
           {activeTab === 'my-drive' && !selectedFolder && (
-            <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm border border-gray-100 dark:border-slate-800/80 rounded-xl p-2.5 mb-3 shadow-3xs flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs animate-fade-up">
-              {/* Left: Storage Summary & Bar */}
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-950/30 rounded-lg flex items-center justify-center text-[#3B82F6] shrink-0">
-                  <HardDrive className="w-3.5 h-3.5" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 animate-fade-up">
+              {/* Storage Card */}
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-200/80 dark:border-[#334155] rounded-2xl p-3.5 shadow-xs">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-600 dark:text-slate-300 mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <HardDrive className="w-4 h-4 text-[#3B82F6]" />
+                    <span>Storage</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-[#3B82F6] bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md">
+                    {Math.round(storagePercentage)}%
+                  </span>
                 </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[11px] font-medium text-gray-600 dark:text-slate-400 mb-1">
-                    <span className="truncate">Storage: <strong className="text-gray-900 dark:text-white font-bold">{usedFormatted}</strong> / {totalFormatted}</span>
-                    <span className="text-[10px] text-gray-400 font-bold ml-2 shrink-0">{Math.round(storagePercentage)}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500"
-                      style={{ width: `${storagePercentage}%` }}
-                    />
-                  </div>
+                <div className="w-full h-2 bg-gray-100 dark:bg-[#0F172A] rounded-full overflow-hidden mb-1.5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500"
+                    style={{ width: `${storagePercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-medium">
+                  <span>{usedFormatted} used</span>
+                  <span>{totalFormatted} total</span>
                 </div>
               </div>
 
-              {/* Center: File & Folder metrics pill */}
-              <div className="flex items-center gap-2.5 px-3 py-1 bg-gray-50/80 dark:bg-slate-800/50 rounded-lg border border-gray-100/60 dark:border-slate-800/60 shrink-0 text-gray-500 dark:text-slate-400 text-[11px]">
-                <span className="flex items-center gap-1 font-semibold text-gray-700 dark:text-slate-300">
-                  <Folder className="w-3.5 h-3.5 text-cyan-500" />
-                  <strong>{totalFileCount}</strong> Files
-                </span>
-                <span className="text-gray-300 dark:text-slate-700">•</span>
-                <span><strong>{totalFoldersCount}</strong> Folders</span>
-                <span className="text-gray-300 dark:text-slate-700">•</span>
-                <span><strong>{totalSharedFilesCount}</strong> Shared</span>
+              {/* Quick Metrics Card */}
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-200/80 dark:border-[#334155] rounded-2xl p-3.5 shadow-xs flex items-center justify-around text-xs">
+                <div className="text-center">
+                  <span className="block text-base font-extrabold text-gray-900 dark:text-white">{totalFileCount}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Files</span>
+                </div>
+                <div className="h-6 w-px bg-gray-200 dark:bg-slate-700" />
+                <div className="text-center">
+                  <span className="block text-base font-extrabold text-gray-900 dark:text-white">{totalFoldersCount}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Folders</span>
+                </div>
+                <div className="h-6 w-px bg-gray-200 dark:bg-slate-700" />
+                <div className="text-center">
+                  <span className="block text-base font-extrabold text-[#3B82F6]">{totalSharedFilesCount}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Shared</span>
+                </div>
               </div>
 
-              {/* Right: DataStock Vault Status & Inline Unlock */}
-              <div className="flex items-center gap-2 shrink-0 justify-between md:justify-end">
+              {/* Vault & Analytics Button Card */}
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-200/80 dark:border-[#334155] rounded-2xl p-3 sm:p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-2 min-w-0">
                 {isE2eeSetup && !isE2eeUnlocked ? (
-                  <form onSubmit={handleUnlockBannerSubmit} className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg px-2 py-0.5">
+                  <form onSubmit={handleUnlockBannerSubmit} className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 rounded-xl px-2 py-1 flex-1 min-w-0">
                     <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hidden xl:inline shrink-0">Vault Locked</span>
                     <input
                       type="password"
                       placeholder="Passphrase"
                       value={bannerPass}
                       onChange={(e) => setBannerPass(e.target.value)}
-                      className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white rounded px-2 py-0.5 text-[11px] focus:outline-none w-24"
+                      className="bg-white dark:bg-[#1E293B] border border-amber-300 dark:border-slate-700 text-gray-800 dark:text-white rounded-lg px-2 py-0.5 text-xs focus:outline-none w-20 min-w-0 flex-1"
                     />
                     <button
                       type="submit"
-                      className="bg-amber-600 hover:bg-amber-700 text-white px-2 py-0.5 rounded text-[11px] font-bold shrink-0 transition"
+                      className="bg-amber-600 hover:bg-amber-700 text-white px-2 py-0.5 rounded-lg text-xs font-bold shrink-0 shadow-xs"
                     >
                       Unlock
                     </button>
@@ -1781,34 +1808,55 @@ const Dashboard = () => {
                 ) : (
                   <button
                     onClick={() => handleOpenStatus("vault")}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 text-gray-700 dark:text-gray-300 font-semibold transition"
-                    title="View DataStock Zero-Knowledge Vault Status"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 font-semibold text-xs border border-gray-200/60 dark:border-slate-700/60"
                   >
                     <Unlock className="w-3.5 h-3.5 text-emerald-500" />
                     <span className="text-[11px] font-bold">Vault Active</span>
                   </button>
                 )}
 
+                {/* Styled Analytics Button */}
                 <button
                   onClick={() => setActiveTab('analytics')}
-                  className="text-[11px] font-bold text-[#3B82F6] hover:text-[#2563EB] hover:underline px-1 py-1"
+                  className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-[#3B82F6] font-bold text-xs rounded-xl border border-blue-200/60 dark:border-blue-900/40 hover:bg-blue-100 transition shadow-2xs shrink-0 flex items-center gap-1"
                 >
-                  Analytics →
+                  <BarChart2 className="w-3.5 h-3.5" />
+                  <span>Analytics →</span>
                 </button>
               </div>
             </div>
           )}
 
+          {/* ── RECENT FILES HEADER ── */}
+          {activeTab === 'my-drive' && !loading && suggestedFiles.length > 0 && (
+            <div className="mb-5 animate-fade-up">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">
+                  Recent Files ({suggestedFiles.length})
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
+                {suggestedFiles.map(file => (
+                  <SuggestedFileCard
+                    key={`suggested-${file.id}`}
+                    file={file}
+                    onPreview={handlePreview}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-
-          {/* ── SECTION HEADER ── */}
+          {/* ── SECTION HEADER & VIEW CONTROLS ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
-            <div className="flex items-center justify-between mb-2 mt-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Files</h3>
-                  <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">({filteredFiles.length})</span>
-                </div>
+            <div className="flex items-center justify-between mb-3 mt-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">
+                  Files ({filteredFiles.length})
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -1820,34 +1868,28 @@ const Dashboard = () => {
                   }}
                   className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition flex items-center gap-1.5"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedFileIds.size > 0 && selectedFileIds.size === filteredFiles.length}
-                    onChange={() => {}}
-                    className="w-3.5 h-3.5 text-[#3B82F6] rounded border-gray-300 pointer-events-none"
-                  />
-                  <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select All"}</span>
+                  <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select"}</span>
                 </button>
-              </div>
 
-              {/* View Mode Toggle (Grid vs List) */}
-              <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
-                  title="Grid View"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
-                  title="List View"
-                >
-                  <List className="w-4 h-4" />
-                </button>
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
+                    title="Grid View"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-[#3B82F6] shadow-xs' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
+                    title="List View"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1911,25 +1953,6 @@ const Dashboard = () => {
                   <li>Toggle the 🔒 E2EE switch in the toolbar to encrypt files zero-knowledge.</li>
                   <li>Hold <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-slate-700 rounded text-[10px]">Ctrl</kbd> to select multiple files for batch downloads and shares.</li>
                 </ul>
-              </div>
-            </div>
-          )}
-
-          {/* ── RECENT FILES ── */}
-          {activeTab === 'my-drive' && !loading && suggestedFiles.length > 0 && (
-            <div className="mb-4 animate-fade-up">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-extrabold text-gray-900 dark:text-white tracking-tight">Recent Files</h3>
-                <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{suggestedFiles.length} Recent</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
-                {suggestedFiles.map(file => (
-                  <SuggestedFileCard
-                    key={`suggested-${file.id}`}
-                    file={file}
-                    onPreview={handlePreview}
-                  />
-                ))}
               </div>
             </div>
           )}
@@ -2071,6 +2094,60 @@ const Dashboard = () => {
 
 
         </div>
+
+        {/* MOBILE BOTTOM NAVIGATION BAR (Point 21) */}
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-xl border-t border-gray-200/90 dark:border-[#334155] px-3 py-2 flex items-center justify-around z-50 shadow-2xl">
+          {/* 1. Drive */}
+          <button
+            onClick={() => setActiveTab('my-drive')}
+            className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold transition-colors cursor-pointer ${
+              activeTab === 'my-drive' ? 'text-[#3B82F6]' : 'text-gray-500 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <Cloud className="w-5 h-5" />
+            <span>Drive</span>
+          </button>
+
+          {/* 2. Search */}
+          <button
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-gray-500 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            <Search className="w-5 h-5" />
+            <span>Search</span>
+          </button>
+
+          {/* 3. FAB Upload Trigger */}
+          <label className="cursor-pointer -mt-5">
+            <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
+            <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-[#3B82F6] text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/35 border-2 border-white dark:border-[#1E293B] active:scale-95 transition-all">
+              <Plus className="w-6 h-6 stroke-[3]" />
+            </div>
+          </label>
+
+          {/* 4. Notifications */}
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold transition-colors relative cursor-pointer ${
+              activeTab === 'notifications' ? 'text-[#3B82F6]' : 'text-gray-500 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#1E293B]" />
+            )}
+            <span>Alerts</span>
+          </button>
+
+          {/* 5. Profile */}
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-gray-500 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            <User className="w-5 h-5" />
+            <span>Profile</span>
+          </button>
+        </nav>
       </main>
 
       {/* PREVIEW MODAL */}

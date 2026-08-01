@@ -113,8 +113,8 @@ export default function FolderCard({
       {/* Row 1: Icon + Name and Dropdown Action */}
       <div className="flex items-center justify-between min-w-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${scheme.bg}`}>
-            <Folder className={`w-5 h-5 ${scheme.text}`} />
+          <div className="w-9 h-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/20 border border-cyan-500/20 flex items-center justify-center shrink-0 shadow-xs">
+            <Folder className="w-5 h-5 text-cyan-600 dark:text-cyan-300 stroke-[2.25]" />
           </div>
           <div className="min-w-0">
             <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] text-xs sm:text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
@@ -127,10 +127,10 @@ export default function FolderCard({
         </div>
 
         {/* Action Dropdown Menu */}
-        <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="relative shrink-0 pr-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="p-1 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+            className="p-1.5 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -173,7 +173,7 @@ export default function FolderCard({
         </div>
       </div>
 
-      {/* Row 2: Stats & Shared Badge */}
+      {/* Row 2: Stats & Created By / Shared Badge */}
       <div className="flex items-center justify-between text-[11px] font-medium text-gray-500 dark:text-slate-400 mt-2 pt-2 border-t border-gray-100/60 dark:border-slate-800/60">
         <span>{fileCount} {fileCount === 1 ? 'file' : 'files'} · {formatFolderSize(folderSize)}</span>
         {isShared ? (
@@ -197,7 +197,7 @@ export default function FolderCard({
             </span>
           </div>
         ) : (
-          <span className="text-[10px] text-gray-400 font-medium">Only You</span>
+          <span className="text-[10px] text-gray-400 font-medium">By {ownerName}</span>
         )}
       </div>
 

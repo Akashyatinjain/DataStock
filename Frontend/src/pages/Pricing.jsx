@@ -14,7 +14,8 @@ import {
   Database,
   Sparkles,
   Github,
-  Lock
+  Lock,
+  X
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { startCheckout } from "../store/slices/paymentSlice";
@@ -26,7 +27,8 @@ const PLANS = [
   {
     key: "basic",
     name: "Basic",
-    price: "₹0",
+    monthlyPrice: "₹0",
+    yearlyPrice: "₹0",
     period: "forever",
     storage: "10 GB",
     description: "Essential storage for individuals.",
@@ -36,17 +38,19 @@ const PLANS = [
       "Access on all web devices",
       "Standard encryption"
     ],
+    ctaText: "Start Free Plan",
     icon: Cloud,
     gradient: "from-slate-600 to-slate-700",
     buttonStyle: "bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-700 dark:hover:bg-slate-600",
-    cardBorder: "border-slate-300 dark:border-slate-700",
-    glow: "",
+    cardBorder: "border-gray-200 dark:border-[#334155]",
+    glow: "shadow-md hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-600",
     badge: null
   },
   {
     key: "pro",
     name: "Pro",
-    price: "₹149",
+    monthlyPrice: "₹149",
+    yearlyPrice: "₹119",
     period: "/month",
     storage: "2 TB",
     description: "For power users & creators.",
@@ -57,18 +61,20 @@ const PLANS = [
       "30-day version history",
       "Priority 24/7 support"
     ],
+    ctaText: "Unlock Pro Today",
     popular: true,
     icon: Zap,
     gradient: "from-[#3B82F6] to-blue-600",
-    buttonStyle: "bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-[#3B82F6]/30",
+    buttonStyle: "bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/25",
     cardBorder: "border-[#3B82F6] dark:border-[#3B82F6]",
-    glow: "shadow-xl shadow-blue-500/15 dark:shadow-blue-500/25",
+    glow: "shadow-xl shadow-blue-500/20 dark:shadow-blue-500/30",
     badge: "Most Popular"
   },
   {
     key: "family",
     name: "Family",
-    price: "₹299",
+    monthlyPrice: "₹299",
+    yearlyPrice: "₹239",
     period: "/month",
     storage: "5 TB",
     description: "Full workspace for up to 6 members.",
@@ -79,11 +85,12 @@ const PLANS = [
       "Shared team room folder",
       "Centralized billing & admin"
     ],
+    ctaText: "Get Family Pass",
     icon: Crown,
     gradient: "from-purple-600 to-indigo-600",
     buttonStyle: "bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/30",
-    cardBorder: "border-purple-500 dark:border-purple-500/80",
-    glow: "shadow-xl shadow-purple-500/20 dark:shadow-purple-500/30",
+    cardBorder: "border-purple-500 dark:border-purple-500",
+    glow: "shadow-xl shadow-purple-500/25 dark:shadow-purple-500/35",
     badge: "Best Value"
   }
 ];
@@ -93,6 +100,8 @@ export default function Pricing() {
   const dispatch = useDispatch();
   const checkoutLoading = useSelector((state) => state.payment.checkoutLoading);
   const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);
+  
+  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [error, setError] = useState("");
 
   const token = getToken();
@@ -218,11 +227,11 @@ export default function Pricing() {
       </nav>
 
       {/* MAIN CONTENT */}
-      <section className="relative z-10 pt-10 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-10 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto relative">
           
           {/* Hero Header */}
-          <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-8">
             <div className="inline-flex items-center space-x-2 bg-blue-50 dark:bg-[#1E293B] px-4 py-1.5 rounded-full border border-blue-200 dark:border-[#334155] shadow-xs mb-4">
               <Shield className="w-4 h-4 text-[#3B82F6]" />
               <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-[#60A5FA]">
@@ -235,9 +244,38 @@ export default function Pricing() {
                 No surprises.
               </span>
             </h1>
-            <p className="text-lg text-gray-600 dark:text-[#94A3B8]">
+            <p className="text-base sm:text-lg text-gray-600 dark:text-[#94A3B8]">
               Start for free today. Upgrade anytime as your storage needs grow.
             </p>
+          </div>
+
+          {/* Monthly / Yearly Billing Toggle */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex items-center p-1 bg-gray-200/80 dark:bg-[#1E293B] rounded-2xl border border-gray-300 dark:border-[#334155] shadow-inner">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white dark:bg-[#3B82F6] text-gray-900 dark:text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Monthly Billing
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center gap-2 ${
+                  billingCycle === 'yearly'
+                    ? 'bg-white dark:bg-[#3B82F6] text-gray-900 dark:text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <span>Yearly Billing</span>
+                <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                  Save 20%
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Error message */}
@@ -269,11 +307,14 @@ export default function Pricing() {
                 </div>
               </div>
 
-              <div className="w-full h-2.5 bg-gray-100 dark:bg-[#0F172A] rounded-full overflow-hidden mb-2.5">
+              {/* Animated Progress Bar */}
+              <div className="w-full h-3 bg-gray-100 dark:bg-[#0F172A] rounded-full overflow-hidden mb-2.5 relative">
                 <div
-                  className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+                  className="h-full bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-700 relative overflow-hidden"
                   style={{ width: `${usagePercentage}%` }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
               </div>
 
               <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 pt-1">
@@ -284,11 +325,14 @@ export default function Pricing() {
           )}
 
           {/* Pricing cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {PLANS.map((plan) => {
               const PlanIcon = plan.icon;
               const isLoading = checkoutLoading && checkoutPlan === plan.key;
               const isCurrentPlan = isLoggedIn && currentPlanKey === plan.key;
+              
+              const priceDisplay = billingCycle === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice;
+
               const buttonStyle = isCurrentPlan
                 ? "bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 cursor-default"
                 : plan.buttonStyle;
@@ -296,17 +340,17 @@ export default function Pricing() {
               return (
                 <div
                   key={plan.key}
-                  className={`relative group bg-white dark:bg-[#1E293B] rounded-3xl p-6 border transition-all duration-300 hover:-translate-y-1 ${plan.glow} ${
+                  className={`relative group bg-white dark:bg-[#1E293B] rounded-3xl p-6 sm:p-7 border transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 ${plan.glow} ${
                     isCurrentPlan
                       ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/20 shadow-xl"
                       : plan.popular
                       ? `${plan.cardBorder} shadow-lg`
-                      : `${plan.cardBorder} hover:border-gray-300 dark:hover:border-slate-600`
+                      : `${plan.cardBorder}`
                   }`}
                 >
                   {/* Badges */}
                   {plan.badge && !isCurrentPlan && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                       <span className={`text-white text-xs font-extrabold px-4 py-1 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1.5 ${
                         plan.key === 'family'
                           ? 'bg-linear-to-r from-purple-600 to-indigo-600'
@@ -319,7 +363,7 @@ export default function Pricing() {
                   )}
 
                   {isCurrentPlan && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                       <span className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-extrabold px-4 py-1 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
                         Current Plan
@@ -327,41 +371,51 @@ export default function Pricing() {
                     </div>
                   )}
 
-                  {/* Plan icon */}
-                  <div
-                    className={`w-12 h-12 rounded-2xl bg-linear-to-br ${plan.gradient} flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform duration-300`}
-                  >
-                    <PlanIcon className="w-6 h-6 text-white" />
+                  <div>
+                    {/* Consistent Icon Style Container */}
+                    <div
+                      className={`w-12 h-12 rounded-2xl bg-linear-to-br ${plan.gradient} flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform duration-300`}
+                    >
+                      <PlanIcon className="w-6 h-6 text-white" />
+                    </div>
+
+                    <h3 className="text-2xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mb-1">
+                      {plan.name}
+                    </h3>
+                    <p className="text-gray-500 dark:text-[#94A3B8] text-xs mb-5">{plan.description}</p>
+
+                    <div className="flex items-end mb-5">
+                      <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight">
+                        {priceDisplay}
+                      </span>
+                      <span className="text-gray-500 dark:text-[#94A3B8] ml-1.5 mb-1 text-sm font-medium">
+                        {plan.period}
+                      </span>
+                      {billingCycle === 'yearly' && plan.key !== 'basic' && (
+                        <span className="ml-auto text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                          Billed yearly
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-[#0F172A]/70 rounded-xl p-3.5 mb-6 border border-gray-200/80 dark:border-[#334155]/60 flex items-center justify-between">
+                      <span className={`font-extrabold text-lg ${plan.key === 'family' ? 'text-purple-600 dark:text-purple-400' : 'text-[#3B82F6]'}`}>
+                        {plan.storage}
+                      </span>
+                      <span className="text-gray-500 dark:text-[#94A3B8] text-xs font-medium">cloud storage</span>
+                    </div>
+
+                    <ul className="space-y-3 mb-8">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start text-xs sm:text-sm text-gray-700 dark:text-[#94A3B8]">
+                          <CheckCircle2 className={`w-4 h-4 mr-2.5 shrink-0 mt-0.5 ${plan.key === 'family' ? 'text-purple-500' : 'text-[#3B82F6]'}`} />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <h3 className="text-2xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mb-1">
-                    {plan.name}
-                  </h3>
-                  <p className="text-gray-500 dark:text-[#94A3B8] text-xs mb-5">{plan.description}</p>
-
-                  <div className="flex items-end mb-5">
-                    <span className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight">
-                      {plan.price}
-                    </span>
-                    <span className="text-gray-500 dark:text-[#94A3B8] ml-1.5 mb-1 text-sm font-medium">{plan.period}</span>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-[#0F172A]/70 rounded-xl p-3.5 mb-6 border border-gray-200/80 dark:border-[#334155]/60 flex items-center justify-between">
-                    <span className={`font-extrabold text-lg ${plan.key === 'family' ? 'text-purple-600 dark:text-purple-400' : 'text-[#3B82F6]'}`}>
-                      {plan.storage}
-                    </span>
-                    <span className="text-gray-500 dark:text-[#94A3B8] text-xs font-medium">cloud storage</span>
-                  </div>
-
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start text-xs sm:text-sm text-gray-700 dark:text-[#94A3B8]">
-                        <CheckCircle2 className={`w-4 h-4 mr-2.5 shrink-0 mt-0.5 ${plan.key === 'family' ? 'text-purple-500' : 'text-[#3B82F6]'}`} />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
+                  {/* Action Button */}
                   <button
                     onClick={() => handleSelectPlan(plan.key)}
                     disabled={isLoading || subscriptionLoading || isCurrentPlan}
@@ -380,14 +434,76 @@ export default function Pricing() {
                     ) : isCurrentPlan ? (
                       "Current Plan"
                     ) : plan.key === "basic" ? (
-                      isLoggedIn ? "Go to Dashboard" : "Get Started Free"
+                      isLoggedIn ? "Go to Dashboard" : plan.ctaText
                     ) : (
-                      `Upgrade to ${plan.name}`
+                      plan.ctaText
                     )}
                   </button>
                 </div>
               );
             })}
+          </div>
+
+          {/* ======================================================== */}
+          {/* FEATURE COMPARISON MATRIX TABLE */}
+          {/* ======================================================== */}
+          <div className="mt-24 max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
+                Detailed Feature Comparison
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Detailed comparison of capabilities across all DataStock plans.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto rounded-3xl border border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-xl">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-[#0F172A] border-b border-gray-200 dark:border-[#334155]">
+                    <th className="p-4 sm:p-5 text-sm font-extrabold text-gray-900 dark:text-white w-2/5">Features</th>
+                    <th className="p-4 sm:p-5 text-sm font-extrabold text-gray-700 dark:text-gray-300 text-center w-1/5">Basic</th>
+                    <th className="p-4 sm:p-5 text-sm font-extrabold text-[#3B82F6] text-center w-1/5">Pro</th>
+                    <th className="p-4 sm:p-5 text-sm font-extrabold text-purple-600 dark:text-purple-400 text-center w-1/5">Family</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-[#334155]/60 text-xs sm:text-sm">
+                  {[
+                    { section: "Storage & Performance" },
+                    { feature: "Cloud Storage Quota", basic: "10 GB", pro: "2 TB", family: "5 TB" },
+                    { feature: "Max File Upload Size", basic: "100 MB", pro: "10 GB", family: "50 GB" },
+                    { feature: "Upload / Download Speed", basic: "Standard", pro: "Ultra-Fast", family: "High Priority" },
+                    
+                    { section: "Security & Backup" },
+                    { feature: "256-Bit AES Encryption", basic: "✓", pro: "✓", family: "✓" },
+                    { feature: "File Version History", basic: "7 Days", pro: "30 Days", family: "90 Days" },
+                    { feature: "Zero-Knowledge Privacy", basic: "✓", pro: "✓", family: "✓" },
+                    
+                    { section: "Collaboration & Workspaces" },
+                    { feature: "Password Protected Links", basic: "—", pro: "✓", family: "✓" },
+                    { feature: "Multi-User Accounts", basic: "1 User", pro: "1 User", family: "Up to 6 Users" },
+                    { feature: "Team Shared Room Vault", basic: "—", pro: "—", family: "✓" },
+
+                    { section: "AI & Support" },
+                    { feature: "AI Search & Summarization", basic: "Basic", pro: "Full AI", family: "Unlimited AI" },
+                    { feature: "Support SLA", basic: "Community", pro: "24/7 Priority", family: "Dedicated Admin" }
+                  ].map((item, idx) => (
+                    item.section ? (
+                      <tr key={idx} className="bg-gray-100/70 dark:bg-[#0F172A]/40 font-extrabold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        <td colSpan={4} className="py-2.5 px-4 sm:px-5">{item.section}</td>
+                      </tr>
+                    ) : (
+                      <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-[#0F172A]/20 transition-colors">
+                        <td className="p-4 sm:p-5 font-semibold text-gray-800 dark:text-gray-200">{item.feature}</td>
+                        <td className="p-4 sm:p-5 text-center font-bold text-gray-600 dark:text-gray-400">{item.basic}</td>
+                        <td className="p-4 sm:p-5 text-center font-extrabold text-[#3B82F6]">{item.pro}</td>
+                        <td className="p-4 sm:p-5 text-center font-extrabold text-purple-600 dark:text-purple-400">{item.family}</td>
+                      </tr>
+                    )
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Trust indicators */}

@@ -34,7 +34,7 @@ const FileCard = ({
   selectedFileIds,
 }) => {
   const { isE2eeUnlocked } = useCrypto();
-  const type = getFileType(file.mimeType);
+  const type = getFileType(file.mimeType, file.originalName);
   const Icon = type.icon;
   const isDeleting = deletingId === file.id;
   const isRestoring = restoringId === file.id;
@@ -90,9 +90,23 @@ const FileCard = ({
     }
     if (e.type === 'touchend') {
       const touch = e.changedTouches[0];
-      const dx = Math.abs(touch.clientX - touchStartPos.current.x);
-      const dy = Math.abs(touch.clientY - touchStartPos.current.y);
-      if (dx > 8 || dy > 8) {
+      const dx = touch.clientX - touchStartPos.current.x;
+      const dy = touch.clientY - touchStartPos.current.y;
+
+      // Mobile Swipe Gestures (Point 20)
+      if (Math.abs(dx) > 70 && Math.abs(dy) < 50) {
+        if (dx > 0 && !isTrashView) {
+          // Swipe Right: Star file
+          onToggleStar(file.id);
+          return;
+        } else if (dx < 0 && !isTrashView) {
+          // Swipe Left: Trash file
+          onDelete(file.id);
+          return;
+        }
+      }
+
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
         return; // Swiped/scrolled, ignore preview
       }
     }
@@ -116,10 +130,10 @@ const FileCard = ({
       className={`
         relative group bg-white dark:bg-[#1E293B] border rounded-2xl overflow-hidden
         transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
-        ${file.mimeType?.includes('image') ? 'h-[195px]' : 'h-[155px]'}
+        ${file.mimeType?.includes('image') ? 'sm:h-[195px] h-[168px]' : 'sm:h-[155px] h-[138px]'}
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-100/80 dark:border-slate-800/80 hover:border-[#3B82F6]/60 dark:hover:border-[#3B82F6]/60 hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] shadow-3xs'}
+          : 'border-gray-200/80 dark:border-slate-800 hover:border-[#3B82F6] dark:hover:border-[#3B82F6] shadow-sm hover:shadow-xl dark:shadow-slate-900/40'}
         ${isSelected ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20' : ''}
       `}
       onMouseDown={startPress}
@@ -182,14 +196,14 @@ const FileCard = ({
       {/* Top Banner (Thumbnail or File icon) */}
       <div className="relative">
         {isLocked ? (
-          <div className="h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
+          <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
             <Lock className="w-4 h-4 text-amber-500" />
             <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
               Encrypted File
             </span>
           </div>
         ) : file.mimeType?.includes('image') ? (
-          <div className="h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
+          <div className="h-20 sm:h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
             <img
               src={file.url}
               alt={file.originalName}
@@ -202,11 +216,14 @@ const FileCard = ({
           </div>
         ) : (
           <div
-            className={`h-12 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
+            className={`h-10 sm:h-12 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
           >
             <Icon
-              className={`w-6 h-6 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
+              className={`w-5 h-5 sm:w-6 sm:h-6 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
             />
+            <span className="absolute bottom-1 right-2 text-[8px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-black/25 dark:bg-black/50 text-white backdrop-blur-xs">
+              {type.label}
+            </span>
           </div>
         )}
 
@@ -233,7 +250,7 @@ const FileCard = ({
         )}
       </div>
 
-      {/* Body Details */}
+      {/* Card Content */}
       <div className="p-3 flex-1 flex flex-col justify-between min-w-0">
         <div>
           {/* File Name */}
@@ -289,8 +306,8 @@ const FileCard = ({
         </div>
 
         {/* Footer Metrics & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#334155] mt-auto">
-          <div className="text-[10px] text-gray-400 font-medium tracking-wide truncate mr-1 flex-1">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#334155]/60 mt-auto">
+          <div className="text-[10px] text-gray-500 dark:text-slate-400 font-semibold tracking-wide truncate mr-1 flex-1">
             {isLocked ? '🔒 Locked' : formatFileSize(file.size)} •{' '}
             {new Date(file.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',
@@ -298,9 +315,9 @@ const FileCard = ({
             })}
           </div>
 
-          {/* Action Menu */}
+          {/* Action Menu (Point 13: Three-dot padding) */}
           <div
-            className="relative"
+            className="relative pr-1"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}

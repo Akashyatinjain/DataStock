@@ -42,14 +42,50 @@ export const getAvatarUrl = (profile) => {
 };
 
 export const FILE_TYPES = {
-  image:   { icon: ImageIcon, color: 'text-sky-500',     bg: 'bg-sky-50',     label: 'Image'    },
-  video:   { icon: Video,     color: 'text-violet-500',  bg: 'bg-violet-50',  label: 'Video'    },
-  pdf:     { icon: FileText,  color: 'text-rose-500',    bg: 'bg-rose-50',    label: 'PDF'      },
-  zip:     { icon: Archive,   color: 'text-amber-500',   bg: 'bg-amber-50',   label: 'Archive'  },
-  default: { icon: FileText,  color: 'text-slate-500',   bg: 'bg-slate-50',   label: 'File'     },
+  image:   { icon: ImageIcon, color: 'text-sky-500',     bg: 'bg-sky-50 dark:bg-sky-950/40',     label: 'Image'    },
+  video:   { icon: Video,     color: 'text-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/40',  label: 'Video'    },
+  pdf:     { icon: FileText,  color: 'text-rose-500',    bg: 'bg-rose-50 dark:bg-rose-950/40',    label: 'PDF'      },
+  zip:     { icon: Archive,   color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/40',   label: 'ZIP'      },
+  default: { icon: FileText,  color: 'text-slate-500',   bg: 'bg-slate-100 dark:bg-slate-800',   label: 'FILE'     },
 };
 
-export const getFileType = (mimeType) => {
+export const getFileType = (mimeType, originalName = '') => {
+  const ext = originalName ? originalName.split('.').pop().toLowerCase() : '';
+  
+  if (['docx', 'doc'].includes(ext) || mimeType?.includes('word')) {
+    return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', label: 'DOCX' };
+  }
+  if (['xlsx', 'xls', 'csv'].includes(ext) || mimeType?.includes('sheet') || mimeType?.includes('excel')) {
+    return { icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', label: 'XLSX' };
+  }
+  if (['pptx', 'ppt'].includes(ext) || mimeType?.includes('presentation') || mimeType?.includes('powerpoint')) {
+    return { icon: FileText, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/40', label: 'PPTX' };
+  }
+  if (['png'].includes(ext)) {
+    return { icon: ImageIcon, color: 'text-sky-500', bg: 'bg-sky-50 dark:bg-sky-950/40', label: 'PNG' };
+  }
+  if (['jpg', 'jpeg'].includes(ext)) {
+    return { icon: ImageIcon, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', label: 'JPG' };
+  }
+  if (['webp', 'gif', 'svg'].includes(ext)) {
+    return { icon: ImageIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/40', label: ext.toUpperCase() };
+  }
+  if (['zip', 'rar', 'tar', '7z', 'gz'].includes(ext) || mimeType?.includes('zip') || mimeType?.includes('compressed')) {
+    return { icon: Archive, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/40', label: 'ZIP' };
+  }
+  if (ext === 'pdf' || mimeType?.includes('pdf')) {
+    return { icon: FileText, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/40', label: 'PDF' };
+  }
+  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType?.includes('video')) {
+    return { icon: Video, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/40', label: 'MP4' };
+  }
+  if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext) || mimeType?.includes('audio')) {
+    return { icon: FileText, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950/40', label: 'MP3' };
+  }
+  if (ext && ext.length <= 5) {
+    return { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800', label: ext.toUpperCase() };
+  }
+
   if (mimeType?.includes('image')) return FILE_TYPES.image;
   if (mimeType?.includes('video')) return FILE_TYPES.video;
   if (mimeType?.includes('pdf'))   return FILE_TYPES.pdf;

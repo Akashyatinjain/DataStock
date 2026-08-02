@@ -39,31 +39,47 @@ const formatSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
 };
 
-const getFileIcon = (mime) => {
-  if (!mime) return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
-  if (mime.includes('image')) return <FileImage className="w-16 h-16 text-sky-500" />;
-  if (mime.includes('video')) return <FileVideo className="w-16 h-16 text-violet-500" />;
-  if (mime.includes('audio')) return <FileAudio className="w-16 h-16 text-pink-500" />;
-  if (mime.includes('pdf')) return <FileText className="w-16 h-16 text-rose-500" />;
-  if (mime.includes('word') || mime.includes('excel') || mime.includes('spreadsheet')) {
-    return <FileSpreadsheet className="w-16 h-16 text-emerald-500" />;
-  }
-  if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-16 h-16 text-amber-500" />;
-  if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-16 h-16 text-orange-500" />;
+const getFileIcon = (mime, fileName = '') => {
+  const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
+  const isWord = ['docx', 'doc', 'dotx', 'odt'].includes(ext) || (mime && (mime.includes('word') || mime.includes('wordprocessingml')));
+  const isExcel = ['xlsx', 'xls', 'ods', 'xlsm', 'csv'].includes(ext) || (mime && (mime.includes('excel') || mime.includes('spreadsheet')));
+  const isPdf = ext === 'pdf' || (mime && mime.includes('pdf'));
+  const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext) || (mime && mime.includes('image'));
+  const isVid = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext) || (mime && mime.includes('video'));
+  const isAud = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext) || (mime && mime.includes('audio'));
+  const isZip = ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || (mime && (mime.includes('zip') || mime.includes('rar') || mime.includes('compressed')));
+  const isTxt = ['txt', 'md', 'json', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'py', 'java', 'c', 'cpp'].includes(ext) || (mime && (mime.includes('text') || mime.includes('json')));
+
+  if (isImg) return <FileImage className="w-16 h-16 text-sky-500" />;
+  if (isVid) return <FileVideo className="w-16 h-16 text-violet-500" />;
+  if (isAud) return <FileAudio className="w-16 h-16 text-pink-500" />;
+  if (isPdf) return <FileText className="w-16 h-16 text-rose-500" />;
+  if (isWord) return <FileText className="w-16 h-16 text-blue-500 dark:text-blue-400" />;
+  if (isExcel) return <FileSpreadsheet className="w-16 h-16 text-emerald-500" />;
+  if (isZip) return <FileArchive className="w-16 h-16 text-amber-500" />;
+  if (isTxt) return <FileCode className="w-16 h-16 text-orange-500" />;
   return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
 };
 
-const getSmallFileIcon = (mime) => {
-  if (!mime) return <FileText className="w-5 h-5 text-slate-400" />;
-  if (mime.includes('image')) return <FileImage className="w-5 h-5 text-sky-500" />;
-  if (mime.includes('video')) return <FileVideo className="w-5 h-5 text-violet-500" />;
-  if (mime.includes('audio')) return <FileAudio className="w-5 h-5 text-pink-500" />;
-  if (mime.includes('pdf')) return <FileText className="w-5 h-5 text-rose-500" />;
-  if (mime.includes('word') || mime.includes('excel') || mime.includes('spreadsheet')) {
-    return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
-  }
-  if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-5 h-5 text-amber-500" />;
-  if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-5 h-5 text-orange-500" />;
+const getSmallFileIcon = (mime, fileName = '') => {
+  const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
+  const isWord = ['docx', 'doc', 'dotx', 'odt'].includes(ext) || (mime && (mime.includes('word') || mime.includes('wordprocessingml')));
+  const isExcel = ['xlsx', 'xls', 'ods', 'xlsm', 'csv'].includes(ext) || (mime && (mime.includes('excel') || mime.includes('spreadsheet')));
+  const isPdf = ext === 'pdf' || (mime && mime.includes('pdf'));
+  const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext) || (mime && mime.includes('image'));
+  const isVid = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext) || (mime && mime.includes('video'));
+  const isAud = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(ext) || (mime && mime.includes('audio'));
+  const isZip = ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || (mime && (mime.includes('zip') || mime.includes('rar') || mime.includes('compressed')));
+  const isTxt = ['txt', 'md', 'json', 'js', 'jsx', 'ts', 'tsx', 'html', 'css', 'py', 'java', 'c', 'cpp'].includes(ext) || (mime && (mime.includes('text') || mime.includes('json')));
+
+  if (isImg) return <FileImage className="w-5 h-5 text-sky-500" />;
+  if (isVid) return <FileVideo className="w-5 h-5 text-violet-500" />;
+  if (isAud) return <FileAudio className="w-5 h-5 text-pink-500" />;
+  if (isPdf) return <FileText className="w-5 h-5 text-rose-500" />;
+  if (isWord) return <FileText className="w-5 h-5 text-blue-500 dark:text-blue-400" />;
+  if (isExcel) return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
+  if (isZip) return <FileArchive className="w-5 h-5 text-amber-500" />;
+  if (isTxt) return <FileCode className="w-5 h-5 text-orange-500" />;
   return <FileText className="w-5 h-5 text-slate-400" />;
 };
 
@@ -503,7 +519,7 @@ const PublicSharePage = () => {
             {publicFileData && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#334155]/40 rounded-xl border border-gray-100 dark:border-[#334155]/50 text-left mb-6">
                 <div className="w-10 h-10 bg-white dark:bg-[#334155] rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
-                  {isFolderType ? <Folder className="w-6 h-6 text-cyan-500" /> : getFileIcon(publicFileData.mimeType)}
+                  {isFolderType ? <Folder className="w-6 h-6 text-cyan-500" /> : getFileIcon(publicFileData.mimeType, publicFileData.fileName)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
@@ -640,7 +656,7 @@ const PublicSharePage = () => {
                           className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                         >
                           <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] flex items-center justify-center shrink-0">
-                            {getSmallFileIcon(f.mimeType)}
+                            {getSmallFileIcon(f.mimeType, f.originalName)}
                           </div>
                           <div className="min-w-0 flex-1">
                             <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#3B82F6] truncate">{f.originalName}</h4>
@@ -693,7 +709,7 @@ const PublicSharePage = () => {
             <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
-                  {getFileIcon(file.mimeType)}
+                  {getFileIcon(file.mimeType, file.originalName)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate leading-snug">{file.originalName}</h1>
@@ -756,7 +772,7 @@ const PublicSharePage = () => {
               <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-[#334155] shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    {getSmallFileIcon(previewFile.mimeType)}
+                    {getSmallFileIcon(previewFile.mimeType, previewFile.originalName)}
                   </div>
                   <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-[#F8FAFC] truncate">{previewFile.originalName}</h3>
                 </div>

@@ -825,7 +825,9 @@ const FilePreviewModal = ({
     if (isImage) return <FileImage className="w-20 h-20 text-blue-500" />;
     if (isVideo) return <FileVideo className="w-20 h-20 text-purple-500" />;
     if (isAudio) return <FileAudio className="w-20 h-20 text-pink-500" />;
-    if (isOffice) return <FileSpreadsheet className="w-20 h-20 text-green-500" />;
+    if (isPdf) return <FileText className="w-20 h-20 text-rose-500" />;
+    if (isDocx) return <FileText className="w-20 h-20 text-blue-500" />;
+    if (isExcel) return <FileSpreadsheet className="w-20 h-20 text-emerald-500" />;
     if (isArchive) return <FileArchive className="w-20 h-20 text-yellow-500" />;
     if (isText) return <FileCode className="w-20 h-20 text-orange-500" />;
 

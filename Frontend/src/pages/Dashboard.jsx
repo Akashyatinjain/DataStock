@@ -1248,13 +1248,27 @@ const Dashboard = () => {
           addToast(`Failed to decrypt "${file.originalName}"`, "error");
         }
       } else {
-        const a = document.createElement('a');
-        a.href = file.url;
-        a.download = file.originalName;
-        a.target = "_blank";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        try {
+          const res = await fetch(file.url);
+          if (!res.ok) throw new Error("Fetch failed");
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = file.originalName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        } catch (err) {
+          const a = document.createElement('a');
+          a.href = file.url;
+          a.download = file.originalName;
+          a.target = "_blank";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
       }
       setSelectedFileIds(new Set());
       return;

@@ -39,6 +39,32 @@ const formatSize = (bytes) => {
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
 };
 
+const handleDownloadSingleFile = async (fileUrl, fileName) => {
+  if (!fileUrl) return;
+  try {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error('Fetch failed');
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName || 'download';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } catch (err) {
+    console.error('Blob download failed, falling back:', err);
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = fileName || 'download';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+};
+
 const getFileIcon = (mime, fileName = '') => {
   const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
   const isWord = ['docx', 'doc', 'dotx', 'odt'].includes(ext) || (mime && (mime.includes('word') || mime.includes('wordprocessingml')));
@@ -371,14 +397,13 @@ const FilePreview = ({ file, allowDownload }) => {
       <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mt-4">{file.originalName}</h3>
       <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1 font-mono">{mime || 'Binary file'}</p>
       {allowDownload ? (
-        <a
-          href={url}
-          download
-          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+        <button
+          onClick={() => handleDownloadSingleFile(url, file?.originalName)}
+          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
         >
           <Download className="w-4 h-4" />
           Download File
-        </a>
+        </button>
       ) : (
         <p className="text-red-500 dark:text-red-400 mt-4 text-xs font-medium">Downloads restricted for this link.</p>
       )}
@@ -672,16 +697,13 @@ const PublicSharePage = () => {
                             <Eye className="w-4 h-4" />
                           </button>
                           {allowDownload && (
-                            <a
-                              href={f.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              download
-                              className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-emerald-500 transition"
+                            <button
+                              onClick={() => handleDownloadSingleFile(f.url, f.originalName)}
+                              className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-emerald-500 transition cursor-pointer"
                               title="Download file"
                             >
                               <Download className="w-4 h-4" />
-                            </a>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -730,16 +752,13 @@ const PublicSharePage = () => {
                 </div>
               </div>
               {allowDownload && (
-                <a
-                  href={file.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  download
-                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs sm:text-sm transition shadow-sm w-full sm:w-auto shrink-0"
+                <button
+                  onClick={() => handleDownloadSingleFile(file.url, file.originalName)}
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs sm:text-sm transition shadow-sm w-full sm:w-auto shrink-0 cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   Download
-                </a>
+                </button>
               )}
             </div>
 
@@ -778,16 +797,13 @@ const PublicSharePage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {allowDownload && (
-                    <a
-                      href={previewFile.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      download
-                      className="px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs transition flex items-center gap-1.5"
+                    <button
+                      onClick={() => handleDownloadSingleFile(previewFile.url, previewFile.originalName)}
+                      className="px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Download
-                    </a>
+                    </button>
                   )}
                   <button
                     onClick={() => setPreviewFile(null)}

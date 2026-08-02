@@ -110,7 +110,7 @@ const getSmallFileIcon = (mime, fileName = '') => {
 };
 
 /* ─── Preview renderer ─── */
-const FilePreview = ({ file, allowDownload }) => {
+const FilePreview = ({ file, allowDownload, isModal = false }) => {
   const mime = file?.mimeType || '';
   const url = file?.url;
   const ext = file?.originalName ? file.originalName.split('.').pop().toLowerCase() : '';
@@ -214,13 +214,13 @@ const FilePreview = ({ file, allowDownload }) => {
       <img
         src={url}
         alt={file.originalName}
-        className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-xl"
+        className={`max-w-full ${isModal ? 'max-h-[75vh]' : 'max-h-[75vh]'} object-contain ${isModal ? 'rounded-xl' : 'rounded-2xl shadow-xl'}`}
       />
     );
   }
   if (isVideo) {
     return (
-      <video controls className="w-full max-h-[75vh] rounded-2xl shadow-xl">
+      <video controls className={`w-full ${isModal ? 'max-h-[75vh]' : 'max-h-[75vh]'} ${isModal ? 'rounded-xl' : 'rounded-2xl shadow-xl'}`}>
         <source src={url} type={mime} />
       </video>
     );
@@ -239,8 +239,8 @@ const FilePreview = ({ file, allowDownload }) => {
   if (isDocx) {
     return (
       <div
-        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] overflow-auto p-8 text-left text-slate-900 dark:text-slate-100"
-        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-[#1E293B] overflow-auto p-6 sm:p-8 text-left text-slate-900 dark:text-slate-100`}
+        style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
         {docxLoading ? (
           <div className="flex items-center justify-center h-full gap-2 text-slate-400">
@@ -256,8 +256,8 @@ const FilePreview = ({ file, allowDownload }) => {
   if (isExcel) {
     return (
       <div
-        className="w-full h-[700px] min-h-[600px] bg-slate-950 rounded-2xl shadow-xl border border-slate-800 flex flex-col overflow-hidden text-left"
-        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-slate-800'} bg-slate-950 flex flex-col overflow-hidden text-left`}
+        style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
         <div className="bg-slate-900 p-2 flex gap-2 border-b border-slate-800 overflow-x-auto">
           {xlsxSheetNames.map(n => (
@@ -296,8 +296,8 @@ const FilePreview = ({ file, allowDownload }) => {
   if (isArchive) {
     return (
       <div
-        className="w-full h-[700px] min-h-[600px] bg-white dark:bg-[#1E293B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
-        style={{ width: '100%', height: '700px', minHeight: '600px' }}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-[#1E293B] flex flex-col overflow-hidden text-left`}
+        style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
         <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -333,25 +333,27 @@ const FilePreview = ({ file, allowDownload }) => {
 
     return (
       <div
-        className="w-full h-[520px] sm:h-[700px] min-h-[480px] sm:min-h-[600px] bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155] flex flex-col overflow-hidden text-left"
-        style={{ width: '100%', minHeight: '480px' }}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[520px] sm:h-[700px] min-h-[480px] sm:min-h-[600px] rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-slate-900 flex flex-col overflow-hidden text-left`}
+        style={isModal ? { width: '100%', height: '100%' } : { width: '100%', minHeight: '480px' }}
       >
-        {/* Responsive Mobile/Desktop Top Control Toolbar */}
-        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] p-2.5 sm:px-4 sm:py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shrink-0 select-none">
+        {/* Responsive Control Toolbar */}
+        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] p-2.5 sm:px-4 sm:py-2 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
           <div className="flex items-center gap-2 min-w-0 overflow-hidden">
             <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
               PDF
             </span>
-            <span className="font-medium text-gray-700 dark:text-slate-300 truncate text-xs sm:text-sm">
-              {file.originalName}
-            </span>
+            {!isModal && (
+              <span className="font-medium text-gray-700 dark:text-slate-300 truncate text-xs sm:text-sm">
+                {file.originalName}
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 justify-end w-full sm:w-auto">
+          <div className="flex items-center gap-2 shrink-0 justify-end">
             <button
               type="button"
               onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
-              className="flex-1 sm:flex-none px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] sm:text-xs text-center"
+              className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] sm:text-xs text-center cursor-pointer"
               title="Toggle Viewer Engine"
             >
               {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
@@ -361,19 +363,19 @@ const FilePreview = ({ file, allowDownload }) => {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 sm:flex-none px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition text-[11px] sm:text-xs text-center whitespace-nowrap"
+              className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition text-[11px] sm:text-xs text-center whitespace-nowrap"
             >
               Open ↗
             </a>
           </div>
         </div>
 
-        <div className="flex-1 w-full h-full bg-white relative">
+        <div className="flex-1 w-full h-full bg-white relative min-h-0">
           <iframe
             src={embedUrl}
             title={file.originalName}
             className="w-full h-full border-0 bg-white"
-            style={{ width: '100%', height: '100%', minHeight: '440px' }}
+            style={{ width: '100%', height: '100%' }}
           />
         </div>
       </div>
@@ -787,7 +789,7 @@ const PublicSharePage = () => {
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in"
             onClick={(e) => e.target === e.currentTarget && setPreviewFile(null)}
           >
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl border border-gray-100 dark:border-[#334155] flex flex-col overflow-hidden">
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-4xl h-[85vh] max-h-[85vh] shadow-2xl border border-gray-100 dark:border-[#334155] flex flex-col overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-[#334155] shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
@@ -807,15 +809,15 @@ const PublicSharePage = () => {
                   )}
                   <button
                     onClick={() => setPreviewFile(null)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC] transition"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC] transition cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
-                <FilePreview file={previewFile} allowDownload={allowDownload} />
+              <div className="flex-1 overflow-hidden p-0 flex flex-col items-center justify-center min-h-0 relative w-full h-full">
+                <FilePreview file={previewFile} allowDownload={allowDownload} isModal />
               </div>
             </div>
           </div>

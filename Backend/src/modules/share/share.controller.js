@@ -104,11 +104,55 @@ export const getPublicLinkInfo = asyncHandler(async (req, res) => {
   });
 });
 
+export const generatePublicFolderLink = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { folderId } = req.params;
+  const { expiresAt, password, allowDownload } = req.body;
+
+  const share = await shareService.generatePublicFolderLinkService(folderId, userId, {
+    expiresAt,
+    password,
+    allowDownload,
+  });
+
+  const publicUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/share/${share.token}`;
+
+  res.status(201).json({
+    success: true,
+    token: share.token,
+    url: publicUrl,
+    share: {
+      id: share.id,
+      token: share.token,
+      expiresAt: share.expiresAt,
+      allowDownload: share.allowDownload,
+      hasPassword: share.password !== null,
+    }
+  });
+});
+
+export const getPublicFolderLinkInfo = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { folderId } = req.params;
+
+  const info = await shareService.getPublicFolderLinkInfoService(folderId, userId);
+
+  let publicUrl = null;
+  if (info) {
+    publicUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/share/${info.token}`;
+  }
+
+  res.status(200).json({
+    success: true,
+    share: info ? { ...info, url: publicUrl } : null,
+  });
+});
+
 export const getPublicFile = asyncHandler(async (req, res) => {
   const { token } = req.params;
-  const { password } = req.query;
+  const { password, subfolderId } = req.query;
 
-  const result = await shareService.getPublicFileService(token, password);
+  const result = await shareService.getPublicFileService(token, password, subfolderId);
 
   res.status(200).json({
     success: true,
@@ -118,9 +162,9 @@ export const getPublicFile = asyncHandler(async (req, res) => {
 
 export const verifyPublicFilePassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
-  const { password } = req.body;
+  const { password, subfolderId } = req.body;
 
-  const result = await shareService.getPublicFileService(token, password);
+  const result = await shareService.getPublicFileService(token, password, subfolderId || req.query.subfolderId);
 
   res.status(200).json({
     success: true,

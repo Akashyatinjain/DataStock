@@ -28,6 +28,8 @@ import {
   fetchFolderShares,
   shareFolderWithUser,
   removeFolderShareThunk,
+  createPublicFolderLink,
+  fetchPublicFolderLinkInfo,
 } from '../../../store/slices/shareSlice';
 
 const PermBadge = ({ permission }) => (
@@ -93,6 +95,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
     dispatch(clearShareModalState());
     if (isFolder) {
       dispatch(fetchFolderShares(itemId));
+      dispatch(fetchPublicFolderLinkInfo(itemId));
     } else {
       dispatch(fetchFileShares(itemId));
       dispatch(fetchPublicLinkInfo(itemId));
@@ -100,13 +103,13 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
   }, [dispatch, itemId, isFolder]);
 
   useEffect(() => {
-    if (linkSettings && !isFolder) {
+    if (linkSettings) {
       setExpirationEnabled(!!linkSettings.expiresAt);
       if (linkSettings.expiresAt) {
         const date = new Date(linkSettings.expiresAt);
         // format to YYYY-MM-DDTHH:MM local format
         const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - (offset*60*1050)); // close timezone adjustment
+        const localDate = new Date(date.getTime() - (offset*60*1000));
         const formatted = localDate.toISOString().slice(0, 16);
         setExpiresAt(formatted);
       } else {
@@ -122,7 +125,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
       setPassword('');
       setAllowDownload(true);
     }
-  }, [linkSettings, isFolder]);
+  }, [linkSettings]);
 
   const handleShare = async (e) => {
     e.preventDefault();
@@ -176,8 +179,15 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
       options.password = null;
     }
 
-    const result = await dispatch(createPublicLink({ fileId: itemId, options }));
-    if (createPublicLink.fulfilled.match(result)) {
+    let result;
+    if (isFolder) {
+      result = await dispatch(createPublicFolderLink({ folderId: itemId, options }));
+    } else {
+      result = await dispatch(createPublicLink({ fileId: itemId, options }));
+    }
+
+    const thunkAction = isFolder ? createPublicFolderLink : createPublicLink;
+    if (thunkAction.fulfilled.match(result)) {
       onToast?.(publicLink ? 'Link settings updated!' : 'Public link generated!', 'success');
     } else {
       onToast?.(result.payload || 'Failed to save settings', 'error');
@@ -241,19 +251,17 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
             <Users className="w-4 h-4" />
             People
           </button>
-          {!isFolder && (
-            <button
-              onClick={() => setTab('link')}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
-                tab === 'link'
-                  ? 'border-[#3B82F6] text-[#3B82F6] dark:text-[#3B82F6]'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              <Link2 className="w-4 h-4" />
-              Public Link
-            </button>
-          )}
+          <button
+            onClick={() => setTab('link')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${
+              tab === 'link'
+                ? 'border-[#3B82F6] text-[#3B82F6] dark:text-[#3B82F6]'
+                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+            }`}
+          >
+            <Link2 className="w-4 h-4" />
+            Public Link
+          </button>
         </div>
 
         <div className="p-6">
@@ -365,7 +373,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                 </div>
                 <h3 className="font-bold text-gray-900 dark:text-gray-105 mb-1">Public Link</h3>
                 <p className="text-sm text-gray-400 dark:text-[#94A3B8] mb-4 leading-relaxed">
-                  Anyone with this link can view the file — no login required.
+                  Anyone with this link can view the {isFolder ? 'folder' : 'file'} — no login required.
                 </p>
 
                 {publicLink && (

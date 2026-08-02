@@ -66,24 +66,47 @@ export const revokePublicLink = async (token) => {
 };
 
 /**
- * Get file info from a public share token (no auth required).
- * @param {string} token
- * @param {string} [password] - Optional link password for verification
+ * Generate (or retrieve existing / update) public share link for a folder.
+ * @param {string} folderId
+ * @param {object} options - Custom share options (expiresAt, password, allowDownload)
  */
-export const getPublicFile = async (token, password = '') => {
-  const response = await API.get(`/share/public/file/${token}`, {
-    params: password ? { password } : {}
-  });
+export const generatePublicFolderLink = async (folderId, options = {}) => {
+  const response = await API.post(`/share/public/folder/${folderId}`, options);
   return response.data;
 };
 
 /**
- * Verify password for a protected public link and retrieve file.
+ * Fetch active public link configuration info for a folder (creator only).
+ * @param {string} folderId
+ */
+export const getPublicFolderLinkInfo = async (folderId) => {
+  const response = await API.get(`/share/public/folder/info/${folderId}`);
+  return response.data;
+};
+
+/**
+ * Get file or folder info from a public share token (no auth required).
+ * @param {string} token
+ * @param {string} [password] - Optional link password for verification
+ * @param {string} [subfolderId] - Optional subfolder ID to browse inside shared folder
+ */
+export const getPublicFile = async (token, password = '', subfolderId = null) => {
+  const params = {};
+  if (password) params.password = password;
+  if (subfolderId) params.subfolderId = subfolderId;
+
+  const response = await API.get(`/share/public/file/${token}`, { params });
+  return response.data;
+};
+
+/**
+ * Verify password for a protected public link and retrieve file or folder.
  * @param {string} token
  * @param {string} password
+ * @param {string} [subfolderId]
  */
-export const verifyPublicFilePassword = async (token, password) => {
-  const response = await API.post(`/share/public/file/${token}/verify`, { password });
+export const verifyPublicFilePassword = async (token, password, subfolderId = null) => {
+  const response = await API.post(`/share/public/file/${token}/verify`, { password, subfolderId });
   return response.data;
 };
 

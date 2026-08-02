@@ -69,14 +69,23 @@ export const removeShare = async (shareId) => {
 export const createPublicShare = async (data) => {
   return prisma.publicShare.create({
     data,
-    include: { file: true },
+    include: { file: true, folder: true },
   });
 };
 
 export const findPublicShareByToken = async (token) => {
   return prisma.publicShare.findUnique({
     where: { token },
-    include: { file: true },
+    include: {
+      file: true,
+      folder: {
+        include: {
+          owner: {
+            select: { id: true, username: true, email: true, imageUrl: true }
+          }
+        }
+      }
+    },
   });
 };
 
@@ -86,10 +95,16 @@ export const getActivePublicShareByFile = async (fileId) => {
   });
 };
 
+export const getActivePublicShareByFolder = async (folderId) => {
+  return prisma.publicShare.findFirst({
+    where: { folderId, isActive: true },
+  });
+};
+
 export const getPublicSharesByOwner = async (ownerId) => {
   return prisma.publicShare.findMany({
     where: { ownerId },
-    include: { file: true },
+    include: { file: true, folder: true },
     orderBy: { createdAt: "desc" },
   });
 };
@@ -98,6 +113,7 @@ export const revokePublicShare = async (token) => {
   return prisma.publicShare.update({
     where: { token },
     data: { isActive: false },
+    include: { file: true, folder: true }
   });
 };
 
@@ -105,7 +121,7 @@ export const updatePublicShare = async (id, data) => {
   return prisma.publicShare.update({
     where: { id },
     data,
-    include: { file: true },
+    include: { file: true, folder: true },
   });
 };
 

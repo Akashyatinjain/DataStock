@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import * as shareRepo from "./share.repository.js";
 import * as fileRepo from "../files/file.repository.js";
 import { logActivity } from "../../utils/activityLogger.js";
+import prisma from "../../config/db.js";
 
 import {
   createNotificationService,
@@ -209,7 +210,87 @@ export const getPublicLinkInfoService = async (fileId, userId) => {
   };
 };
 
-export const getPublicFileService = async (token, password = null) => {
+export const generatePublicFolderLinkService = async (folderId, ownerId, options = {}) => {
+  const folder = await shareRepo.findFolderById(folderId);
+
+  if (!folder) {
+    throw new Error("Folder not found");
+  }
+
+  if (folder.ownerId !== ownerId) {
+    throw new Error("Unauthorized: you do not own this folder");
+  }
+
+  const { expiresAt, password, allowDownload } = options;
+
+  const existing = await shareRepo.getActivePublicShareByFolder(folderId);
+  if (existing) {
+    const updateData = {
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      allowDownload: allowDownload !== undefined ? allowDownload : existing.allowDownload
+    };
+    if (password !== undefined) {
+      updateData.password = password ? await bcrypt.hash(password, 10) : null;
+    }
+    await logActivity(ownerId, `You updated settings for public link of folder "${folder.name}"`);
+    return await shareRepo.updatePublicShare(existing.id, updateData);
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const data = {
+    token,
+    folderId,
+    ownerId,
+    expiresAt: expiresAt ? new Date(expiresAt) : null,
+    allowDownload: allowDownload !== undefined ? allowDownload : true
+  };
+
+  if (password) {
+    data.password = await bcrypt.hash(password, 10);
+  }
+
+  await logActivity(ownerId, `You generated a public link for folder "${folder.name}"`);
+  return shareRepo.createPublicShare(data);
+};
+
+export const getPublicFolderLinkInfoService = async (folderId, userId) => {
+  const folder = await shareRepo.findFolderById(folderId);
+  if (!folder) {
+    throw new Error("Folder not found");
+  }
+  if (folder.ownerId !== userId) {
+    throw new Error("Unauthorized: you do not own this folder");
+  }
+
+  const share = await shareRepo.getActivePublicShareByFolder(folderId);
+  if (!share) return null;
+
+  return {
+    id: share.id,
+    token: share.token,
+    expiresAt: share.expiresAt,
+    allowDownload: share.allowDownload,
+    hasPassword: share.password !== null
+  };
+};
+
+const isFolderDescendantOf = async (targetFolderId, rootFolderId) => {
+  if (targetFolderId === rootFolderId) return true;
+  let currentId = targetFolderId;
+  while (currentId) {
+    const current = await prisma.folder.findUnique({
+      where: { id: currentId },
+      select: { id: true, parentId: true }
+    });
+    if (!current) return false;
+    if (current.parentId === rootFolderId) return true;
+    currentId = current.parentId;
+  }
+  return false;
+};
+
+export const getPublicFileService = async (token, password = null, subfolderId = null) => {
   const share = await shareRepo.findPublicShareByToken(token);
 
   if (!share) {
@@ -226,7 +307,15 @@ export const getPublicFileService = async (token, password = null) => {
 
   if (share.password) {
     if (!password) {
+      if (share.folderId) {
+        return {
+          type: "folder",
+          isPasswordProtected: true,
+          folderName: share.folder.name,
+        };
+      }
       return {
+        type: "file",
         isPasswordProtected: true,
         fileName: share.file.originalName,
         mimeType: share.file.mimeType,
@@ -240,7 +329,59 @@ export const getPublicFileService = async (token, password = null) => {
     }
   }
 
+  if (share.folderId) {
+    let currentFolderId = share.folderId;
+    if (subfolderId && subfolderId !== share.folderId) {
+      const isValidDescendant = await isFolderDescendantOf(subfolderId, share.folderId);
+      if (isValidDescendant) {
+        currentFolderId = subfolderId;
+      }
+    }
+
+    const currentFolder = await prisma.folder.findUnique({
+      where: { id: currentFolderId },
+      include: {
+        owner: { select: { id: true, username: true, email: true, imageUrl: true } }
+      }
+    });
+
+    const files = await prisma.file.findMany({
+      where: { folderId: currentFolderId, isTrash: false, isArchived: false },
+      orderBy: { createdAt: "desc" }
+    });
+
+    const subfolders = await prisma.folder.findMany({
+      where: { parentId: currentFolderId },
+      orderBy: { name: "asc" }
+    });
+
+    // Build breadcrumbs path
+    const breadcrumbs = [];
+    let curr = currentFolder;
+    while (curr) {
+      breadcrumbs.unshift({ id: curr.id, name: curr.name });
+      if (curr.id === share.folderId) break;
+      if (curr.parentId) {
+        curr = await prisma.folder.findUnique({ where: { id: curr.parentId } });
+      } else {
+        break;
+      }
+    }
+
+    return {
+      type: "folder",
+      isPasswordProtected: false,
+      rootFolder: share.folder,
+      currentFolder,
+      files,
+      subfolders,
+      breadcrumbs,
+      allowDownload: share.allowDownload
+    };
+  }
+
   return {
+    type: "file",
     isPasswordProtected: false,
     file: share.file,
     allowDownload: share.allowDownload
@@ -258,6 +399,8 @@ export const revokePublicLinkService = async (token, userId) => {
     throw new Error("Unauthorized: you did not create this link");
   }
 
-  await logActivity(userId, `You revoked the public link for file "${share.file.originalName}"`);
+  const itemName = share.file ? share.file.originalName : (share.folder ? share.folder.name : "item");
+
+  await logActivity(userId, `You revoked the public link for "${itemName}"`);
   return shareRepo.revokePublicShare(token);
 };

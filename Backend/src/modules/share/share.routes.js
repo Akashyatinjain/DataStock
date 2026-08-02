@@ -7,6 +7,8 @@ import {
   removeShare,
   generatePublicLink,
   getPublicLinkInfo,
+  generatePublicFolderLink,
+  getPublicFolderLinkInfo,
   getPublicFile,
   verifyPublicFilePassword,
   revokePublicLink,
@@ -42,13 +44,19 @@ router.get("/file/:fileId", authenticateUser, getFileShares);
 // Get active public link configuration info for a file
 router.get("/public/info/:fileId", authenticateUser, getPublicLinkInfo);
 
+// Get active public link configuration info for a folder
+router.get("/public/folder/info/:folderId", authenticateUser, getPublicFolderLinkInfo);
+
 // Generate or update a public link for a file
 router.post("/public/:fileId", authenticateUser, generatePublicLink);
+
+// Generate or update a public link for a folder
+router.post("/public/folder/:folderId", authenticateUser, generatePublicFolderLink);
 
 // Revoke a public link (MUST be before /:shareId so "public" isn't matched as shareId)
 router.delete("/public/:token", authenticateUser, revokePublicLink);
 
-// Get file info by public token (no auth required — public access)
+// Get file or folder info by public token (no auth required — public access)
 router.get("/public/file/:token", getPublicFile);
 
 // Verify password for a protected public link (no auth required)

@@ -20,6 +20,12 @@ import {
   HardDrive,
   Lock,
   Search,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  Eye,
+  X,
+  ArrowLeft,
 } from 'lucide-react';
 import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -45,6 +51,20 @@ const getFileIcon = (mime) => {
   if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-16 h-16 text-amber-500" />;
   if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-16 h-16 text-orange-500" />;
   return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
+};
+
+const getSmallFileIcon = (mime) => {
+  if (!mime) return <FileText className="w-5 h-5 text-slate-400" />;
+  if (mime.includes('image')) return <FileImage className="w-5 h-5 text-sky-500" />;
+  if (mime.includes('video')) return <FileVideo className="w-5 h-5 text-violet-500" />;
+  if (mime.includes('audio')) return <FileAudio className="w-5 h-5 text-pink-500" />;
+  if (mime.includes('pdf')) return <FileText className="w-5 h-5 text-rose-500" />;
+  if (mime.includes('word') || mime.includes('excel') || mime.includes('spreadsheet')) {
+    return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
+  }
+  if (mime.includes('zip') || mime.includes('rar')) return <FileArchive className="w-5 h-5 text-amber-500" />;
+  if (mime.includes('text') || mime.includes('json')) return <FileCode className="w-5 h-5 text-orange-500" />;
+  return <FileText className="w-5 h-5 text-slate-400" />;
 };
 
 /* ─── Preview renderer ─── */
@@ -361,10 +381,12 @@ const PublicSharePage = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [isZipping, setIsZipping] = useState(false);
 
   useEffect(() => {
     if (token) {
-      dispatch(fetchPublicFile(token));
+      dispatch(fetchPublicFile({ token }));
     }
     return () => {
       dispatch(clearPublicFile());
@@ -383,9 +405,38 @@ const PublicSharePage = () => {
     }
   };
 
+  const handleNavigateSubfolder = (subfolderId) => {
+    dispatch(fetchPublicFile({ token, password: password.trim() || undefined, subfolderId }));
+  };
+
   const isPasswordProtected = publicFileData?.isPasswordProtected;
+  const isFolderType = publicFileData?.type === 'folder';
   const file = publicFileData?.file;
   const allowDownload = publicFileData?.allowDownload ?? true;
+
+  // Folder specific data
+  const currentFolder = publicFileData?.currentFolder;
+  const rootFolder = publicFileData?.rootFolder;
+  const folderFiles = publicFileData?.files || [];
+  const folderSubfolders = publicFileData?.subfolders || [];
+  const breadcrumbs = publicFileData?.breadcrumbs || [];
+
+  const handleDownloadFolderZip = async () => {
+    setIsZipping(true);
+    try {
+      const downloadUrl = `/api/share/public/folder/${token}/download${password ? `?password=${encodeURIComponent(password)}` : ''}`;
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${currentFolder?.name || 'shared_folder'}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error('ZIP Download failed:', err);
+    } finally {
+      setTimeout(() => setIsZipping(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#f0fdf4] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
@@ -409,21 +460,21 @@ const PublicSharePage = () => {
       </nav>
 
       {/* ── Content ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-2.5 sm:px-6 py-3 sm:py-8">
+      <main className="flex-1 flex flex-col items-center justify-start px-2.5 sm:px-6 py-4 sm:py-8">
 
         {/* ── Loading ── */}
         {loading && (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center justify-center my-auto gap-4 py-20">
             <div className="w-16 h-16 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-emerald-500/20">
               <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
             </div>
-            <p className="text-gray-400 dark:text-[#94A3B8] font-medium">Loading shared file…</p>
+            <p className="text-gray-400 dark:text-[#94A3B8] font-medium">Loading shared content…</p>
           </div>
         )}
 
         {/* ── Error ── */}
         {!loading && error && (
-          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-red-100 dark:border-[#334155] text-center max-w-md w-full">
+          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-red-100 dark:border-[#334155] text-center max-w-md w-full my-auto">
             <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-500/20">
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
@@ -440,23 +491,27 @@ const PublicSharePage = () => {
 
         {/* ── Password Protection ── */}
         {!loading && isPasswordProtected && (
-          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-[#334155] text-center max-w-md w-full animate-fade-in">
+          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-[#334155] text-center max-w-md w-full animate-fade-in my-auto">
             <div className="w-14 h-14 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-emerald-500/20">
               <Lock className="w-7 h-7 text-[#3B82F6] dark:text-[#3B82F6]" />
             </div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">Password Protected</h1>
             <p className="text-gray-400 dark:text-[#94A3B8] text-sm mb-5">
-              Enter the password to access this shared file.
+              Enter the password to access this shared {isFolderType ? 'folder' : 'file'}.
             </p>
 
             {publicFileData && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#334155]/40 rounded-xl border border-gray-100 dark:border-[#334155]/50 text-left mb-6">
                 <div className="w-10 h-10 bg-white dark:bg-[#334155] rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
-                  {getFileIcon(publicFileData.mimeType)}
+                  {isFolderType ? <Folder className="w-6 h-6 text-cyan-500" /> : getFileIcon(publicFileData.mimeType)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">{publicFileData.fileName}</p>
-                  <p className="text-xs text-gray-400 dark:text-[#94A3B8]">{formatSize(publicFileData.size)}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
+                    {isFolderType ? publicFileData.folderName : publicFileData.fileName}
+                  </p>
+                  {!isFolderType && (
+                    <p className="text-xs text-gray-400 dark:text-[#94A3B8]">{formatSize(publicFileData.size)}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -481,15 +536,158 @@ const PublicSharePage = () => {
                 {verifying ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  'Unlock File'
+                  `Unlock ${isFolderType ? 'Folder' : 'File'}`
                 )}
               </button>
             </form>
           </div>
         )}
 
+        {/* ── Folder View ── */}
+        {!loading && !isPasswordProtected && isFolderType && (
+          <div className="w-full max-w-5xl animate-fade-in space-y-5">
+            {/* Folder Header Card */}
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 dark:from-cyan-400/20 dark:to-blue-400/20 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/20">
+                  <Folder className="w-8 h-8 text-cyan-600 dark:text-cyan-400 stroke-[2.2]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {/* Breadcrumbs */}
+                  <div className="flex items-center gap-1 overflow-x-auto text-xs text-gray-400 dark:text-[#94A3B8] mb-1 font-medium select-none">
+                    {breadcrumbs.map((crumb, idx) => (
+                      <React.Fragment key={crumb.id}>
+                        {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
+                        <button
+                          onClick={() => handleNavigateSubfolder(crumb.id)}
+                          className={`hover:text-[#3B82F6] transition truncate ${crumb.id === currentFolder?.id ? 'text-[#3B82F6] font-bold' : ''}`}
+                        >
+                          {crumb.name}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate">{currentFolder?.name}</h1>
+                  <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1 font-medium">
+                    {folderSubfolders.length} {folderSubfolders.length === 1 ? 'folder' : 'folders'}, {folderFiles.length} {folderFiles.length === 1 ? 'file' : 'files'}
+                  </p>
+                </div>
+              </div>
+
+              {allowDownload && (
+                <button
+                  onClick={handleDownloadFolderZip}
+                  disabled={isZipping}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs sm:text-sm transition shadow-sm w-full sm:w-auto shrink-0 disabled:opacity-50"
+                >
+                  {isZipping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Download Folder ZIP
+                </button>
+              )}
+            </div>
+
+            {/* Folder Contents */}
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm p-5 sm:p-6 space-y-6">
+
+              {/* Empty Folder Check */}
+              {folderSubfolders.length === 0 && folderFiles.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-gray-50 dark:bg-[#334155]/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-[#334155]">
+                    <FolderOpen className="w-8 h-8 text-gray-300 dark:text-[#94A3B8]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-200">This folder is empty</h3>
+                  <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1">There are no files or subfolders inside this directory.</p>
+                </div>
+              )}
+
+              {/* Subfolders Grid */}
+              {folderSubfolders.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider mb-3">Folders</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {folderSubfolders.map((sf) => (
+                      <div
+                        key={sf.id}
+                        onClick={() => handleNavigateSubfolder(sf.id)}
+                        className="group flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-[#334155]/40 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20 border border-gray-100 dark:border-[#334155] hover:border-cyan-500/30 rounded-xl cursor-pointer transition select-none"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/20 flex items-center justify-center shrink-0">
+                          <Folder className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 truncate">{sf.name}</h4>
+                          <p className="text-[11px] text-gray-400">Subfolder</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-cyan-500 transition" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Files Grid */}
+              {folderFiles.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider mb-3">Files</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {folderFiles.map((f) => (
+                      <div
+                        key={f.id}
+                        className="group flex items-center justify-between p-3.5 bg-gray-50 dark:bg-[#334155]/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 border border-gray-100 dark:border-[#334155] hover:border-blue-500/30 rounded-xl transition"
+                      >
+                        <div
+                          onClick={() => setPreviewFile(f)}
+                          className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] flex items-center justify-center shrink-0">
+                            {getSmallFileIcon(f.mimeType)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#3B82F6] truncate">{f.originalName}</h4>
+                            <p className="text-[11px] text-gray-400">{formatSize(f.size)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => setPreviewFile(f)}
+                            className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-[#3B82F6] transition"
+                            title="Preview file"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {allowDownload && (
+                            <a
+                              href={f.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              download
+                              className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-emerald-500 transition"
+                              title="Download file"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer note */}
+            <p className="text-center text-xs text-gray-400 dark:text-[#94A3B8] mt-6">
+              This folder was shared via{' '}
+              <Link to="/" className="text-[#3B82F6] font-semibold hover:underline">
+                DataStock
+              </Link>
+              . Sign in to manage your own files.
+            </p>
+          </div>
+        )}
+
         {/* ── File view ── */}
-        {!loading && !isPasswordProtected && file && (
+        {!loading && !isPasswordProtected && !isFolderType && file && (
           <div className="w-full max-w-5xl animate-fade-in">
             {/* File header card */}
             <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
@@ -545,6 +743,49 @@ const PublicSharePage = () => {
               </Link>
               . Sign in to manage your own files.
             </p>
+          </div>
+        )}
+
+        {/* ── File Preview Modal (For previewing files inside a shared folder) ── */}
+        {previewFile && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+            onClick={(e) => e.target === e.currentTarget && setPreviewFile(null)}
+          >
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl border border-gray-100 dark:border-[#334155] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-[#334155] shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    {getSmallFileIcon(previewFile.mimeType)}
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-[#F8FAFC] truncate">{previewFile.originalName}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  {allowDownload && (
+                    <a
+                      href={previewFile.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      download
+                      className="px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-xs transition flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setPreviewFile(null)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC] transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
+                <FilePreview file={previewFile} allowDownload={allowDownload} />
+              </div>
+            </div>
           </div>
         )}
       </main>

@@ -8,6 +8,8 @@ import {
   revokePublicLink,
   shareFile,
   getPublicLinkInfo,
+  generatePublicFolderLink,
+  getPublicFolderLinkInfo,
   verifyPublicFilePassword,
   shareFolder,
   getFolderShares,
@@ -74,6 +76,24 @@ export const fetchPublicLinkInfo = createAsyncThunk('share/fetchPublicLinkInfo',
   }
 });
 
+export const createPublicFolderLink = createAsyncThunk('share/createPublicFolderLink', async ({ folderId, options = {} }, thunkAPI) => {
+  try {
+    const data = await generatePublicFolderLink(folderId, options);
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to generate link'));
+  }
+});
+
+export const fetchPublicFolderLinkInfo = createAsyncThunk('share/fetchPublicFolderLinkInfo', async (folderId, thunkAPI) => {
+  try {
+    const data = await getPublicFolderLinkInfo(folderId);
+    return data.share;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load link settings'));
+  }
+});
+
 export const deletePublicLink = createAsyncThunk('share/deletePublicLink', async (token, thunkAPI) => {
   try {
     await revokePublicLink(token);
@@ -83,20 +103,23 @@ export const deletePublicLink = createAsyncThunk('share/deletePublicLink', async
   }
 });
 
-export const fetchPublicFile = createAsyncThunk('share/fetchPublicFile', async (token, thunkAPI) => {
+export const fetchPublicFile = createAsyncThunk('share/fetchPublicFile', async (arg, thunkAPI) => {
   try {
-    const data = await getPublicFile(token);
+    const token = typeof arg === 'string' ? arg : arg.token;
+    const password = typeof arg === 'object' ? arg.password : '';
+    const subfolderId = typeof arg === 'object' ? arg.subfolderId : null;
+    const data = await getPublicFile(token, password, subfolderId);
     return data;
   } catch (error) {
-    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load file'));
+    return thunkAPI.rejectWithValue(getErrorMessage(error, 'Failed to load content'));
   }
 });
 
 export const verifyPublicFilePasswordThunk = createAsyncThunk(
   'share/verifyPublicFilePasswordThunk',
-  async ({ token, password }, thunkAPI) => {
+  async ({ token, password, subfolderId }, thunkAPI) => {
     try {
-      const data = await verifyPublicFilePassword(token, password);
+      const data = await verifyPublicFilePassword(token, password, subfolderId);
       return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(getErrorMessage(error, 'Incorrect password'));
@@ -248,6 +271,21 @@ const shareSlice = createSlice({
         state.linkLoading = false;
         state.error = action.payload;
       })
+      .addCase(createPublicFolderLink.pending, (state) => {
+        state.linkLoading = true;
+        state.error = null;
+      })
+      .addCase(createPublicFolderLink.fulfilled, (state, action) => {
+        state.linkLoading = false;
+        if (action.payload) {
+          state.publicLink = action.payload.url;
+          state.publicLinkSettings = action.payload.share;
+        }
+      })
+      .addCase(createPublicFolderLink.rejected, (state, action) => {
+        state.linkLoading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchPublicLinkInfo.pending, (state) => {
         state.linkLoading = true;
         state.error = null;
@@ -263,6 +301,24 @@ const shareSlice = createSlice({
         }
       })
       .addCase(fetchPublicLinkInfo.rejected, (state, action) => {
+        state.linkLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPublicFolderLinkInfo.pending, (state) => {
+        state.linkLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPublicFolderLinkInfo.fulfilled, (state, action) => {
+        state.linkLoading = false;
+        if (action.payload) {
+          state.publicLink = action.payload.url;
+          state.publicLinkSettings = action.payload;
+        } else {
+          state.publicLink = '';
+          state.publicLinkSettings = null;
+        }
+      })
+      .addCase(fetchPublicFolderLinkInfo.rejected, (state, action) => {
         state.linkLoading = false;
         state.error = action.payload;
       })

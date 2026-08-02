@@ -130,6 +130,7 @@ model Folder {
   files       File[]
 
   sharedWith  FolderShare[] @relation("FolderShares")
+  publicShares PublicShare[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -201,8 +202,11 @@ model PublicShare {
 
   token String @unique
 
-  fileId String
-  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId String?
+  file File? @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  folderId String?
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
   isActive Boolean @default(true)
 
@@ -217,6 +221,8 @@ model PublicShare {
 
   @@index([token])
   @@index([ownerId])
+  @@index([folderId])
+  @@index([fileId])
 }
 
 enum SharePermission {

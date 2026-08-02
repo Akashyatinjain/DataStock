@@ -166,14 +166,16 @@ const Header = ({
               </button>
 
               <div className="flex items-center space-x-2.5 cursor-pointer group" onClick={() => navigate('/')}>
-                <div className="w-8.5 h-8.5 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-200">
-                  <Cloud className="w-5 h-5 text-white" />
-                </div>
+                <img 
+                  src="/datastock-logo.svg" 
+                  alt="DataStock Logo" 
+                  className="w-8.5 h-8.5 rounded-xl shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200" 
+                />
                 <div className="hidden sm:flex flex-col">
                   <span className={`font-extrabold text-lg leading-none tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     Data<span className="text-[#3B82F6]">Stock</span>
                   </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mt-0.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mt-0.5">
                     Zero-Knowledge Workspace
                   </span>
                 </div>

@@ -216,10 +216,12 @@ const HomePage = () => {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-blue-400 dark:from-[#3B82F6] dark:to-blue-400 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20">
-                <Cloud className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">DataStock</span>
+              <img 
+                src="/datastock-logo.svg" 
+                alt="DataStock Logo" 
+                className="w-10 h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20" 
+              />
+              <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
             </div>
 
             {/* Desktop Navigation */}
@@ -986,11 +988,13 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12 mb-16">
             <div className="col-span-2 lg:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-9 h-9 bg-[#3B82F6] rounded-xl flex items-center justify-center shadow-md">
-                  <Cloud className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-extrabold text-xl text-gray-900 dark:text-[#F8FAFC]">DataStock</span>
+              <div className="flex items-center space-x-3 mb-6 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <img 
+                  src="/datastock-logo.svg" 
+                  alt="DataStock Logo" 
+                  className="w-9 h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200" 
+                />
+                <span className="font-extrabold text-xl text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
               </div>
               <p className="text-gray-500 dark:text-[#94A3B8] mb-6 max-w-xs leading-relaxed text-sm">
                 The most secure, beautiful, and intelligent home for all your files. Built for modern teams and creators.

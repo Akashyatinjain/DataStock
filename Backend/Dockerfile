@@ -3,20 +3,15 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install OpenSSL (required by Prisma)
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# Install OpenSSL (required by Prisma) and native build dependencies
+RUN apt-get update && apt-get install -y openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
+# Copy package files and Prisma schema before npm install (so postinstall "prisma generate" succeeds)
 COPY package*.json ./
+COPY prisma ./prisma
 
 # Install dependencies
 RUN npm install
-
-# Copy Prisma schema
-COPY prisma ./prisma
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Copy remaining source code
 COPY . .

@@ -187,11 +187,13 @@ export default function Pricing() {
               className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => navigate("/")}
             >
-              <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-blue-400 dark:from-[#3B82F6] dark:to-blue-400 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20">
-                <Cloud className="w-6 h-6 text-white" />
-              </div>
+              <img 
+                src="/datastock-logo.svg" 
+                alt="DataStock Logo" 
+                className="w-10 h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20" 
+              />
               <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">
-                DataStock
+                Data<span className="text-[#3B82F6]">Stock</span>
               </span>
             </div>
 
@@ -532,11 +534,13 @@ export default function Pricing() {
       <footer className="relative z-10 bg-white dark:bg-[#0F172A] border-t border-gray-200 dark:border-[#334155] pt-12 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 pb-8 border-b border-gray-200 dark:border-[#334155]">
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate("/")}>
-              <div className="w-9 h-9 bg-[#3B82F6] rounded-xl flex items-center justify-center shadow-md">
-                <Cloud className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-extrabold text-xl text-gray-900 dark:text-white">DataStock</span>
+            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => navigate("/")}>
+              <img 
+                src="/datastock-logo.svg" 
+                alt="DataStock Logo" 
+                className="w-9 h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200" 
+              />
+              <span className="font-extrabold text-xl text-gray-900 dark:text-white">Data<span className="text-[#3B82F6]">Stock</span></span>
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 text-xs sm:text-sm font-semibold text-gray-600 dark:text-[#94A3B8]">

@@ -751,7 +751,7 @@ const HelpPage = () => {
         <footer className="border-t border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] mt-4">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500 dark:text-[#94A3B8]">
             <div className="flex items-center gap-2">
-              <Cloud className="w-3.5 h-3.5 text-[#3B82F6]" />
+              <img src="/datastock-logo.svg" alt="DataStock Logo" className="w-4 h-4 rounded-xs" />
               <span>© 2026 DataStock. All rights reserved.</span>
             </div>
             <div className="flex gap-4">
@@ -762,10 +762,6 @@ const HelpPage = () => {
           </div>
         </footer>
       </div>
-
-      {selectedArticle && (
-        <ArticleModal article={selectedArticle} onClose={() => setSelectedArticle(null)} />
-      )}
 
       {showContactModal && (
         <ContactModal

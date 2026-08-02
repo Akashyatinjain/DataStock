@@ -482,14 +482,12 @@ const PublicSharePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#f0fdf4] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
+    <div className="min-h-screen bg-linear-to-br from-[#eff6ff] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
       {/* ── Nav bar ── */}
       <nav className="bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-sm border-b border-gray-200 dark:border-[#334155] px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-linear-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
-            <Cloud className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-bold text-xl text-gray-900 dark:text-[#F8FAFC]">DataStock</span>
+        <Link to="/" className="flex items-center gap-2 group">
+          <img src="/datastock-logo.svg" alt="DataStock Logo" className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200" />
+          <span className="font-bold text-xl text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />

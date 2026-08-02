@@ -525,8 +525,16 @@ const Dashboard = () => {
   // Live notifications listener for real-time toasts and page updates
   useEffect(() => {
     if (user?.id) {
-      connectSocket();
-      socket.emit("join", user.id);
+      const activeSocket = connectSocket();
+
+      const joinUserRoom = () => {
+        if (activeSocket.connected && user?.id) {
+          activeSocket.emit("join", user.id);
+        }
+      };
+
+      joinUserRoom();
+      activeSocket.on("connect", joinUserRoom);
 
       const handleNewNotification = (notification) => {
         dispatch(addNotification(notification));
@@ -536,10 +544,11 @@ const Dashboard = () => {
         }
       };
 
-      socket.on('notification', handleNewNotification);
+      activeSocket.on('notification', handleNewNotification);
 
       return () => {
-        socket.off('notification', handleNewNotification);
+        activeSocket.off('connect', joinUserRoom);
+        activeSocket.off('notification', handleNewNotification);
       };
     }
   }, [user, addToast, dispatch]);
@@ -547,7 +556,20 @@ const Dashboard = () => {
   // Join folder room on the socket
   useEffect(() => {
     if (user?.id) {
-      socket.emit("view_folder", selectedFolderId || "root");
+      const activeSocket = connectSocket();
+
+      const joinFolderRoom = () => {
+        if (activeSocket.connected) {
+          activeSocket.emit("view_folder", selectedFolderId || "root");
+        }
+      };
+
+      joinFolderRoom();
+      activeSocket.on("connect", joinFolderRoom);
+
+      return () => {
+        activeSocket.off("connect", joinFolderRoom);
+      };
     }
   }, [selectedFolderId, activeTab, user]);
 

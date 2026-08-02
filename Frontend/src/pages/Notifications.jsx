@@ -64,14 +64,26 @@ export default function Notifications() {
 
   useEffect(() => {
     if (user?.id) {
-      connectSocket();
-      socket.emit('join', user.id);
+      const activeSocket = connectSocket();
+
+      const joinUserRoom = () => {
+        if (activeSocket.connected && user?.id) {
+          activeSocket.emit("join", user.id);
+        }
+      };
+
+      joinUserRoom();
+      activeSocket.on("connect", joinUserRoom);
+
       const handleNewNotification = (notification) => {
         dispatch(addNotification(notification));
       };
-      socket.on('notification', handleNewNotification);
+
+      activeSocket.on('notification', handleNewNotification);
+
       return () => {
-        socket.off('notification', handleNewNotification);
+        activeSocket.off('connect', joinUserRoom);
+        activeSocket.off('notification', handleNewNotification);
       };
     }
   }, [user, dispatch]);

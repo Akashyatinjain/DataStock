@@ -374,10 +374,23 @@ const FilePreviewModal = ({
         .finally(() => setLoadingComments(false));
 
       // Ensure socket connection is active and join room
-      connectSocket();
-      socket.emit("join_file", fileId);
+      const activeSocket = connectSocket();
+
+      const joinFileRoom = () => {
+        if (activeSocket.connected && fileId) {
+          activeSocket.emit("join_file", fileId);
+        }
+      };
+
+      // Emit join_file immediately if connected
+      joinFileRoom();
+
+      // Ensure room is re-joined automatically when socket connects or reconnects
+      activeSocket.on("connect", joinFileRoom);
 
       const handleNewComment = (comment) => {
+        if (comment.fileId && String(comment.fileId) !== String(fileId)) return;
+
         setComments((prev) => {
           // If we already have the comment by ID, ignore
           if (prev.some((c) => c.id === comment.id)) return prev;
@@ -397,12 +410,13 @@ const FilePreviewModal = ({
         });
       };
 
-      const handleCommentDeleted = ({ commentId }) => {
+      const handleCommentDeleted = ({ commentId, fileId: incomingFileId }) => {
+        if (incomingFileId && String(incomingFileId) !== String(fileId)) return;
         setComments((prev) => prev.filter((c) => c.id !== commentId));
       };
 
       const handleTypingComment = ({ fileId: incomingFileId, userId, username, isTyping: userIsTyping }) => {
-        if (incomingFileId !== fileId) return;
+        if (String(incomingFileId) !== String(fileId)) return;
         setTypingUsers((prev) => {
           const next = { ...prev };
           if (userIsTyping) {
@@ -414,15 +428,16 @@ const FilePreviewModal = ({
         });
       };
 
-      socket.on("new_comment", handleNewComment);
-      socket.on("comment_deleted", handleCommentDeleted);
-      socket.on("typing_comment", handleTypingComment);
+      activeSocket.on("new_comment", handleNewComment);
+      activeSocket.on("comment_deleted", handleCommentDeleted);
+      activeSocket.on("typing_comment", handleTypingComment);
 
       return () => {
-        socket.emit("leave_file", fileId);
-        socket.off("new_comment", handleNewComment);
-        socket.off("comment_deleted", handleCommentDeleted);
-        socket.off("typing_comment", handleTypingComment);
+        activeSocket.emit("leave_file", fileId);
+        activeSocket.off("connect", joinFileRoom);
+        activeSocket.off("new_comment", handleNewComment);
+        activeSocket.off("comment_deleted", handleCommentDeleted);
+        activeSocket.off("typing_comment", handleTypingComment);
         setComments([]);
         setTypingUsers({});
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

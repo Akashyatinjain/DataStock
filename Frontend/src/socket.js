@@ -22,12 +22,11 @@ export const getSocket = () => {
 
 export const connectSocket = () => {
   const socket = getSocket();
-  socket.auth = { token: getToken() };
+  const token = getToken();
+
+  socket.auth = { token };
 
   if (!socket.connected) {
-    socket.connect();
-  } else {
-    socket.disconnect();
     socket.connect();
   }
 

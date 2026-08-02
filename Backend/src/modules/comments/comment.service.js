@@ -14,7 +14,7 @@ export const addCommentService = async (fileId, userId, content, username) => {
   // Broadcast to anyone previewing this file
   const io = getIO();
   if (io) {
-    io.to(`file:${fileId}`).emit("new_comment", comment);
+    io.to(`file:${String(fileId)}`).emit("new_comment", comment);
   }
 
   // Notify the file owner if someone else commented on their file
@@ -53,7 +53,7 @@ export const deleteCommentService = async (commentId, userId) => {
   // Broadcast comment deletion
   const io = getIO();
   if (io) {
-    io.to(`file:${comment.fileId}`).emit("comment_deleted", { commentId, fileId: comment.fileId });
+    io.to(`file:${String(comment.fileId)}`).emit("comment_deleted", { commentId, fileId: comment.fileId });
   }
 
   return { success: true, message: "Comment deleted successfully" };

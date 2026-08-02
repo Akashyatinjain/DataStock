@@ -124,21 +124,27 @@ io.on("connection", (socket) => {
 
   // User previews a file (join comments room)
   socket.on("join_file", (fileId) => {
-    socket.join(`file:${fileId}`);
+    if (fileId) {
+      socket.join(`file:${String(fileId)}`);
+    }
   });
 
   socket.on("leave_file", (fileId) => {
-    socket.leave(`file:${fileId}`);
+    if (fileId) {
+      socket.leave(`file:${String(fileId)}`);
+    }
   });
 
   // Typing indicators inside comments
   socket.on("typing_comment", ({ fileId, isTyping }) => {
-    socket.to(`file:${fileId}`).emit("typing_comment", {
-      fileId,
-      userId: socket.userId,
-      username: socket.username,
-      isTyping,
-    });
+    if (fileId) {
+      socket.to(`file:${String(fileId)}`).emit("typing_comment", {
+        fileId: String(fileId),
+        userId: socket.userId,
+        username: socket.username,
+        isTyping,
+      });
+    }
   });
 
   socket.on("disconnect", () => {

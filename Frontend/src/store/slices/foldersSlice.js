@@ -43,7 +43,9 @@ const foldersSlice = createSlice({
     builder
       // fetchFolders
       .addCase(fetchFolders.pending, (state) => {
-        state.loading = true;
+        if (!state.folders || state.folders.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchFolders.fulfilled, (state, action) => {

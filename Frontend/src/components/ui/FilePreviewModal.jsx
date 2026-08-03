@@ -39,6 +39,7 @@ import {
   encryptSymmetricKeyWithRsa,
   importRsaPublicKeyFromJwk
 } from '../../utils/cryptoHelper';
+import { downloadSingleFile } from '../../utils/fileHelpers';
 import MediaPlayer from './MediaPlayer';
 
 const FilePreviewModal = ({
@@ -447,6 +448,20 @@ const FilePreviewModal = ({
 
   const mime = activeFile?.mimeType || '';
   const url = decryptedUrl;
+
+  const handleTriggerDownload = (targetFile = activeFile) => {
+    if (!targetFile) return;
+    downloadSingleFile({
+      fileUrl: targetFile.url || url,
+      fileName: targetFile.originalName || file?.originalName || 'download',
+      isEncrypted: targetFile.isEncrypted,
+      encryptedKey: targetFile.encryptedKey,
+      fileIv: targetFile.fileIv,
+      mimeType: targetFile.mimeType || mime,
+      cryptoContext: { isE2eeUnlocked, privateKey },
+      addToast,
+    });
+  };
 
   const ext = activeFile?.originalName ? activeFile.originalName.split('.').pop().toLowerCase() : '';
 
@@ -987,15 +1002,14 @@ const FilePreviewModal = ({
                 )}
               </button>
 
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                download
-                className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
+              <button
+                type="button"
+                onClick={() => handleTriggerDownload(activeFile)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition cursor-pointer"
+                title="Download file"
               >
                 <Download className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
-              </a>
+              </button>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition"
@@ -1456,16 +1470,14 @@ const FilePreviewModal = ({
                     <p className="text-xs text-gray-500 dark:text-[#94A3B8] mt-1 font-mono">
                       {mime || 'binary/octet-stream'} • {formatBytes(activeFile.size)}
                     </p>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                      download
-                      className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-xs font-bold transition shadow-md"
+                    <button
+                      type="button"
+                      onClick={() => handleTriggerDownload(activeFile)}
+                      className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
                     >
                       <Download className="w-4 h-4" />
                       Download File
-                    </a>
+                    </button>
                   </div>
                 )}
               </>
@@ -1697,17 +1709,22 @@ const FilePreviewModal = ({
                         </div>
                         
                         <div className="flex items-center justify-end gap-1.5 mt-1 pt-2 border-t border-gray-100/50 dark:border-[#334155]/50">
-                          <a
-                            href={v.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            download
-                            className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-[#94A3B8] dark:hover:text-[#3B82F6] dark:hover:bg-[#334155] transition select-none"
+                          <button
+                            type="button"
+                            onClick={() => handleTriggerDownload({
+                              ...activeFile,
+                              url: v.url,
+                              isEncrypted: v.isEncrypted,
+                              encryptedKey: v.encryptedKey,
+                              fileIv: v.fileIv,
+                              size: v.size
+                            })}
+                            className="inline-flex h-7 px-2.5 items-center justify-center rounded-lg text-xs font-medium text-gray-600 hover:text-emerald-600 hover:bg-gray-100 dark:text-[#94A3B8] dark:hover:text-[#3B82F6] dark:hover:bg-[#334155] transition select-none cursor-pointer"
                             title="Download this specific version"
                           >
                             <Download className="w-3.5 h-3.5 mr-1" />
                             Download
-                          </a>
+                          </button>
 
                           {!isCurrent && (isImage || isText) && (
                             <button

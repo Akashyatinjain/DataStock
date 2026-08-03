@@ -19,6 +19,7 @@ import {
   bulkDeleteFiles,
   compressFiles,
   extractZip,
+  downloadFile,
 } from "./file.controller.js";
 
 import {
@@ -69,6 +70,7 @@ router.get("/:id/versions", authenticateUser, getFileVersions);
 router.post("/:id/versions/:versionId/restore", authenticateUser, restoreVersion);
 router.delete("/:id/versions/:versionId", authenticateUser, deleteVersion);
 
+router.get("/:id/download", authenticateUser, downloadFile);
 router.delete("/:id", authenticateUser, deleteFile);
 
 

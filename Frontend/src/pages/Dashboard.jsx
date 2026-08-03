@@ -68,6 +68,7 @@ import {
   getFileType,
   ANALYTICS_CATEGORIES,
   formatFileSize,
+  downloadSingleFile,
 } from '../utils/fileHelpers';
 import { QUICK_FILTERS } from '../utils/filters';
 import { getErrorMessage } from '../utils/errorMessage';
@@ -1241,57 +1242,16 @@ const Dashboard = () => {
 
     if (filesToDownload.length === 1) {
       const file = filesToDownload[0];
-      if (file.isEncrypted) {
-        if (!isE2eeUnlocked || !privateKey) {
-          addToast(`"${file.originalName}" is encrypted. Unlock secure storage to download.`, "error");
-          return;
-        }
-        try {
-          addToast(`Decrypting "${file.originalName}"…`, "info");
-          const response = await fetch(file.url);
-          if (!response.ok) throw new Error("Failed to fetch file content");
-          const encryptedBuffer = await response.arrayBuffer();
-
-          const fileKey = await decryptSymmetricKeyWithRsa(file.encryptedKey, privateKey);
-          const decryptedBuffer = await decryptBuffer(encryptedBuffer, fileKey, file.fileIv);
-
-          const decryptedBlob = new Blob([decryptedBuffer], { type: file.mimeType || "application/octet-stream" });
-          const localUrl = URL.createObjectURL(decryptedBlob);
-
-          const a = document.createElement('a');
-          a.href = localUrl;
-          a.download = file.originalName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(localUrl), 2000);
-        } catch (err) {
-          console.error("Download decryption error:", err);
-          addToast(`Failed to decrypt "${file.originalName}"`, "error");
-        }
-      } else {
-        try {
-          const res = await fetch(file.url);
-          if (!res.ok) throw new Error("Fetch failed");
-          const blob = await res.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = file.originalName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        } catch (err) {
-          const a = document.createElement('a');
-          a.href = file.url;
-          a.download = file.originalName;
-          a.target = "_blank";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
-      }
+      await downloadSingleFile({
+        fileUrl: file.url,
+        fileName: file.originalName,
+        isEncrypted: file.isEncrypted,
+        encryptedKey: file.encryptedKey,
+        fileIv: file.fileIv,
+        mimeType: file.mimeType,
+        cryptoContext: { isE2eeUnlocked, privateKey },
+        addToast,
+      });
       setSelectedFileIds(new Set());
       return;
     }

@@ -5,6 +5,7 @@ import {
   Archive, 
   Folder 
 } from 'lucide-react';
+import { decryptSymmetricKeyWithRsa, decryptBuffer } from './cryptoHelper';
 
 export const normalizeList = (data, key) =>
   Array.isArray(data) ? data : data?.[key] || [];
@@ -144,4 +145,97 @@ export const ANALYTICS_CATEGORIES = [
     bar: 'bg-slate-500',
   },
 ];
+
+/**
+ * Downloads a file with its exact original name and extension.
+ * Handles encrypted (E2EE), unencrypted, and cross-origin file downloads.
+ */
+export const downloadSingleFile = async ({
+  fileUrl,
+  fileName,
+  isEncrypted = false,
+  encryptedKey = null,
+  fileIv = null,
+  mimeType = 'application/octet-stream',
+  cryptoContext = {},
+  addToast = () => {},
+}) => {
+  const nameToSave = fileName || 'download';
+
+  // 1. Encrypted file download (E2EE)
+  if (isEncrypted) {
+    const { isE2eeUnlocked, privateKey } = cryptoContext;
+    if (!isE2eeUnlocked || !privateKey) {
+      addToast('Vault is locked. Unlock your E2EE key/password to download and decrypt this file.', 'error');
+      return false;
+    }
+
+    try {
+      addToast(`Decrypting "${nameToSave}"…`, 'info');
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error('Failed to fetch encrypted file');
+      const encryptedBuffer = await response.arrayBuffer();
+
+      const fileKey = await decryptSymmetricKeyWithRsa(encryptedKey, privateKey);
+      const decryptedBuffer = await decryptBuffer(encryptedBuffer, fileKey, fileIv);
+
+      const decryptedBlob = new Blob([decryptedBuffer], { type: mimeType || 'application/octet-stream' });
+      const blobUrl = URL.createObjectURL(decryptedBlob);
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = nameToSave;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      return true;
+    } catch (err) {
+      console.error('E2EE download error:', err);
+      addToast(`Failed to decrypt "${nameToSave}"`, 'error');
+      return false;
+    }
+  }
+
+  // 2. Unencrypted file download (or pre-decrypted blob URL)
+  try {
+    if (!fileUrl) return false;
+
+    if (fileUrl.startsWith('blob:')) {
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = nameToSave;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return true;
+    }
+
+    // Fetch binary blob to bypass browser cross-origin download attribute restrictions
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error('Fetch failed');
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = nameToSave;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    return true;
+  } catch (err) {
+    console.error('Blob download fallback:', err);
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = nameToSave;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return true;
+  }
+};
+
 

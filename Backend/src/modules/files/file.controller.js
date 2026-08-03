@@ -597,3 +597,35 @@ export const extractZip = asyncHandler(async (req, res) => {
     return res.status(500).json({ success: false, message: "Failed to extract ZIP archive" });
   }
 });
+
+export const downloadFile = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  const file = await prisma.file.findUnique({
+    where: { id },
+  });
+
+  if (!file || file.ownerId !== userId || file.isTrash) {
+    return res.status(404).json({ message: "File not found" });
+  }
+
+  const filename = file.originalName || "download";
+  const encodedName = encodeURIComponent(filename);
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${filename.replace(/"/g, '\\"')}"; filename*=UTF-8''${encodedName}`
+  );
+  if (file.mimeType) {
+    res.setHeader("Content-Type", file.mimeType);
+  }
+
+  const response = await axios({
+    method: "get",
+    url: file.url,
+    responseType: "stream",
+  });
+
+  response.data.pipe(res);
+});

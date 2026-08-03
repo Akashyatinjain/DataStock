@@ -20,7 +20,8 @@ import {
   Activity,
   History
 } from 'lucide-react';
-import { formatFileSize, getFileType } from '../../utils/fileHelpers';
+import { formatFileSize, getFileType, downloadSingleFile } from '../../utils/fileHelpers';
+import { useCrypto } from '../../context/CryptoContext';
 
 const getPercent = (value, total) => {
   return total > 0 ? (value / total) * 100 : 0;
@@ -122,6 +123,7 @@ const StorageAnalyticsView = ({
   onPreview,
   onDelete
 }) => {
+  const { privateKey } = useCrypto();
   const [animatedPercent, setAnimatedPercent] = useState(0);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(null);
 
@@ -810,16 +812,22 @@ const StorageAnalyticsView = ({
                           >
                             <Eye className="w-4 h-4 stroke-[1.75]" />
                           </button>
-                          <a
-                            href={file.url}
-                            download={file.originalName}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => downloadSingleFile({
+                              fileUrl: file.url,
+                              fileName: file.originalName,
+                              isEncrypted: file.isEncrypted,
+                              encryptedKey: file.encryptedKey,
+                              fileIv: file.fileIv,
+                              mimeType: file.mimeType,
+                              cryptoContext: { isE2eeUnlocked, privateKey },
+                            })}
                             className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-gray-400 hover:text-emerald-500 rounded-lg transition cursor-pointer"
                             title="Download File"
                           >
                             <Download className="w-4 h-4 stroke-[1.75]" />
-                          </a>
+                          </button>
                           <button
                             onClick={() => onDelete(file.id)}
                             className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/20 text-gray-400 hover:text-red-500 rounded-lg transition cursor-pointer"

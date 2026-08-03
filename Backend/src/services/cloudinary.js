@@ -26,6 +26,8 @@ const uploadOnCloudinary = async (localFilePath) => {
         localFilePath,
         {
           resource_type: "auto",
+          use_filename: true,
+          unique_filename: true,
           chunk_size: 20 * 1024 * 1024 // 20MB chunks
         },
         (error, result) => {

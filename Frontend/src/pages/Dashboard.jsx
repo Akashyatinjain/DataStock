@@ -1667,14 +1667,34 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Mobile Full-Width Upload Action Button */}
+            {/* Mobile Full-Width Upload Action & E2EE Toggle Section */}
             {!isTrashView && (
-              <div className="sm:hidden my-3 w-full">
+              <div className="sm:hidden my-3 w-full flex flex-col gap-2.5">
+                {isE2eeSetup && isE2eeUnlocked && (
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-[#1E293B] border border-emerald-500/30 dark:border-emerald-900/40 rounded-2xl shadow-2xs">
+                    <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-gray-800 dark:text-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={encryptNewUploads}
+                        onChange={(e) => setEncryptNewUploads(e.target.checked)}
+                        className="w-4.5 h-4.5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <span className="flex items-center gap-1.5 select-none">
+                        <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" />
+                        E2EE Upload
+                      </span>
+                    </label>
+                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${encryptNewUploads ? 'bg-emerald-500 text-white border-emerald-400 shadow-xs' : 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-500 border-gray-200 dark:border-slate-700'}`}>
+                      {encryptNewUploads ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+                )}
+
                 <label className="cursor-pointer block w-full">
                   <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
                   <div className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-2xl font-extrabold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-98 transition-all">
                     <Plus className="w-5 h-5 stroke-[2.5]" />
-                    <span>Upload File</span>
+                    <span>Upload File {encryptNewUploads ? '(Encrypted)' : ''}</span>
                   </div>
                 </label>
               </div>

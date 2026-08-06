@@ -3,7 +3,7 @@ import { X, ChevronRight } from 'lucide-react';
 export function MobileSidebarOverlay({ isOpen, onClose }) {
   return (
     <div
-      className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
+      className={`fixed inset-0 bg-black/50 z-[55] backdrop-blur-xs transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={onClose}
@@ -14,7 +14,7 @@ export function MobileSidebarOverlay({ isOpen, onClose }) {
 export function MobileSidebarPanel({ isOpen, children }) {
   return (
     <aside
-      className={`fixed left-0 top-14 z-50 h-[calc(100dvh-3.5rem)] w-[min(85vw,18rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] transition-transform duration-300 ${
+      className={`fixed left-0 top-14 z-[60] h-[calc(100dvh-3.5rem-4rem)] w-[min(85vw,18rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-2xl transition-transform duration-300 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >

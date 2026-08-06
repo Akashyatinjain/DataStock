@@ -130,7 +130,7 @@ const Sidebar = ({
 
   const sidebarBody = (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 pb-28 md:pb-4">
         <div className="relative" data-newmenu>
           <button
             onClick={() => setShowNewMenu((p) => !p)}

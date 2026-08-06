@@ -213,7 +213,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
     return (
       <img
         src={url}
-        alt={file.originalName}
+        alt=""
         className={`max-w-full ${isModal ? 'max-h-[75vh]' : 'max-h-[75vh]'} object-contain ${isModal ? 'rounded-xl' : 'rounded-2xl shadow-xl'}`}
       />
     );

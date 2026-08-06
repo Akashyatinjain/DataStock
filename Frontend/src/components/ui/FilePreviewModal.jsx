@@ -1136,7 +1136,7 @@ const FilePreviewModal = ({
                     <div className="flex-1 w-full h-full flex items-center justify-center p-6 overflow-auto">
                       <img
                         src={url}
-                        alt={file.originalName}
+                        alt=""
                         style={{ transform: `scale(${imageZoom}) rotate(${imageRotate}deg)` }}
                         className="max-h-full max-w-full object-contain transition-transform duration-200 rounded-lg shadow-2xl"
                         onLoad={() => setPreviewLoading(false)}

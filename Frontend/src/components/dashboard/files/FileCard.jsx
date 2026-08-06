@@ -44,13 +44,14 @@ const FileCard = ({
   const isArchived = file.archived || file.isArchived;
 
   const isEncrypted = file.isEncrypted || !!file.encryptedKey;
-  const isLocked = isEncrypted && !isE2eeUnlocked;
+  const isLocked = file.isLocked || (isEncrypted && !isE2eeUnlocked);
   const isShared =
     file.isShared ||
     file.sharedWith?.length > 0 ||
     file._isDirectlyShared ||
     file._isSharedDescendant;
 
+  const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -210,23 +211,40 @@ const FileCard = ({
 
       {/* Top Banner (Thumbnail or File icon) */}
       <div className="relative rounded-t-2xl overflow-hidden">
-        {isLocked ? (
+        {file.mimeType?.includes('image') ? (
+          isLocked || imgError || (isEncrypted && !file.url) ? (
+            <div className="h-20 sm:h-24 overflow-hidden bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 dark:from-slate-950 dark:via-amber-950/60 dark:to-slate-950 relative flex flex-col items-center justify-center border-b border-amber-500/20 select-none group">
+              <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+                <Lock className="w-2.5 h-2.5 text-amber-400" /> {type.label}
+              </span>
+              <div className="flex flex-col items-center justify-center gap-1.5 transition-transform duration-300 group-hover:scale-105">
+                <div className="w-9 h-9 rounded-full bg-amber-500/15 dark:bg-amber-500/25 border border-amber-500/40 flex items-center justify-center shadow-md shadow-amber-500/10">
+                  <Lock className="w-4.5 h-4.5 text-amber-400" />
+                </div>
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-amber-300/90 dark:text-amber-300">
+                  {isLocked ? 'Encrypted Image' : 'Secured Image'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="h-20 sm:h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
+              <img
+                src={file.url}
+                alt=""
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* File type badge overlay directly on image */}
+              <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
+                {type.label}
+              </span>
+            </div>
+          )
+        ) : isLocked ? (
           <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
             <Lock className="w-4 h-4 text-amber-500" />
             <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
               Encrypted File
-            </span>
-          </div>
-        ) : file.mimeType?.includes('image') ? (
-          <div className="h-20 sm:h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
-            <img
-              src={file.url}
-              alt={file.originalName}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            {/* File type badge overlay directly on image */}
-            <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
-              {type.label}
             </span>
           </div>
         ) : (

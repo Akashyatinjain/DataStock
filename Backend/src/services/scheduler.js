@@ -112,4 +112,20 @@ export const startScheduler = () => {
   });
 
   console.log('[Scheduler] Midnight trash cleanup task scheduled successfully.');
+
+  // Keep-alive self ping job (runs every 10 minutes to prevent Render free instance from spinning down)
+  const selfUrl = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL;
+  if (selfUrl) {
+    cron.schedule('*/10 * * * *', async () => {
+      try {
+        console.log('[Scheduler] Keep-alive self-ping triggered...');
+        const response = await fetch(selfUrl);
+        console.log(`[Scheduler] Self-ping status: ${response.status}`);
+      } catch (err) {
+        console.error('[Scheduler] Self-ping failed:', err.message);
+      }
+    });
+    console.log(`[Scheduler] Keep-alive self-ping scheduled for ${selfUrl}`);
+  }
 };
+

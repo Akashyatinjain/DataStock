@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-
+import { Analytics } from "@vercel/analytics/next"
 import SignUp from './pages/signUp';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -17,25 +17,25 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-       <Route path="/" element={<HomePage />} />
-       <Route path="/login" element={<Login />} />
-       <Route path="/signup" element={<SignUp />} />
-       <Route path="/help" element={<HelpPage />} />
-       <Route path="/pricing" element={<Pricing />} />
-       <Route path="/payment-success" element={
-         <ProtectedRoute>
-           <PaymentSuccess />
-         </ProtectedRoute>
-       } />
-       <Route 
-          path="/dashboard" 
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/payment-success" element={
+          <ProtectedRoute>
+            <PaymentSuccess />
+          </ProtectedRoute>
+        } />
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-         <Route
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>

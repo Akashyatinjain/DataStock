@@ -49,19 +49,22 @@ const PermBadge = ({ permission }) => (
   </span>
 );
 
-const Avatar = ({ user, size = 'w-8 h-8' }) => (
-  <div
-    className={`${size} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
-  >
-    {user?.imageUrl ? (
-      <img src={user.imageUrl} alt={user.username} className="w-full h-full object-cover" />
-    ) : (
-      <span className="text-white text-xs font-bold">
-        {(user?.username || user?.email || '?').charAt(0).toUpperCase()}
-      </span>
-    )}
-  </div>
-);
+const Avatar = ({ user, size = 'w-8 h-8' }) => {
+  const sizeClasses = typeof size === 'number' ? `w-${size} h-${size}` : (size || 'w-8 h-8');
+  return (
+    <div
+      className={`${sizeClasses} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
+    >
+      {user?.imageUrl ? (
+        <img src={user.imageUrl} alt={user?.username || 'Avatar'} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-white text-xs font-bold select-none">
+          {(user?.username || user?.email || '?').charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+};
 
 const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
   const dispatch = useDispatch();
@@ -337,7 +340,7 @@ const ShareModalContent = ({ item, isFolder, onClose, onToast }) => {
                         key={share.id}
                         className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#334155]/40 rounded-xl border border-gray-100 dark:border-[#334155]"
                       >
-                        <Avatar user={share.sharedTo} size={8} />
+                        <Avatar user={share.sharedTo} size="w-8 h-8" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
                             {share.sharedTo?.username || share.sharedTo?.email}

@@ -24,7 +24,8 @@ import {
   RotateCw,
   Search,
   FolderArchive,
-  Maximize2
+  Maximize2,
+  ExternalLink
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { socket, connectSocket } from '../../socket';
@@ -146,6 +147,7 @@ const FilePreviewModal = ({
   const [canvasWidth, setCanvasWidth] = useState(800);
   const [canvasHeight, setCanvasHeight] = useState(600);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [pdfViewMode, setPdfViewMode] = useState("direct"); // "direct" or "gview"
 
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [savedTime, setSavedTime] = useState(0);
@@ -451,10 +453,11 @@ const FilePreviewModal = ({
 
   const handleTriggerDownload = (targetFile = activeFile) => {
     if (!targetFile) return;
+    const downloadUrl = url || targetFile.url;
     downloadSingleFile({
-      fileUrl: targetFile.url || url,
+      fileUrl: downloadUrl,
       fileName: targetFile.originalName || file?.originalName || 'download',
-      isEncrypted: targetFile.isEncrypted,
+      isEncrypted: targetFile.isEncrypted && !url,
       encryptedKey: targetFile.encryptedKey,
       fileIv: targetFile.fileIv,
       mimeType: targetFile.mimeType || mime,
@@ -1122,7 +1125,7 @@ const FilePreviewModal = ({
 
                 {/* IMAGE */}
                 {isImage && (
-                  <div className="w-full h-[78vh] flex flex-col bg-gray-100 dark:bg-slate-950 items-center justify-center relative overflow-hidden">
+                  <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-gray-100 dark:bg-slate-950 items-center justify-center relative overflow-hidden">
                     {/* Image Controls Header Bar */}
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-900/90 border border-gray-200 dark:border-slate-800 backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-3 z-20 text-gray-900 dark:text-white text-xs shadow-lg select-none">
                       <button onClick={() => setImageZoom(Math.max(0.5, imageZoom - 0.25))} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition" title="Zoom Out"><ZoomOut className="w-4 h-4"/></button>
@@ -1148,7 +1151,7 @@ const FilePreviewModal = ({
 
                 {/* WORD DOCUMENT (DOCX / DOC) */}
                 {isDocx && (
-                  <div className="w-full h-[78vh] flex flex-col bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                  <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
                     {/* DOCX Toolbar */}
                     <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
                       <div className="flex items-center gap-2">
@@ -1202,7 +1205,7 @@ const FilePreviewModal = ({
 
                 {/* SPREADSHEET (XLSX / XLS / CSV) */}
                 {(isExcel || isCsv) && (
-                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                  <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
                     {/* Spreadsheet Toolbar */}
                     <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
                       <div className="flex items-center gap-2 overflow-x-auto max-w-[60%] py-0.5">
@@ -1274,7 +1277,7 @@ const FilePreviewModal = ({
 
                 {/* ARCHIVE (ZIP / RAR / 7Z) */}
                 {isArchive && (
-                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
+                  <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
                     {/* Archive Header Toolbar */}
                     <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex items-center justify-between shrink-0 text-xs">
                       <div className="flex items-center gap-2">
@@ -1334,35 +1337,67 @@ const FilePreviewModal = ({
 
                 {/* PDF WITH MARKUP ANNOTATIONS */}
                 {isPdf && (
-                  <div className="w-full h-[78vh] flex flex-col relative" ref={containerRef}>
-                    {/* Annotation toolbar */}
-                    <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-4 py-2 flex flex-wrap gap-2 items-center shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 z-10 select-none">
-                      <span className="font-semibold text-gray-500 dark:text-slate-400 mr-2">PDF Tool:</span>
-                      <button 
-                        onClick={() => setAnnotationMode(annotationMode === 'draw' ? null : 'draw')} 
-                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
-                      >
-                        ✏️ Draw
-                      </button>
-                      <button 
-                        onClick={() => setAnnotationMode(annotationMode === 'highlight' ? null : 'highlight')} 
-                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
-                      >
-                        🟨 Highlight
-                      </button>
-                      {annotations.length > 0 && (
+                  <div className="w-full flex-1 min-h-[55vh] sm:min-h-0 flex flex-col relative" ref={containerRef}>
+                    {/* Annotation & Mobile Viewer Engine toolbar */}
+                    <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-3 py-2 flex flex-wrap gap-2 items-center justify-between shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 z-10 select-none">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-gray-500 dark:text-slate-400 mr-1 text-[11px] sm:text-xs">PDF Tool:</span>
                         <button 
-                          onClick={() => setAnnotations([])} 
-                          className="px-2.5 py-1 bg-red-600/15 text-red-400 hover:bg-red-600/20 rounded font-bold transition ml-auto"
+                          onClick={() => setAnnotationMode(annotationMode === 'draw' ? null : 'draw')} 
+                          className={`px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1 text-[11px] sm:text-xs ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
                         >
-                          Clear Markup
+                          ✏️ Draw
                         </button>
-                      )}
+                        <button 
+                          onClick={() => setAnnotationMode(annotationMode === 'highlight' ? null : 'highlight')} 
+                          className={`px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1 text-[11px] sm:text-xs ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
+                        >
+                          🟨 Highlight
+                        </button>
+                        {annotations.length > 0 && (
+                          <button 
+                            onClick={() => setAnnotations([])} 
+                            className="px-2 py-1 bg-red-600/15 text-red-400 hover:bg-red-600/20 rounded-md font-semibold transition text-[11px]"
+                          >
+                            Clear Markup
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        {/* Mobile Engine Switcher */}
+                        {url && !url.startsWith('blob:') && (
+                          <button
+                            type="button"
+                            onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
+                            className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-md font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] text-center cursor-pointer shadow-2xs"
+                            title="Toggle Viewer Engine for Mobile"
+                          >
+                            {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
+                          </button>
+                        )}
+
+                        {/* Open PDF Fullscreen in Mobile Browser */}
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition flex items-center gap-1 text-[11px] shadow-2xs"
+                          title="Open PDF in Full Native Viewer"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Open Fullscreen</span>
+                          <span className="sm:hidden">Open</span>
+                        </a>
+                      </div>
                     </div>
 
-                    {/* Main PDF iframe */}
+                    {/* Main PDF iframe / Google viewer */}
                     <iframe
-                      src={url}
+                      src={pdfViewMode === 'gview' && url && !url.startsWith('blob:')
+                        ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+                        : url
+                      }
                       title={file.originalName}
                       className="w-full flex-1 border-0 bg-white"
                       onLoad={() => setPreviewLoading(false)}
@@ -1376,10 +1411,13 @@ const FilePreviewModal = ({
                         onMouseMove={draw}
                         onMouseUp={stopDrawing}
                         onMouseLeave={stopDrawing}
-                        className="absolute inset-x-0 bottom-0 z-20 cursor-crosshair"
-                        style={{ top: '33px' }}
+                        onTouchStart={startDrawing}
+                        onTouchMove={draw}
+                        onTouchEnd={stopDrawing}
+                        className="absolute inset-x-0 bottom-0 z-20 cursor-crosshair touch-none"
+                        style={{ top: '37px' }}
                         width={canvasWidth}
-                        height={canvasHeight - 33}
+                        height={canvasHeight - 37}
                       />
                     )}
                   </div>
@@ -1387,7 +1425,7 @@ const FilePreviewModal = ({
 
                 {/* TEXT & CODE IN-BROWSER WORKSPACE EDITOR */}
                 {isText && (
-                  <div className="w-full h-[78vh] flex flex-col bg-white dark:bg-slate-950 select-none">
+                  <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-white dark:bg-slate-950 select-none">
                     {/* Editor Header Toolbar */}
                     <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800/80 px-4 py-2 flex items-center justify-between shrink-0">
                       <div className="flex gap-2">
@@ -1455,7 +1493,7 @@ const FilePreviewModal = ({
                   <iframe
                     src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
                     title={file.originalName}
-                    className="w-full h-[78vh] border-0"
+                    className="w-full flex-1 min-h-[50vh] sm:min-h-0 border-0"
                     onLoad={() => setPreviewLoading(false)}
                   />
                 )}

@@ -147,8 +147,33 @@ export const ANALYTICS_CATEGORIES = [
 ];
 
 /**
+ * Converts Cloudinary URL to direct attachment download URL using fl_attachment header
+ */
+export const getCloudinaryDownloadUrl = (url, fileName = '') => {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com')) {
+    return url;
+  }
+  if (url.includes('/fl_attachment')) {
+    return url;
+  }
+
+  let flag = 'fl_attachment';
+  if (fileName) {
+    const sanitized = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (sanitized) {
+      flag = `fl_attachment:${encodeURIComponent(sanitized)}`;
+    }
+  }
+
+  if (url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/${flag}/`);
+  }
+  return url;
+};
+
+/**
  * Downloads a file with its exact original name and extension.
- * Handles encrypted (E2EE), unencrypted, and cross-origin file downloads.
+ * Handles encrypted (E2EE), unencrypted, blob URLs, and cross-origin mobile file downloads.
  */
 export const downloadSingleFile = async ({
   fileUrl,
@@ -185,10 +210,11 @@ export const downloadSingleFile = async ({
       const a = document.createElement('a');
       a.href = blobUrl;
       a.download = nameToSave;
+      a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
       return true;
     } catch (err) {
       console.error('E2EE download error:', err);
@@ -201,6 +227,7 @@ export const downloadSingleFile = async ({
   try {
     if (!fileUrl) return false;
 
+    // Synchronous Blob URL download
     if (fileUrl.startsWith('blob:')) {
       const a = document.createElement('a');
       a.href = fileUrl;
@@ -211,7 +238,21 @@ export const downloadSingleFile = async ({
       return true;
     }
 
-    // Fetch binary blob to bypass browser cross-origin download attribute restrictions
+    // Cloudinary direct attachment download (works 100% natively on iOS Safari, Android Chrome, mobile webviews)
+    if (fileUrl.includes('res.cloudinary.com')) {
+      const downloadUrl = getCloudinaryDownloadUrl(fileUrl, nameToSave);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = nameToSave;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return true;
+    }
+
+    // Fetch binary blob for cross-origin URLs
     const res = await fetch(fileUrl);
     if (!res.ok) throw new Error('Fetch failed');
     const blob = await res.blob();
@@ -223,12 +264,13 @@ export const downloadSingleFile = async ({
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
     return true;
   } catch (err) {
     console.error('Blob download fallback:', err);
+    const safeUrl = getCloudinaryDownloadUrl(fileUrl, nameToSave);
     const a = document.createElement('a');
-    a.href = fileUrl;
+    a.href = safeUrl;
     a.download = nameToSave;
     a.target = '_blank';
     document.body.appendChild(a);
@@ -237,5 +279,6 @@ export const downloadSingleFile = async ({
     return true;
   }
 };
+
 
 

@@ -41,6 +41,31 @@ const formatSize = (bytes) => {
 
 const handleDownloadSingleFile = async (fileUrl, fileName) => {
   if (!fileUrl) return;
+  const nameToSave = fileName || 'download';
+
+  if (fileUrl.startsWith('blob:')) {
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = nameToSave;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return;
+  }
+
+  if (fileUrl.includes('res.cloudinary.com')) {
+    const downloadUrl = getCloudinaryDownloadUrl(fileUrl, nameToSave);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = nameToSave;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return;
+  }
+
   try {
     const res = await fetch(fileUrl);
     if (!res.ok) throw new Error('Fetch failed');
@@ -48,16 +73,17 @@ const handleDownloadSingleFile = async (fileUrl, fileName) => {
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = fileName || 'download';
+    a.download = nameToSave;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
   } catch (err) {
     console.error('Blob download failed, falling back:', err);
+    const safeUrl = getCloudinaryDownloadUrl(fileUrl, nameToSave);
     const a = document.createElement('a');
-    a.href = fileUrl;
-    a.download = fileName || 'download';
+    a.href = safeUrl;
+    a.download = nameToSave;
     a.target = '_blank';
     document.body.appendChild(a);
     a.click();

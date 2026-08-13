@@ -973,10 +973,10 @@ const FilePreviewModal = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
+      <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-6xl h-[88vh] max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
         
         {/* LEFT COLUMN: PREVIEW + HEADER */}
-        <div className={`flex-1 flex flex-col min-w-0 ${activeMobileTab === "preview" ? "flex" : "hidden md:flex"}`}>
+        <div className={`flex-1 flex flex-col min-w-0 h-full ${activeMobileTab === "preview" ? "flex" : "hidden md:flex"}`}>
           
           {/* LEFT HEADER */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shrink-0 gap-3">
@@ -1023,7 +1023,7 @@ const FilePreviewModal = ({
           </div>
 
           {/* CONTENT PREVIEW */}
-          <div className="bg-gray-100 dark:bg-[#0F172A] flex-1 flex items-center justify-center overflow-auto min-h-[45vh] md:min-h-0 relative">
+          <div className="bg-gray-100 dark:bg-[#0F172A] flex-1 flex flex-col min-h-0 relative overflow-hidden h-full">
             {/* PREVIEW LOADER OVERLAY */}
             {previewLoading && (
               <div className="absolute inset-0 bg-white/70 dark:bg-[#0F172A]/70 backdrop-blur-xs flex flex-col items-center justify-center z-20 transition-all duration-200">
@@ -1337,7 +1337,7 @@ const FilePreviewModal = ({
 
                 {/* PDF WITH MARKUP ANNOTATIONS */}
                 {isPdf && (
-                  <div className="w-full flex-1 min-h-[55vh] sm:min-h-0 flex flex-col relative" ref={containerRef}>
+                  <div className="w-full h-full flex-1 min-h-0 flex flex-col relative overflow-hidden" ref={containerRef}>
                     {/* Annotation & Mobile Viewer Engine toolbar */}
                     <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-3 py-2 flex flex-wrap gap-2 items-center justify-between shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 z-10 select-none">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -1399,7 +1399,7 @@ const FilePreviewModal = ({
                         : url
                       }
                       title={file.originalName}
-                      className="w-full flex-1 border-0 bg-white"
+                      className="w-full h-full flex-1 min-h-0 border-0 bg-white"
                       onLoad={() => setPreviewLoading(false)}
                     />
 

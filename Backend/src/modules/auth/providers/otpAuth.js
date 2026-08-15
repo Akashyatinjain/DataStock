@@ -1,5 +1,6 @@
 import { deleteExistingOTP, findValidOTP, createOTP, deleteOTP, incrementOTPAttempts } from "../auth.repository.js";
 import { sendOTPEmail } from "../../../utils/email.util.js";
+import { addEmailJob } from "../../../queues/index.js";
 import bcrypt from "bcrypt";
 
 const MAX_OTP_ATTEMPTS = 5;
@@ -22,7 +23,13 @@ export const sendOTP = async (email) => {
   const hashedOTP = await bcrypt.hash(otp, 12);
 
   await createOTP(normalizedEmail, hashedOTP, expiresAt);
-  await sendOTPEmail(normalizedEmail, otp);
+
+  // Send via BullMQ email queue (with direct synchronous fallback)
+  await addEmailJob(
+    "send_otp",
+    { email: normalizedEmail, otp },
+    async () => await sendOTPEmail(normalizedEmail, otp)
+  );
 
   return {
     message: `OTP sent successfully to ${normalizedEmail}`,

@@ -10,7 +10,7 @@ const AdmZip = require("adm-zip");
 import prisma from "../../config/db.js";
 import { uploadOnCloudinary } from "../../services/cloudinary.js";
 import { logActivity } from "../../utils/activityLogger.js";
-import { extractText } from "../../utils/ocr.js";
+import { addOcrJob } from "../../queues/index.js";
 import {
   invalidateUserFilesCache,
   invalidateUserStorageCache,
@@ -562,26 +562,19 @@ export const extractZip = asyncHandler(async (req, res) => {
       const tempExtractedPath = `./temp_extracted_${Date.now()}_${path.basename(entry.entryName)}`;
       fs.writeFileSync(tempExtractedPath, fileBuffer);
 
-      let ocrText = null;
-      try {
-        ocrText = await extractText(tempExtractedPath, getMimetype(entry.entryName));
-      } catch (ocrErr) {
-        console.error("OCR Extraction failed for extracted file:", ocrErr);
-      }
-
       const uploaded = await uploadOnCloudinary(tempExtractedPath);
+      const mime = getMimetype(entry.entryName);
 
-      await prisma.file.create({
+      const createdFile = await prisma.file.create({
         data: {
           fileName: uploaded.public_id,
           originalName: path.basename(entry.entryName),
           url: uploaded.secure_url,
           publicId: uploaded.public_id,
-          mimeType: getMimetype(entry.entryName),
+          mimeType: mime,
           size: uploaded.bytes,
           ownerId: userId,
           folderId: targetFolderId || null,
-          ocrText: ocrText,
           versions: {
             create: {
               versionNumber: 1,
@@ -592,6 +585,17 @@ export const extractZip = asyncHandler(async (req, res) => {
           }
         }
       });
+
+      // Offload OCR to BullMQ queue in background
+      if (mime?.startsWith("image/") || mime === "application/pdf") {
+        addOcrJob({
+          fileId: createdFile.id,
+          filePath: tempExtractedPath,
+          fileUrl: uploaded.secure_url,
+          mimetype: mime,
+          userId,
+        }).catch((qErr) => console.warn("⚠️ Failed to dispatch OCR job for extracted file:", qErr.message));
+      }
 
       await prisma.user.update({
         where: { id: userId },

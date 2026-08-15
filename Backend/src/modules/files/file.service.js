@@ -1,7 +1,7 @@
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.js";
 
 import * as fileRepo from "./file.repository.js";
-import { extractText } from "../../utils/ocr.js";
+import { addOcrJob } from "../../queues/index.js";
 import { logActivity } from "../../utils/activityLogger.js";
 
 import prisma from "../../config/db.js";
@@ -72,16 +72,6 @@ export const uploadFileService = async (
     );
   }
 
-  // ── OCR & Content Indexing (Skip if E2EE) ──
-  let ocrText = null;
-  if (!e2eeData.isEncrypted) {
-    try {
-      ocrText = await extractText(file.path, file.mimetype);
-    } catch (ocrErr) {
-      console.error("OCR Extraction failed:", ocrErr);
-    }
-  }
-
   // ── Upload to Cloudinary ──
   let uploadedFile;
   try {
@@ -140,7 +130,6 @@ export const uploadFileService = async (
         url: uploadedFile.secure_url,
         publicId: uploadedFile.public_id,
         size: uploadedFile.bytes,
-        ocrText: ocrText,
         mimeType: e2eeData.isEncrypted ? (e2eeData.originalMimeType || file.mimetype) : file.mimetype,
         isEncrypted: e2eeData.isEncrypted || false,
         encryptedKey: e2eeData.encryptedKey || null,
@@ -168,7 +157,6 @@ export const uploadFileService = async (
       size: uploadedFile.bytes,
       ownerId: userId,
       folderId: folderId || null,
-      ocrText: ocrText,
       isEncrypted: e2eeData.isEncrypted || false,
       encryptedKey: e2eeData.encryptedKey || null,
       fileIv: e2eeData.fileIv || null,
@@ -220,6 +208,17 @@ export const uploadFileService = async (
         email: user?.email || ""
       }
     });
+  }
+
+  // ── Offload OCR & Content Indexing to BullMQ Background Queue (Zero Backend Blocking) ──
+  if (!e2eeData.isEncrypted && (file.mimetype?.startsWith("image/") || file.mimetype === "application/pdf")) {
+    addOcrJob({
+      fileId: savedFile.id,
+      filePath: file.path,
+      fileUrl: uploadedFile.secure_url,
+      mimetype: file.mimetype,
+      userId,
+    }).catch((qErr) => console.warn("⚠️ Failed to dispatch OCR background job:", qErr.message));
   }
 
   return {

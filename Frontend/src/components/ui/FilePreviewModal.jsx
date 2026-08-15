@@ -42,6 +42,7 @@ import {
 } from '../../utils/cryptoHelper';
 import { downloadSingleFile } from '../../utils/fileHelpers';
 import MediaPlayer from './MediaPlayer';
+import PdfViewer from './PdfViewer';
 
 const FilePreviewModal = ({
   file,
@@ -490,29 +491,72 @@ const FilePreviewModal = ({
 
   // --- DOCX CLIENT-SIDE PARSER EFFECT ---
   useEffect(() => {
+    let active = true;
     const targetUrl = decryptedUrl || activeFile?.url;
-    if (isOpen && isDocx && targetUrl) {
+    if (isOpen && isDocx && (targetUrl || fileId)) {
       setDocxLoading(true);
       setDocxError(null);
-      fetch(targetUrl)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch Word document");
-          return res.arrayBuffer();
-        })
-        .then((buffer) => mammoth.convertToHtml({ arrayBuffer: buffer }))
-        .then((result) => {
-          if (result && result.value) {
-            setDocxHtml(result.value);
-          } else {
-            setDocxError("Failed to parse Word document formatting directly.");
+      setDocxHtml("");
+
+      const loadDocxBuffer = async () => {
+        let arrayBuffer = null;
+
+        // 1. Try direct fetch
+        if (targetUrl) {
+          try {
+            const res = await fetch(targetUrl);
+            if (res.ok) {
+              arrayBuffer = await res.arrayBuffer();
+            }
+          } catch (err) {
+            console.warn("Direct DOCX fetch failed (likely CORS), trying backend proxy...", err);
           }
-          setDocxLoading(false);
-        })
-        .catch((err) => {
-          console.error("DOCX parsing error:", err);
-          setDocxError("Failed to parse Word document formatting directly.");
-          setDocxLoading(false);
-        });
+        }
+
+        // 2. Fallback to backend download proxy if direct fetch failed
+        if (!arrayBuffer && fileId) {
+          try {
+            const proxyRes = await authFetch(apiUrl(`/files/${fileId}/download`));
+            if (proxyRes.ok) {
+              arrayBuffer = await proxyRes.arrayBuffer();
+            }
+          } catch (err) {
+            console.warn("Backend proxy DOCX fetch failed:", err);
+          }
+        }
+
+        if (!arrayBuffer) {
+          if (active) {
+            setDocxError("Could not retrieve Word document data for inline preview.");
+            setDocxLoading(false);
+          }
+          return;
+        }
+
+        try {
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+          if (active) {
+            if (result && result.value) {
+              setDocxHtml(result.value);
+            } else {
+              setDocxError("Word document content could not be converted directly.");
+            }
+            setDocxLoading(false);
+          }
+        } catch (mErr) {
+          console.error("Mammoth DOCX conversion error:", mErr);
+          if (active) {
+            setDocxError("Document formatting could not be converted directly.");
+            setDocxLoading(false);
+          }
+        }
+      };
+
+      loadDocxBuffer();
+
+      return () => {
+        active = false;
+      };
     }
   }, [isOpen, fileId, isDocx, decryptedUrl, activeFile?.url]);
 
@@ -972,19 +1016,19 @@ const FilePreviewModal = ({
   if (!isOpen || !activeFile) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-6xl h-[88vh] max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-0 sm:p-4 md:p-6">
+      <div className="bg-white dark:bg-[#1E293B] rounded-none sm:rounded-2xl w-full max-w-6xl h-full sm:h-[88vh] max-h-none sm:max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-200">
         
         {/* LEFT COLUMN: PREVIEW + HEADER */}
         <div className={`flex-1 flex flex-col min-w-0 h-full ${activeMobileTab === "preview" ? "flex" : "hidden md:flex"}`}>
           
           {/* LEFT HEADER */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shrink-0 gap-3">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shrink-0 gap-3">
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
+              <h2 className="font-semibold text-gray-900 dark:text-[#F8FAFC] truncate text-sm sm:text-base">
                 {file.originalName}
               </h2>
-              <p className="text-xs font-medium text-gray-500 dark:text-[#94A3B8]">
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-[#94A3B8]">
                 {formatMimeType(mime, ext, activeFile?.size)}
               </p>
             </div>
@@ -1153,49 +1197,75 @@ const FilePreviewModal = ({
                 {isDocx && (
                   <div className="w-full flex-1 min-h-[50vh] sm:min-h-0 flex flex-col bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-slate-200 select-none">
                     {/* DOCX Toolbar */}
-                    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
+                    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs shadow-xs">
                       <div className="flex items-center gap-2">
                         <span className="bg-blue-600 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[10px]">Word DOCX</span>
-                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate max-w-[200px]">{activeFile.originalName}</span>
+                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate max-w-[140px] sm:max-w-[220px]">{activeFile.originalName}</span>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                         <div className="relative flex items-center">
                           <Search className="w-3.5 h-3.5 absolute left-2.5 text-gray-400 dark:text-slate-400" />
                           <input
                             type="text"
-                            placeholder="Search document..."
+                            placeholder="Search..."
                             value={docxSearchTerm}
                             onChange={(e) => setDocxSearchTerm(e.target.value)}
-                            className="pl-8 pr-3 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                            className="pl-8 pr-3 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-blue-500 w-28 sm:w-44"
                           />
                         </div>
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
                           <button onClick={() => setDocxZoom(Math.max(50, docxZoom - 10))} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-slate-300"><ZoomOut className="w-3.5 h-3.5"/></button>
-                          <span className="px-1 text-[11px] font-mono w-10 text-center text-gray-800 dark:text-white">{docxZoom}%</span>
+                          <span className="px-1 text-[11px] font-mono w-9 text-center text-gray-800 dark:text-white font-bold">{docxZoom}%</span>
                           <button onClick={() => setDocxZoom(Math.min(200, docxZoom + 10))} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-slate-300"><ZoomIn className="w-3.5 h-3.5"/></button>
                         </div>
                       </div>
                     </div>
 
                     {/* Word Paper Document Area */}
-                    <div className="flex-1 overflow-auto p-4 md:p-6 bg-gray-200/60 dark:bg-slate-950 flex justify-center items-center">
+                    <div className="flex-1 overflow-auto p-3 sm:p-6 md:p-8 bg-gray-200/70 dark:bg-slate-950 flex justify-center items-start">
                       {docxLoading ? (
-                        <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500 dark:text-slate-400">
+                        <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-2 text-gray-500 dark:text-slate-400">
                           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                           <span className="text-xs font-semibold">Reading Word document...</span>
                         </div>
-                      ) : docxError ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center">
-                          <iframe
-                            src={`https://docs.google.com/gview?url=${encodeURIComponent(activeFile?.url || url)}&embedded=true`}
-                            className="w-full h-full min-h-[550px] border-0 rounded-xl bg-white shadow-2xl"
-                            title="Word Document Preview"
-                          />
+                      ) : docxError || !docxHtml ? (
+                        <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl text-center my-auto">
+                          <div className="w-14 h-14 bg-blue-100 dark:bg-blue-950/60 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-4 shadow-xs">
+                            <FileText className="w-8 h-8" />
+                          </div>
+                          <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-1">
+                            {activeFile.originalName}
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mb-6">
+                            Microsoft Word Document • {formatBytes(activeFile.size)}
+                          </p>
+
+                          <div className="space-y-2.5">
+                            {activeFile?.url && !activeFile.url.startsWith('blob:') && (
+                              <a
+                                href={`https://docs.google.com/viewer?url=${encodeURIComponent(activeFile.url)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2 shadow-sm"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                Open with Google Docs
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleTriggerDownload(activeFile)}
+                              className="w-full py-2.5 px-4 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-white rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Document
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div
-                          className="docx-paper bg-white text-gray-900 shadow-2xl rounded-xl p-8 md:p-12 max-w-4xl w-full min-h-[90%] transition-transform origin-top leading-relaxed text-left select-text"
-                          style={{ transform: `scale(${docxZoom / 100})` }}
+                          className="docx-paper bg-white text-gray-900 shadow-xl rounded-xl p-6 sm:p-10 md:p-14 max-w-4xl w-full min-h-[90%] transition-transform origin-top leading-relaxed text-left select-text"
+                          style={{ transform: `scale(${docxZoom / 100})`, transformOrigin: 'top center' }}
                           dangerouslySetInnerHTML={{ __html: docxHtml }}
                         />
                       )}
@@ -1335,91 +1405,20 @@ const FilePreviewModal = ({
                   </div>
                 )}
 
-                {/* PDF WITH MARKUP ANNOTATIONS */}
+                {/* PDF WITH HIGH-PERFORMANCE PDF.JS CANVAS VIEWER */}
                 {isPdf && (
-                  <div className="w-full h-full flex-1 min-h-0 flex flex-col relative overflow-hidden" ref={containerRef}>
-                    {/* Annotation & Mobile Viewer Engine toolbar */}
-                    <div className="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-white px-3 py-2 flex flex-wrap gap-2 items-center justify-between shrink-0 text-xs border-b border-gray-200 dark:border-slate-800 z-10 select-none">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-gray-500 dark:text-slate-400 mr-1 text-[11px] sm:text-xs">PDF Tool:</span>
-                        <button 
-                          onClick={() => setAnnotationMode(annotationMode === 'draw' ? null : 'draw')} 
-                          className={`px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1 text-[11px] sm:text-xs ${annotationMode === 'draw' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
-                        >
-                          ✏️ Draw
-                        </button>
-                        <button 
-                          onClick={() => setAnnotationMode(annotationMode === 'highlight' ? null : 'highlight')} 
-                          className={`px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1 text-[11px] sm:text-xs ${annotationMode === 'highlight' ? 'bg-yellow-400 text-slate-950' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'}`}
-                        >
-                          🟨 Highlight
-                        </button>
-                        {annotations.length > 0 && (
-                          <button 
-                            onClick={() => setAnnotations([])} 
-                            className="px-2 py-1 bg-red-600/15 text-red-400 hover:bg-red-600/20 rounded-md font-semibold transition text-[11px]"
-                          >
-                            Clear Markup
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1.5 ml-auto">
-                        {/* Mobile Engine Switcher */}
-                        {url && !url.startsWith('blob:') && (
-                          <button
-                            type="button"
-                            onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
-                            className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-md font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] text-center cursor-pointer shadow-2xs"
-                            title="Toggle Viewer Engine for Mobile"
-                          >
-                            {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
-                          </button>
-                        )}
-
-                        {/* Open PDF Fullscreen in Mobile Browser */}
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition flex items-center gap-1 text-[11px] shadow-2xs"
-                          title="Open PDF in Full Native Viewer"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Open Fullscreen</span>
-                          <span className="sm:hidden">Open</span>
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* Main PDF iframe / Google viewer */}
-                    <iframe
-                      src={pdfViewMode === 'gview' && url && !url.startsWith('blob:')
-                        ? `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
-                        : url
-                      }
-                      title={file.originalName}
-                      className="w-full h-full flex-1 min-h-0 border-0 bg-white"
-                      onLoad={() => setPreviewLoading(false)}
+                  <div className="w-full h-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
+                    <PdfViewer
+                      url={url}
+                      fileId={fileId}
+                      fileName={activeFile?.originalName || file?.originalName}
+                      onDownload={() => handleTriggerDownload(activeFile)}
+                      annotationMode={annotationMode}
+                      annotations={annotations}
+                      onStartDrawing={startDrawing}
+                      onDraw={draw}
+                      onStopDrawing={stopDrawing}
                     />
-
-                    {/* Drawing/Highlight Canvas Overlay */}
-                    {annotationMode && (
-                      <canvas
-                        ref={canvasRef}
-                        onMouseDown={startDrawing}
-                        onMouseMove={draw}
-                        onMouseUp={stopDrawing}
-                        onMouseLeave={stopDrawing}
-                        onTouchStart={startDrawing}
-                        onTouchMove={draw}
-                        onTouchEnd={stopDrawing}
-                        className="absolute inset-x-0 bottom-0 z-20 cursor-crosshair touch-none"
-                        style={{ top: '37px' }}
-                        width={canvasWidth}
-                        height={canvasHeight - 37}
-                      />
-                    )}
                   </div>
                 )}
 

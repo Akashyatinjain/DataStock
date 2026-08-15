@@ -240,6 +240,7 @@ const Sidebar = ({
         />
         <MobileSidebarPanel
           isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
         >
           {sidebarBody}
         </MobileSidebarPanel>

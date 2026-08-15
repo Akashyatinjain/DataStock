@@ -55,6 +55,7 @@ model User {
   activities   Activity[]
 
   @@index([email])
+  @@index([refreshTokenHash])
 }
 
 model File {
@@ -95,6 +96,11 @@ model File {
 
   @@index([ownerId])
   @@index([folderId])
+  @@index([ownerId, folderId, isTrash, isArchived, createdAt(sort: Desc)])
+  @@index([ownerId, isTrash, isArchived, createdAt(sort: Desc)])
+  @@index([ownerId, isTrash, updatedAt(sort: Desc)])
+  @@index([ownerId, folderId, originalName, isTrash])
+  @@index([ownerId, isStarred, isTrash])
 }
 
 model FileVersion {
@@ -111,6 +117,8 @@ model FileVersion {
   createdAt     DateTime @default(now())
 
   @@index([fileId])
+  @@index([fileId, versionNumber(sort: Desc)])
+  @@index([publicId])
 }
 
 
@@ -137,6 +145,7 @@ model Folder {
 
   @@index([ownerId])
   @@index([parentId])
+  @@index([ownerId, parentId, name])
 }
 
 
@@ -172,6 +181,7 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([userId, isRead, createdAt(sort: Desc)])
 }
 
 
@@ -194,6 +204,8 @@ model FileShare {
 
   @@unique([fileId, sharedToId])
   @@index([sharedToId])
+  @@index([sharedById])
+  @@index([fileId])
 }
 
 
@@ -223,6 +235,7 @@ model PublicShare {
   @@index([ownerId])
   @@index([folderId])
   @@index([fileId])
+  @@index([token, isActive])
 }
 
 enum SharePermission {
@@ -242,6 +255,7 @@ model Comment {
 
   @@index([fileId])
   @@index([userId])
+  @@index([fileId, createdAt(sort: Desc)])
 }
 
 model FolderShare {
@@ -262,6 +276,8 @@ model FolderShare {
 
   @@unique([folderId, sharedToId])
   @@index([sharedToId])
+  @@index([sharedById])
+  @@index([folderId])
 }
 
 model Activity {
@@ -272,4 +288,5 @@ model Activity {
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }

@@ -6,6 +6,7 @@ import {
   updateUserById,
   updateUserE2eeKeys,
 } from "./user.repository.js";
+import { getCache, setCache } from "../../services/cache.service.js";
 
 
 
@@ -144,6 +145,12 @@ const buildUploadTrend = (files) => {
 };
 
 export const getStorageActivity = async (userId) => {
+  const cacheKey = `user:${userId}:storage`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const user = await findUserById(userId);
   if (!user) {
     throw new Error("User not found");
@@ -175,7 +182,7 @@ export const getStorageActivity = async (userId) => {
     category.size += Number(file.size) || 0;
   });
 
-  return {
+  const result = {
     storageUsed: Number(user.storageUsed),
     storageLimit: Number(user.storageLimit),
     activeUsed,
@@ -189,6 +196,9 @@ export const getStorageActivity = async (userId) => {
     },
     activeFileCount: activeFiles.length,
   };
+
+  await setCache(cacheKey, result, 300);
+  return result;
 };
 
 export const deleteUser = async (userId) => {

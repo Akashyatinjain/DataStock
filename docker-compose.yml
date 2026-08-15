@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis-data:/data
+
   backend:
     build:
       context: ./Backend
@@ -9,6 +17,8 @@ services:
       - "5000:5000"
     env_file:
       - ./Backend/.env
+    depends_on:
+      - redis
     restart: always
 
   frontend:
@@ -20,3 +30,7 @@ services:
     depends_on:
       - backend
     restart: always
+
+volumes:
+  redis-data:
+

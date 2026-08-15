@@ -11,6 +11,10 @@ import prisma from "../../config/db.js";
 import { uploadOnCloudinary } from "../../services/cloudinary.js";
 import { logActivity } from "../../utils/activityLogger.js";
 import { extractText } from "../../utils/ocr.js";
+import {
+  invalidateUserFilesCache,
+  invalidateUserStorageCache,
+} from "../../services/cache.service.js";
 
 
 export const uploadFile = asyncHandler(
@@ -255,6 +259,8 @@ export const bulkTrashFiles = asyncHandler(async (req, res) => {
     data: { isTrash: true }
   });
 
+  await invalidateUserFilesCache(userId);
+
   await logActivity(userId, `You moved ${fileIds.length} file(s) to Trash`);
 
   return res.status(200).json({ success: true, count: updateResult.count });
@@ -272,6 +278,8 @@ export const bulkStarFiles = asyncHandler(async (req, res) => {
     data: { isStarred }
   });
 
+  await invalidateUserFilesCache(userId);
+
   await logActivity(userId, `You ${isStarred ? 'starred' : 'unstarred'} ${fileIds.length} file(s)`);
 
   return res.status(200).json({ success: true, count: updateResult.count });
@@ -288,6 +296,8 @@ export const bulkMoveFiles = asyncHandler(async (req, res) => {
     where: { id: { in: fileIds }, ownerId: userId },
     data: { folderId: folderId || null }
   });
+
+  await invalidateUserFilesCache(userId);
 
   let folderName = "My Drive";
   if (folderId) {
@@ -319,6 +329,11 @@ export const bulkDeleteFiles = asyncHandler(async (req, res) => {
       console.error(`Failed to delete file ${file.id} in bulk:`, err);
     }
   }
+
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
 
   await logActivity(userId, `You permanently deleted ${files.length} file(s)`);
 
@@ -443,6 +458,11 @@ export const compressFiles = asyncHandler(async (req, res) => {
       where: { id: userId },
       data: { storageUsed: { increment: uploaded.bytes } }
     });
+
+    await Promise.allSettled([
+      invalidateUserFilesCache(userId),
+      invalidateUserStorageCache(userId),
+    ]);
 
     await logActivity(userId, `You compressed ${[...(fileIds || []), ...(folderIds || [])].length} items into "${targetZipName}"`);
 
@@ -584,6 +604,11 @@ export const extractZip = asyncHandler(async (req, res) => {
     if (fs.existsSync(tempZipPath)) {
       fs.unlinkSync(tempZipPath);
     }
+
+    await Promise.allSettled([
+      invalidateUserFilesCache(userId),
+      invalidateUserStorageCache(userId),
+    ]);
 
     await logActivity(userId, `You extracted ZIP archive "${zipFile.originalName}" (${extractedCount} files unpacked)`);
 

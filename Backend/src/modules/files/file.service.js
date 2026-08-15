@@ -9,6 +9,12 @@ import { createNotificationService } from "../notifications/notification.service
 import { getIO } from "../../socket.js";
 import { checkFolderAccess, checkFileAccess } from "../../utils/permission.js";
 import { seedUserDemoData } from "../user/user.service.js";
+import {
+  getCache,
+  setCache,
+  invalidateUserFilesCache,
+  invalidateUserStorageCache,
+} from "../../services/cache.service.js";
 
 // ── Helper: create a typed error ──
 const createError = (message, statusCode, code) => {
@@ -196,6 +202,12 @@ export const uploadFileService = async (
       : `You uploaded file "${file.originalname}"`
   );
 
+  // Invalidate cached file and storage data for user
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
+
   // Broadcast file uploaded event
   const io = getIO();
   if (io) {
@@ -223,12 +235,22 @@ export const getUserFilesService =
     userId,
     folderId = null
   ) => {
+    const cacheKey = folderId
+      ? `files:${userId}:folder:${folderId}`
+      : `files:${userId}:folder:root`;
+
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    let files;
     if (folderId) {
       const access = await checkFolderAccess(folderId, userId);
       if (!access) {
         throw createError("Unauthorized to view this folder", 403, "UNAUTHORIZED");
       }
-      return await prisma.file.findMany({
+      files = await prisma.file.findMany({
         where: {
           folderId,
           isTrash: false,
@@ -238,13 +260,24 @@ export const getUserFilesService =
           createdAt: "desc"
         }
       });
+    } else {
+      files = await fileRepo.getFilesByUserId(userId, null);
     }
 
-    return await fileRepo.getFilesByUserId(userId, null);
+    await setCache(cacheKey, files, 300);
+    return files;
 };
 
 export const getAllUserFilesService = async (userId) => {
-  return fileRepo.getAllFilesByUserId(userId);
+  const cacheKey = `files:${userId}:all`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const files = await fileRepo.getAllFilesByUserId(userId);
+  await setCache(cacheKey, files, 300);
+  return files;
 };
 
 export const deleteFileService = async (
@@ -305,6 +338,12 @@ export const deleteFileService = async (
   // delete from db (cascade delete handles database FileVersion records)
   await fileRepo.deleteFileById(fileId);
 
+  // Invalidate cached file and storage data
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
+
   // sum total size of all versions to reclaim storage quota
   const totalSize = versions.length > 0
     ? versions.reduce((sum, v) => sum + v.size, 0)
@@ -360,6 +399,8 @@ export const toggleStarFileService = async (fileId, userId) => {
     !file.isStarred
   );
 
+  await invalidateUserFilesCache(userId);
+
   return {
     file: updatedFile,
     message: updatedFile.isStarred
@@ -385,6 +426,7 @@ export const moveToTrashService = async (fileId, userId) => {
   }
 
   const trashedFile = await fileRepo.moveFileToTrash(fileId);
+  await invalidateUserFilesCache(userId);
 
   await createNotificationService(
     userId,
@@ -425,6 +467,7 @@ export const restoreFromTrashService = async (fileId, userId) => {
   }
 
   const restoredFile = await fileRepo.restoreFileFromTrash(fileId);
+  await invalidateUserFilesCache(userId);
 
   await createNotificationService(
     userId,
@@ -449,7 +492,15 @@ export const restoreFromTrashService = async (fileId, userId) => {
 };
 
 export const getTrashFilesService = async (userId) => {
-  return fileRepo.getTrashFilesByUserId(userId);
+  const cacheKey = `files:${userId}:trash`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const files = await fileRepo.getTrashFilesByUserId(userId);
+  await setCache(cacheKey, files, 300);
+  return files;
 };
 
 export const emptyTrashService = async (userId) => {
@@ -504,6 +555,12 @@ export const emptyTrashService = async (userId) => {
     await fileRepo.deleteFileById(file.id);
   }
 
+  // Invalidate cache
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
+
   // decrease storage used
   if (totalSizeFreed > 0) {
     await prisma.user.update({
@@ -553,6 +610,8 @@ export const toggleArchiveFileService = async (fileId, userId) => {
     !file.isArchived
   );
 
+  await invalidateUserFilesCache(userId);
+
   await createNotificationService(
     userId,
     `File "${file.originalName}" ${updatedFile.isArchived ? "archived" : "unarchived"} successfully`
@@ -590,6 +649,7 @@ export const moveFileService = async (fileId, folderId, userId) => {
   }
 
   const updatedFile = await fileRepo.updateFileFolder(fileId, folderId);
+  await invalidateUserFilesCache(userId);
 
   await createNotificationService(
     userId,
@@ -612,6 +672,12 @@ export const moveFileService = async (fileId, folderId, userId) => {
 };
 
 export const getFileVersionsService = async (fileId, userId) => {
+  const cacheKey = `files:${userId}:file:${fileId}:versions`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const file = await fileRepo.findFileById(fileId);
   if (!file) {
     throw createError("File not found", 404, "FILE_NOT_FOUND");
@@ -619,7 +685,9 @@ export const getFileVersionsService = async (fileId, userId) => {
   if (file.ownerId !== userId) {
     throw createError("Unauthorized to view this file's versions", 403, "UNAUTHORIZED");
   }
-  return await fileRepo.getFileVersionsByFileId(fileId);
+  const versions = await fileRepo.getFileVersionsByFileId(fileId);
+  await setCache(cacheKey, versions, 600);
+  return versions;
 };
 
 export const restoreVersionService = async (fileId, versionId, userId) => {
@@ -678,6 +746,12 @@ export const restoreVersionService = async (fileId, versionId, userId) => {
       }
     }
   });
+
+  // Invalidate cache
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
 
   await createNotificationService(
     userId,
@@ -754,6 +828,12 @@ export const deleteVersionService = async (fileId, versionId, userId) => {
       }
     }
   });
+
+  // Invalidate cache
+  await Promise.allSettled([
+    invalidateUserFilesCache(userId),
+    invalidateUserStorageCache(userId),
+  ]);
 
   let updatedFile;
   if (isCurrentActive) {

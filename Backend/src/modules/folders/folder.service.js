@@ -14,6 +14,11 @@ import { logActivity } from "../../utils/activityLogger.js";
 import { getIO } from "../../socket.js";
 import { checkFolderAccess } from "../../utils/permission.js";
 import { seedUserDemoData } from "../user/user.service.js";
+import {
+  getCache,
+  setCache,
+  invalidateUserFoldersCache,
+} from "../../services/cache.service.js";
 
 export const createFolderService = async (name,userId,parentId = null) => {
 
@@ -36,6 +41,8 @@ export const createFolderService = async (name,userId,parentId = null) => {
     parentId
   });
 
+  await invalidateUserFoldersCache(userId);
+
   await createNotificationService(userId, `Folder "${name}" created successfully`);
 
   await logActivity(userId, `You created Folder "${name}"`);
@@ -51,6 +58,12 @@ export const createFolderService = async (name,userId,parentId = null) => {
 
 
 export const getFoldersService = async (userId) => {
+  const cacheKey = `folders:${userId}`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   // 1. Get all folders owned by the user
   const ownedFolders = await prisma.folder.findMany({
     where: { ownerId: userId },
@@ -142,7 +155,9 @@ export const getFoldersService = async (userId) => {
     }
   }
 
-  return Array.from(allFoldersMap.values());
+  const result = Array.from(allFoldersMap.values());
+  await setCache(cacheKey, result, 300);
+  return result;
 };
 
 export const deleteFolderService =
@@ -209,6 +224,8 @@ export const deleteFolderService =
     await folderRepo.deleteFolderById(
       folderId
     );
+
+    await invalidateUserFoldersCache(userId);
 
     await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
 

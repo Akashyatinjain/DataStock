@@ -1,6 +1,9 @@
 import { Queue } from "bullmq";
 import Redis from "ioredis";
 
+let lastQueueLogTime = 0;
+const QUEUE_LOG_COOLDOWN_MS = 60000;
+
 const getRedisConnectionOptions = () => {
   const redisUrl = process.env.REDIS_URL;
   if (redisUrl) {
@@ -8,7 +11,7 @@ const getRedisConnectionOptions = () => {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
       lazyConnect: true,
-      retryStrategy: (times) => Math.min(times * 1000, 15000),
+      retryStrategy: (times) => Math.min(times * 2000, 30000),
     });
   }
 
@@ -19,6 +22,7 @@ const getRedisConnectionOptions = () => {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     lazyConnect: true,
+    retryStrategy: (times) => Math.min(times * 2000, 30000),
   };
 };
 
@@ -42,7 +46,11 @@ export const getOcrQueue = () => {
       });
 
       ocrQueue.on("error", (err) => {
-        console.warn("⚠️ BullMQ OCR Queue notice:", err.message);
+        const now = Date.now();
+        if (now - lastQueueLogTime > QUEUE_LOG_COOLDOWN_MS) {
+          lastQueueLogTime = now;
+          console.warn("⚠️ BullMQ Queue notice (fallback mode active):", err.message);
+        }
       });
     } catch (err) {
       console.warn("⚠️ Failed to initialize OCR Queue:", err.message);
@@ -69,7 +77,11 @@ export const getEmailQueue = () => {
       });
 
       emailQueue.on("error", (err) => {
-        console.warn("⚠️ BullMQ Email Queue notice:", err.message);
+        const now = Date.now();
+        if (now - lastQueueLogTime > QUEUE_LOG_COOLDOWN_MS) {
+          lastQueueLogTime = now;
+          console.warn("⚠️ BullMQ Queue notice (fallback mode active):", err.message);
+        }
       });
     } catch (err) {
       console.warn("⚠️ Failed to initialize Email Queue:", err.message);
@@ -92,7 +104,7 @@ export const addOcrJob = async (jobData) => {
       return { enqueued: true, jobId: job.id };
     }
   } catch (err) {
-    console.warn("⚠️ [Queue] Failed to enqueue OCR job to BullMQ:", err.message);
+    // BullMQ failed, using automatic fallback
   }
 
   // Fallback: Run OCR extraction in background without blocking caller
@@ -123,7 +135,7 @@ export const addEmailJob = async (jobName, jobData, fallbackFn) => {
       return { enqueued: true, jobId: job.id };
     }
   } catch (err) {
-    console.warn("⚠️ [Queue] Failed to enqueue Email job to BullMQ, triggering instant fallback:", err.message);
+    // BullMQ failed, using automatic fallback
   }
 
   // Direct Fallback execution so no OTP or message is ever missed

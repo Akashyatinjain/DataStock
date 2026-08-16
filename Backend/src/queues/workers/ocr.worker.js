@@ -124,8 +124,13 @@ export const initOcrWorker = () => {
       console.warn(`⚠️ [OCR Worker] Job #${job?.id} failed (attempt ${job?.attemptsMade}): ${err.message}`);
     });
 
+    let lastWorkerErrorLog = 0;
     ocrWorker.on("error", (err) => {
-      console.warn("⚠️ BullMQ OCR Worker notice:", err.message);
+      const now = Date.now();
+      if (now - lastWorkerErrorLog > 60000) {
+        lastWorkerErrorLog = now;
+        console.warn("⚠️ BullMQ OCR Worker notice (fallback mode active):", err.message);
+      }
     });
 
     console.log("👷 [Workers] BullMQ OCR Worker initialized and listening");

@@ -2,7 +2,8 @@ import Redis from "ioredis";
 
 let redisClient = null;
 let isConnected = false;
-let hasLoggedFailure = false;
+let lastLogTime = 0;
+const LOG_COOLDOWN_MS = 60000; // Throttle repetitive disconnection warnings to once per minute
 
 const redisUrl = process.env.REDIS_URL;
 const redisHost = process.env.REDIS_HOST || "127.0.0.1";
@@ -18,12 +19,7 @@ try {
     autoResubscribe: true,
     autoResendUnfulfilledCommands: false,
     retryStrategy: (times) => {
-      // Reconnect with capped backoff; stop spamming logs after repeated failures
-      if (times > 5 && !hasLoggedFailure) {
-        hasLoggedFailure = true;
-        console.warn("⚠️ Redis unreachable. Operating in direct database mode (cache disabled).");
-      }
-      return Math.min(times * 1500, 30000);
+      return Math.min(times * 2000, 30000);
     },
   };
 
@@ -38,21 +34,20 @@ try {
     });
   }
 
-  redisClient.on("connect", () => {
-    isConnected = true;
-    hasLoggedFailure = false;
-    console.log("⚡ Redis Cache connected successfully");
-  });
-
   redisClient.on("ready", () => {
-    isConnected = true;
+    if (!isConnected) {
+      isConnected = true;
+      console.log("⚡ Redis Cache connected and ready");
+    }
   });
 
   redisClient.on("error", (err) => {
+    const wasConnected = isConnected;
     isConnected = false;
-    if (!hasLoggedFailure) {
-      hasLoggedFailure = true;
-      console.warn("⚠️ Redis Cache notice (continuing without cache):", err.message);
+    const now = Date.now();
+    if (wasConnected || now - lastLogTime > LOG_COOLDOWN_MS) {
+      lastLogTime = now;
+      console.warn("⚠️ Redis unreachable. Operating in direct database mode (cache disabled).");
     }
   });
 
@@ -67,8 +62,9 @@ try {
   // Attempt initial connect asynchronously without blocking server boot
   redisClient.connect().catch((err) => {
     isConnected = false;
-    if (!hasLoggedFailure) {
-      hasLoggedFailure = true;
+    const now = Date.now();
+    if (now - lastLogTime > LOG_COOLDOWN_MS) {
+      lastLogTime = now;
       console.warn("⚠️ Redis not available at startup. Operating in direct database fallback mode.");
     }
   });

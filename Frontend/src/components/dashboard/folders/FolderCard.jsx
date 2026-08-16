@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Folder, Share2, Trash2, Users, MoreVertical, Eye, Edit3, Download, Loader2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
@@ -41,10 +41,21 @@ export default function FolderCard({
   const id = getFolderId(folder);
   const tabId = `folder-${id}`;
 
-  // Dynamic stats calculated from global Redux state (allFiles contains every file across all folders)
-  const folderFiles = useSelector((state) => (state.files.allFiles || []).filter(f => f.folderId === id));
-  const fileCount = folderFiles.length;
-  const folderSize = folderFiles.reduce((acc, f) => acc + (Number(f.size) || 0), 0);
+  // Dynamic stats calculated from global Redux state with memoization
+  const allFiles = useSelector((state) => state.files.allFiles);
+  const { fileCount, folderSize } = useMemo(() => {
+    if (!allFiles || allFiles.length === 0) return { fileCount: 0, folderSize: 0 };
+    let count = 0;
+    let size = 0;
+    for (let i = 0; i < allFiles.length; i++) {
+      const f = allFiles[i];
+      if (f.folderId === id) {
+        count++;
+        size += Number(f.size) || 0;
+      }
+    }
+    return { fileCount: count, folderSize: size };
+  }, [allFiles, id]);
 
   const isOwner = folder.ownerId === currentUserId || folder._isOwner;
   const isShared = folder.sharedWith && folder.sharedWith.length > 0 || folder._isDirectlyShared || folder._isSharedDescendant;

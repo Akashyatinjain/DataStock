@@ -49,8 +49,10 @@ const HomePage = () => {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.auth.user);
-  const allFiles = useSelector((state) => state.files.allFiles || []);
-  const folders = useSelector((state) => state.folders.folders || []);
+  const rawAllFiles = useSelector((state) => state.files.allFiles);
+  const rawFolders = useSelector((state) => state.folders.folders);
+  const allFiles = rawAllFiles || [];
+  const folders = rawFolders || [];
 
   const checkoutLoading = useSelector((state) => state.payment.checkoutLoading);
   const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);

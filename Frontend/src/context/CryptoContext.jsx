@@ -14,6 +14,7 @@ import {
   bufferToBase64,
   base64ToBuffer,
 } from '../utils/cryptoHelper';
+import { clearCryptoWorker } from '../workers/cryptoWorkerClient';
 
 const CryptoContext = createContext(null);
 
@@ -36,6 +37,7 @@ export const CryptoProvider = ({ children }) => {
       setMasterKey(null);
       setPrivateKey(null);
       setIsE2eeUnlocked(false);
+      clearCryptoWorker();
     }
   }, [user]);
 
@@ -151,6 +153,7 @@ export const CryptoProvider = ({ children }) => {
     setPrivateKey(null);
     setIsE2eeUnlocked(false);
     setError(null);
+    clearCryptoWorker();
   };
 
   return (

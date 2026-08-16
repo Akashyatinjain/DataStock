@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCrypto } from '../context/CryptoContext';
-import { decryptSymmetricKeyWithRsa, decryptString } from '../utils/cryptoHelper';
+import { decryptFilesInWorker } from '../workers/cryptoWorkerClient';
 
 export const useDecryptedFiles = (files) => {
   const { privateKey, isE2eeUnlocked } = useCrypto();
@@ -11,50 +11,20 @@ export const useDecryptedFiles = (files) => {
 
     const decryptAll = async () => {
       if (!files || files.length === 0) {
-        setDecryptedFiles([]);
+        if (active) setDecryptedFiles([]);
         return;
       }
 
-      const result = await Promise.all(
-        files.map(async (file) => {
-          if (!file) return file;
-          // Support both shared share.file schema and standard file schema
-          const isEnc = file.isEncrypted ?? file.file?.isEncrypted ?? false;
-          const encKey = file.encryptedKey ?? file.file?.encryptedKey ?? null;
-          const nameIv = file.nameIv ?? file.file?.nameIv ?? null;
-          const originalName = file.originalName ?? file.file?.originalName ?? '';
-
-          if (isEnc) {
-            if (isE2eeUnlocked && privateKey && encKey && nameIv) {
-              try {
-                // Decrypt key using RSA private key
-                const fileKey = await decryptSymmetricKeyWithRsa(encKey, privateKey);
-                // Decrypt string name
-                const decryptedName = await decryptString(originalName, fileKey, nameIv);
-                
-                if (file.file) {
-                  return {
-                    ...file,
-                    file: { ...file.file, originalName: decryptedName },
-                    originalName: decryptedName,
-                    isLocked: false,
-                  };
-                }
-                return { ...file, originalName: decryptedName, isLocked: false };
-              } catch (e) {
-                console.error("Failed to decrypt file name:", e);
-                return { ...file, originalName: `🔒 e2ee_${originalName.slice(0, 8)}...`, isLocked: true };
-              }
-            } else {
-              return { ...file, originalName: `🔒 e2ee_${originalName.slice(0, 8)}...`, isLocked: true };
-            }
-          }
-          return { ...file, isLocked: false };
-        })
-      );
-
-      if (active) {
-        setDecryptedFiles(result);
+      try {
+        const result = await decryptFilesInWorker(files, privateKey, isE2eeUnlocked);
+        if (active) {
+          setDecryptedFiles(result);
+        }
+      } catch (err) {
+        console.error("useDecryptedFiles error:", err);
+        if (active) {
+          setDecryptedFiles(files);
+        }
       }
     };
 

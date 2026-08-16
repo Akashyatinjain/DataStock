@@ -111,6 +111,8 @@ import StorageAnalyticsView from '../components/dashboard/StorageAnalyticsView';
 import NotificationsView from '../components/dashboard/NotificationsView';
 import FileCard from '../components/dashboard/files/FileCard';
 import FileRow from '../components/dashboard/files/FileRow';
+import VirtualizedFileGrid from '../components/dashboard/files/VirtualizedFileGrid';
+import VirtualizedFileList from '../components/dashboard/files/VirtualizedFileList';
 import SuggestedFileCard from '../components/dashboard/files/SuggestedFileCard';
 import UploadButton from '../components/dashboard/files/UploadButton';
 import CommandPaletteModal from '../components/dashboard/modals/CommandPaletteModal';
@@ -2000,64 +2002,46 @@ const Dashboard = () => {
 
           {/* ── GRID VIEW ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'grid' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
-              {filteredFiles.map(file => (
-                <FileCard
-                  key={file.id}
-                  file={file}
-                  searchQuery={searchQuery}
-                  onDelete={isTrashView ? handleDeleteForever : handleDelete}
-                  onPreview={handlePreview}
-                  onToggleStar={handleToggleStar}
-                  onToggleArchive={handleToggleArchive}
-                  onShare={handleShare}
-                  deletingId={deletingId}
-                  starringId={starringId}
-                  archivingId={archivingId}
-                  isTrashView={isTrashView}
-                  onRestore={handleRestore}
-                  restoringId={restoringId}
-                  isSelected={selectedFileIds.has(file.id)}
-                  onToggleSelect={(e) => handleToggleSelectFile(e, file.id)}
-                  onExtract={handleExtractZip}
-                  selectedFileIds={selectedFileIds}
-                />
-              ))}
-            </div>
+            <VirtualizedFileGrid
+              files={filteredFiles}
+              searchQuery={searchQuery}
+              onDelete={isTrashView ? handleDeleteForever : handleDelete}
+              onPreview={handlePreview}
+              onToggleStar={handleToggleStar}
+              onToggleArchive={handleToggleArchive}
+              onShare={handleShare}
+              deletingId={deletingId}
+              starringId={starringId}
+              archivingId={archivingId}
+              isTrashView={isTrashView}
+              onRestore={handleRestore}
+              restoringId={restoringId}
+              selectedFileIds={selectedFileIds}
+              onToggleSelect={handleToggleSelectFile}
+              onExtract={handleExtractZip}
+            />
           )}
 
           {/* ── LIST VIEW ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && viewMode === 'list' && (
-            <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm">
-              <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-[#334155] bg-gray-50/80 dark:bg-[#334155]/50">
-                <div className="col-span-6 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Name</div>
-                <div className="col-span-2 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Size</div>
-                <div className="col-span-3 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">Date</div>
-                <div className="col-span-1" />
-              </div>
-              {filteredFiles.map(file => (
-                <FileRow
-                  key={file.id}
-                  file={file}
-                  searchQuery={searchQuery}
-                  onDelete={isTrashView ? handleDeleteForever : handleDelete}
-                  onPreview={handlePreview}
-                  onToggleStar={handleToggleStar}
-                  onToggleArchive={handleToggleArchive}
-                  onShare={handleShare}
-                  deletingId={deletingId}
-                  starringId={starringId}
-                  archivingId={archivingId}
-                  isTrashView={isTrashView}
-                  onRestore={handleRestore}
-                  restoringId={restoringId}
-                  isSelected={selectedFileIds.has(file.id)}
-                  onToggleSelect={(e) => handleToggleSelectFile(e, file.id)}
-                  onExtract={handleExtractZip}
-                  selectedFileIds={selectedFileIds}
-                />
-              ))}
-            </div>
+            <VirtualizedFileList
+              files={filteredFiles}
+              searchQuery={searchQuery}
+              onDelete={isTrashView ? handleDeleteForever : handleDelete}
+              onPreview={handlePreview}
+              onToggleStar={handleToggleStar}
+              onToggleArchive={handleToggleArchive}
+              onShare={handleShare}
+              deletingId={deletingId}
+              starringId={starringId}
+              archivingId={archivingId}
+              isTrashView={isTrashView}
+              onRestore={handleRestore}
+              restoringId={restoringId}
+              selectedFileIds={selectedFileIds}
+              onToggleSelect={handleToggleSelectFile}
+              onExtract={handleExtractZip}
+            />
           )}
 
           {/* ── NOTIFICATIONS VIEW ── */}

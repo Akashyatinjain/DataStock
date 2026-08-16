@@ -73,11 +73,13 @@ const FileCard = ({
   const longPressTimer = useRef(null);
   const isLongPressActive = useRef(false);
   const touchStartPos = useRef({ x: 0, y: 0 });
+  const mouseStartPos = useRef({ x: 0, y: 0 });
 
   const startPress = (e) => {
     isLongPressActive.current = false;
     if (e.type === 'mousedown') {
       if (e.button !== 0) return;
+      mouseStartPos.current = { x: e.clientX, y: e.clientY };
     } else if (e.type === 'touchstart') {
       const touch = e.touches[0];
       touchStartPos.current = { x: touch.clientX, y: touch.clientY };
@@ -105,7 +107,13 @@ const FileCard = ({
       e.stopPropagation();
       return;
     }
-    if (e.type === 'touchend') {
+    if (e.type === 'mouseup') {
+      const dx = Math.abs(e.clientX - mouseStartPos.current.x);
+      const dy = Math.abs(e.clientY - mouseStartPos.current.y);
+      if (dx > 5 || dy > 5 || window.__isMarqueeDragging) {
+        return; // Dragging/marquee occurred, do not open preview
+      }
+    } else if (e.type === 'touchend') {
       const touch = e.changedTouches[0];
       const dx = touch.clientX - touchStartPos.current.x;
       const dy = touch.clientY - touchStartPos.current.y;
@@ -130,7 +138,8 @@ const FileCard = ({
 
   return (
     <div
-      draggable={!isDeleting && !isRestoring && !isTrashView}
+      data-file-id={file.id}
+      draggable={isSelected && !isDeleting && !isRestoring && !isTrashView}
       onDragStart={(e) => {
         if (selectedFileIds && selectedFileIds.has(file.id)) {
           e.dataTransfer.setData(
@@ -150,7 +159,7 @@ const FileCard = ({
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
           : 'border-gray-200/80 dark:border-slate-800 hover:border-[#3B82F6] dark:hover:border-[#3B82F6] shadow-sm hover:shadow-xl dark:shadow-slate-900/40'}
-        ${isSelected ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20' : ''}
+        ${isSelected ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/40 shadow-lg shadow-blue-500/15 scale-[0.985] bg-blue-50/20 dark:bg-blue-950/20' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}

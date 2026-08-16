@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import FileCard from './FileCard';
+import { useMarqueeSelection } from '../../../hooks/useMarqueeSelection';
 
 // Responsive column breakpoints matching Tailwind CSS
 const getColumnCount = (width) => {
@@ -11,8 +12,8 @@ const getColumnCount = (width) => {
   return 6;
 };
 
-const ESTIMATED_ROW_HEIGHT = 180; // Estimated height per row in pixels (card + gap)
-const OVERSCAN_ROWS = 3; // Extra rows rendered above and below viewport
+const ESTIMATED_ROW_HEIGHT = 180;
+const OVERSCAN_ROWS = 3;
 
 const VirtualizedFileGrid = ({
   files = [],
@@ -29,6 +30,7 @@ const VirtualizedFileGrid = ({
   onRestore,
   restoringId,
   selectedFileIds,
+  setSelectedFileIds,
   onToggleSelect,
   onExtract,
 }) => {
@@ -41,6 +43,32 @@ const VirtualizedFileGrid = ({
     typeof window !== 'undefined' ? window.innerHeight : 800
   );
   const [containerTop, setContainerTop] = useState(0);
+
+  // ━━ Advanced Marquee Selection with all pro features ━━
+  const {
+    isSelecting,
+    selectionBox,
+    selectedCount,
+    handleMouseDown,
+    handleShiftClick,
+    trackLastClicked,
+  } = useMarqueeSelection({
+    containerRef,
+    selectedFileIds,
+    setSelectedFileIds,
+    files,
+    disabled: isTrashView,
+  });
+
+  // Enhanced toggle that supports Shift+Click range selection
+  const handleEnhancedToggle = (e, fileId) => {
+    if (e.shiftKey) {
+      handleShiftClick(fileId);
+      return;
+    }
+    trackLastClicked(fileId);
+    if (onToggleSelect) onToggleSelect(e, fileId);
+  };
 
   // Measure container width and resize responsiveness
   useEffect(() => {
@@ -98,7 +126,6 @@ const VirtualizedFileGrid = ({
   const totalItems = files.length;
   const totalRows = Math.ceil(totalItems / columnCount);
 
-  // If item count is small (<= 30), render normal grid with stagger animations
   const shouldVirtualize = totalItems > 30;
 
   // Compute virtual slice of rows
@@ -111,7 +138,6 @@ const VirtualizedFileGrid = ({
       };
     }
 
-    // Relative scroll offset inside the grid container
     const relativeScrollY = Math.max(0, scrollTop - containerTop);
     const startRowRaw = Math.floor(relativeScrollY / ESTIMATED_ROW_HEIGHT);
     const visibleRowCount = Math.ceil(viewportHeight / ESTIMATED_ROW_HEIGHT);
@@ -143,13 +169,75 @@ const VirtualizedFileGrid = ({
 
   if (totalItems === 0) return null;
 
-  // Direct render for small datasets (preserves native smooth animations)
+  // ━━ Glassmorphic Marquee Selection Box ━━
+  const renderMarqueeBox = () => {
+    if (!isSelecting || !selectionBox) return null;
+    return (
+      <div
+        className="fixed pointer-events-none z-[9999]"
+        style={{
+          transform: `translate3d(${selectionBox.left}px, ${selectionBox.top}px, 0)`,
+          width: `${selectionBox.width}px`,
+          height: `${selectionBox.height}px`,
+          willChange: 'transform, width, height',
+          left: 0,
+          top: 0,
+        }}
+      >
+        {/* Outer glow layer */}
+        <div
+          className="absolute inset-0 rounded-xl opacity-60"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(99,102,241,0.12) 50%, rgba(59,130,246,0.18) 100%)',
+            boxShadow: '0 0 30px rgba(59,130,246,0.25), inset 0 0 20px rgba(59,130,246,0.08)',
+          }}
+        />
+        {/* Inner crisp border */}
+        <div
+          className="absolute inset-0 rounded-xl"
+          style={{
+            border: '1.5px solid rgba(59,130,246,0.7)',
+            backdropFilter: 'blur(1px)',
+            WebkitBackdropFilter: 'blur(1px)',
+          }}
+        />
+        {/* Corner dots */}
+        <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+
+        {/* Floating counter badge */}
+        {selectedCount > 0 && selectionBox.width > 50 && selectionBox.height > 30 && (
+          <div
+            className="absolute -top-8 right-0 flex items-center gap-1.5 px-3 py-1 rounded-full shadow-xl border border-blue-400/40"
+            style={{
+              background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
+              animation: 'marquee-badge-pop 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            }}
+          >
+            <span className="text-white text-[11px] font-black tracking-wider tabular-nums">
+              {selectedCount}
+            </span>
+            <span className="text-blue-200 text-[10px] font-semibold">
+              selected
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Direct render for small datasets
   if (!shouldVirtualize) {
     return (
       <div
         ref={containerRef}
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger"
+        onMouseDown={handleMouseDown}
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger select-none relative"
       >
+        {renderMarqueeBox()}
+
         {files.map((file) => (
           <FileCard
             key={file.id}
@@ -167,7 +255,7 @@ const VirtualizedFileGrid = ({
             onRestore={onRestore}
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-            onToggleSelect={(e) => onToggleSelect && onToggleSelect(e, file.id)}
+            onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />
@@ -178,7 +266,13 @@ const VirtualizedFileGrid = ({
 
   // Virtualized high-performance grid
   return (
-    <div ref={containerRef} className="w-full relative">
+    <div
+      ref={containerRef}
+      onMouseDown={handleMouseDown}
+      className="w-full relative select-none"
+    >
+      {renderMarqueeBox()}
+
       {topSpacerHeight > 0 && (
         <div style={{ height: `${topSpacerHeight}px` }} aria-hidden="true" />
       )}
@@ -201,7 +295,7 @@ const VirtualizedFileGrid = ({
             onRestore={onRestore}
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-            onToggleSelect={(e) => onToggleSelect && onToggleSelect(e, file.id)}
+            onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />

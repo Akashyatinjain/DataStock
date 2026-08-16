@@ -56,11 +56,13 @@ const FileRow = ({
   const longPressTimer = useRef(null);
   const isLongPressActive = useRef(false);
   const touchStartPos = useRef({ x: 0, y: 0 });
+  const mouseStartPos = useRef({ x: 0, y: 0 });
 
   const startPress = (e) => {
     isLongPressActive.current = false;
     if (e.type === 'mousedown') {
       if (e.button !== 0) return;
+      mouseStartPos.current = { x: e.clientX, y: e.clientY };
     } else if (e.type === 'touchstart') {
       const touch = e.touches[0];
       touchStartPos.current = { x: touch.clientX, y: touch.clientY };
@@ -88,7 +90,13 @@ const FileRow = ({
       e.stopPropagation();
       return;
     }
-    if (e.type === 'touchend') {
+    if (e.type === 'mouseup') {
+      const dx = Math.abs(e.clientX - mouseStartPos.current.x);
+      const dy = Math.abs(e.clientY - mouseStartPos.current.y);
+      if (dx > 5 || dy > 5 || window.__isMarqueeDragging) {
+        return; // Dragging/marquee occurred, do not open preview
+      }
+    } else if (e.type === 'touchend') {
       const touch = e.changedTouches[0];
       const dx = Math.abs(touch.clientX - touchStartPos.current.x);
       const dy = Math.abs(touch.clientY - touchStartPos.current.y);
@@ -101,7 +109,8 @@ const FileRow = ({
 
   return (
     <div
-      draggable={!isDeleting && !isRestoring && !isTrashView}
+      data-file-id={file.id}
+      draggable={isSelected && !isDeleting && !isRestoring && !isTrashView}
       onDragStart={(e) => {
         if (selectedFileIds && selectedFileIds.has(file.id)) {
           e.dataTransfer.setData(
@@ -117,7 +126,7 @@ const FileRow = ({
         grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-3.5 border-b border-gray-50 dark:border-[#334155]
         hover:bg-gray-50/80 dark:hover:bg-[#334155]/50 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
-        ${isSelected ? 'bg-blue-50/30 dark:bg-green-950/10' : ''}
+        ${isSelected ? 'bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-l-[#3B82F6] pl-[12px] sm:pl-[20px]' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}

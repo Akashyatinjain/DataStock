@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import FileRow from './FileRow';
+import { useMarqueeSelection } from '../../../hooks/useMarqueeSelection';
 
 const ESTIMATED_ROW_HEIGHT = 58; // Height in pixels for a single FileRow
 const OVERSCAN_ROWS = 6; // Extra rows rendered above and below viewport
@@ -19,6 +20,7 @@ const VirtualizedFileList = ({
   onRestore,
   restoringId,
   selectedFileIds,
+  setSelectedFileIds,
   onToggleSelect,
   onExtract,
 }) => {
@@ -28,6 +30,32 @@ const VirtualizedFileList = ({
     typeof window !== 'undefined' ? window.innerHeight : 800
   );
   const [containerTop, setContainerTop] = useState(0);
+
+  // Marquee mouse drag-to-select hook with pro range and keyboard shortcuts
+  const {
+    isSelecting,
+    selectionBox,
+    selectedCount,
+    handleMouseDown,
+    handleShiftClick,
+    trackLastClicked,
+  } = useMarqueeSelection({
+    containerRef,
+    selectedFileIds,
+    setSelectedFileIds,
+    files,
+    disabled: isTrashView,
+  });
+
+  // Enhanced toggle that supports Shift+Click range selection
+  const handleEnhancedToggle = (e, fileId) => {
+    if (e.shiftKey) {
+      handleShiftClick(fileId);
+      return;
+    }
+    trackLastClicked(fileId);
+    if (onToggleSelect) onToggleSelect(e, fileId);
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -111,11 +139,73 @@ const VirtualizedFileList = ({
 
   if (totalItems === 0) return null;
 
+  // Glassmorphic Marquee Selection Box
+  const renderMarqueeBox = () => {
+    if (!isSelecting || !selectionBox) return null;
+    return (
+      <div
+        className="fixed pointer-events-none z-[9999]"
+        style={{
+          transform: `translate3d(${selectionBox.left}px, ${selectionBox.top}px, 0)`,
+          width: `${selectionBox.width}px`,
+          height: `${selectionBox.height}px`,
+          willChange: 'transform, width, height',
+          left: 0,
+          top: 0,
+        }}
+      >
+        {/* Outer glow layer */}
+        <div
+          className="absolute inset-0 rounded-xl opacity-60"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(99,102,241,0.12) 50%, rgba(59,130,246,0.18) 100%)',
+            boxShadow:
+              '0 0 30px rgba(59,130,246,0.25), inset 0 0 20px rgba(59,130,246,0.08)',
+          }}
+        />
+        {/* Inner crisp border */}
+        <div
+          className="absolute inset-0 rounded-xl"
+          style={{
+            border: '1.5px solid rgba(59,130,246,0.7)',
+            backdropFilter: 'blur(1px)',
+            WebkitBackdropFilter: 'blur(1px)',
+          }}
+        />
+        {/* Corner dots */}
+        <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+        <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
+
+        {/* Floating counter badge */}
+        {selectedCount > 0 && selectionBox.width > 50 && selectionBox.height > 30 && (
+          <div
+            className="absolute -top-8 right-0 flex items-center gap-1.5 px-3 py-1 rounded-full shadow-xl border border-blue-400/40"
+            style={{
+              background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
+              animation: 'marquee-badge-pop 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            }}
+          >
+            <span className="text-white text-[11px] font-black tracking-wider tabular-nums">
+              {selectedCount}
+            </span>
+            <span className="text-blue-200 text-[10px] font-semibold">selected</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       ref={containerRef}
-      className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm"
+      onMouseDown={handleMouseDown}
+      className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm relative select-none"
     >
+      {renderMarqueeBox()}
+
       <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-[#334155] bg-gray-50/80 dark:bg-[#334155]/50">
         <div className="col-span-6 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
           Name
@@ -150,7 +240,7 @@ const VirtualizedFileList = ({
           onRestore={onRestore}
           restoringId={restoringId}
           isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-          onToggleSelect={(e) => onToggleSelect && onToggleSelect(e, file.id)}
+          onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
           onExtract={onExtract}
           selectedFileIds={selectedFileIds}
         />

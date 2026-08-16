@@ -2017,6 +2017,7 @@ const Dashboard = () => {
               onRestore={handleRestore}
               restoringId={restoringId}
               selectedFileIds={selectedFileIds}
+              setSelectedFileIds={setSelectedFileIds}
               onToggleSelect={handleToggleSelectFile}
               onExtract={handleExtractZip}
             />
@@ -2039,6 +2040,7 @@ const Dashboard = () => {
               onRestore={handleRestore}
               restoringId={restoringId}
               selectedFileIds={selectedFileIds}
+              setSelectedFileIds={setSelectedFileIds}
               onToggleSelect={handleToggleSelectFile}
               onExtract={handleExtractZip}
             />
@@ -2225,106 +2227,168 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* BULK ACTIONS FLOATING TOOLBAR */}
+      {/* BULK ACTIONS FLOATING DOCK — Google Drive / macOS Finder Style */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-[48rem] bg-slate-900/95 dark:bg-[#0F172A]/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3 shadow-2xl text-white animate-fade-up text-xs font-semibold sm:bottom-5 sm:inset-x-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-start">
-              <span className="min-w-0 truncate text-[#3B82F6]">
-                {selectedFileIds.size} file(s) selected
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedFileIds(new Set())}
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-slate-800 hover:text-white sm:hidden"
-                aria-label="Cancel selection"
-                title="Cancel"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="hidden h-5 w-px shrink-0 bg-slate-800 sm:block" />
-
-            <div className="grid min-w-0 flex-1 grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
-              <button
-                type="button"
-                onClick={handleBulkDownload}
-                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
-                title="Download"
-              >
-                <Download className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Download</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkStar}
-                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
-                title="Star"
-              >
-                <Star className="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
-                <span className="truncate">Star</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowMoveModal(true)}
-                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5"
-                title="Move"
-              >
-                <Move className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Move</span>
-              </button>
+        <div className="fixed inset-x-4 bottom-6 z-50 mx-auto max-w-2xl bg-slate-950/90 dark:bg-[#0B1120]/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-white animate-fade-up">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            {/* Counter badge & Select all / Deselect */}
+            <div className="flex items-center gap-2 pl-2">
+              <div className="flex items-center gap-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-xl text-xs font-bold tabular-nums">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                {selectedFileIds.size} {selectedFileIds.size === 1 ? 'item' : 'items'}
+              </div>
               <button
                 type="button"
                 onClick={() => {
-                  if (selectedFileIds.size > 1) {
-                    addToast("Batch sharing is not supported yet. Please select a single file to share.", "warning");
-                    return;
-                  }
-                  const selectedId = Array.from(selectedFileIds)[0];
-                  const selectedFile = (allFiles || []).find(f => f.id === selectedId) || (files || []).find(f => f.id === selectedId);
-                  if (selectedFile) {
-                    handleShare(selectedFile);
+                  if (selectedFileIds.size === filteredFiles.length) {
+                    setSelectedFileIds(new Set());
                   } else {
-                    addToast("Could not retrieve file details.", "error");
+                    setSelectedFileIds(new Set(filteredFiles.map(f => f.id)));
                   }
                 }}
-                className={`inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-2 transition hover:bg-slate-700 sm:px-3 sm:py-1.5 ${selectedFileIds.size > 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title="Share"
+                className="hidden sm:inline-block text-[11px] font-semibold text-slate-400 hover:text-white transition underline underline-offset-2"
               >
-                <Share2 className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Share</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkCompress}
-                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-2.5 py-2 text-white transition hover:bg-emerald-700 sm:px-3 sm:py-1.5"
-                title="Compress to ZIP"
-              >
-                <Archive className="h-3.5 w-3.5 shrink-0" />
-                <span className="hidden min-[380px]:inline sm:hidden">ZIP</span>
-                <span className="hidden sm:inline">Compress to ZIP</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkTrash}
-                className="inline-flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-red-900/50 bg-red-950/40 px-2.5 py-2 text-red-400 transition hover:bg-red-950/65 sm:px-3 sm:py-1.5"
-                title="Move to Trash"
-              >
-                <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                <span className="hidden min-[380px]:inline sm:hidden">Trash</span>
-                <span className="hidden sm:inline">Move to Trash</span>
+                {selectedFileIds.size === filteredFiles.length ? 'Deselect all' : 'Select all'}
               </button>
             </div>
 
-            <div className="hidden h-5 w-px shrink-0 bg-slate-800 sm:block" />
-            <button
-              type="button"
-              onClick={() => setSelectedFileIds(new Set())}
-              className="hidden shrink-0 rounded-lg px-2 py-1 text-gray-400 transition hover:bg-slate-800 hover:text-white sm:inline-flex"
-            >
-              Cancel
-            </button>
+            <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-1 sm:gap-1.5 flex-1 justify-end sm:justify-center overflow-x-auto py-0.5">
+              {!isTrashView ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleBulkDownload}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs hover:scale-105 active:scale-95"
+                    title="Download selected as ZIP"
+                  >
+                    <Download className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="hidden md:inline">Download</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBulkStar}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs hover:scale-105 active:scale-95"
+                    title="Star selected items"
+                  >
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span className="hidden md:inline">Star</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowMoveModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs hover:scale-105 active:scale-95"
+                    title="Move to Folder"
+                  >
+                    <Move className="w-3.5 h-3.5 text-purple-400" />
+                    <span className="hidden md:inline">Move</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBulkCompress}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs hover:scale-105 active:scale-95"
+                    title="Compress to ZIP"
+                  >
+                    <Archive className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="hidden lg:inline">Compress</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedFileIds.size > 1) {
+                        addToast("Batch sharing is not supported yet. Please select a single file to share.", "warning");
+                        return;
+                      }
+                      const selectedId = Array.from(selectedFileIds)[0];
+                      const selectedFile = (allFiles || []).find(f => f.id === selectedId) || (files || []).find(f => f.id === selectedId);
+                      if (selectedFile) {
+                        handleShare(selectedFile);
+                      } else {
+                        addToast("Could not retrieve file details.", "error");
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs hover:scale-105 active:scale-95 ${selectedFileIds.size > 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title="Share"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-sky-400" />
+                    <span className="hidden lg:inline">Share</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBulkTrash}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-600 border border-rose-500/30 hover:border-rose-600 text-xs font-medium text-rose-300 hover:text-white transition shadow-xs hover:scale-105 active:scale-95"
+                    title="Move to Trash"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden md:inline">Trash</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const fileIds = Array.from(selectedFileIds);
+                        addToast("Restoring items…", "info");
+                        for (const fid of fileIds) {
+                          await handleRestore(fid);
+                        }
+                        setSelectedFileIds(new Set());
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-600 border border-emerald-500/30 text-xs font-medium text-emerald-300 hover:text-white transition shadow-xs"
+                    title="Restore Selected"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Restore</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!window.confirm(`Are you sure you want to permanently delete these ${selectedFileIds.size} files?`)) return;
+                      try {
+                        const fileIds = Array.from(selectedFileIds);
+                        for (const fid of fileIds) {
+                          await handleDeleteForever(fid);
+                        }
+                        setSelectedFileIds(new Set());
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-600 border border-rose-500/30 text-xs font-medium text-rose-300 hover:text-white transition shadow-xs"
+                    title="Delete Forever"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Forever</span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Clear / Escape button */}
+            <div className="flex items-center gap-1.5 pr-1">
+              <button
+                type="button"
+                onClick={() => setSelectedFileIds(new Set())}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-[11px] font-medium transition"
+                title="Cancel (Esc)"
+              >
+                <X className="w-3.5 h-3.5" />
+                <kbd className="hidden sm:inline-block px-1 py-0.2 bg-slate-800 text-[10px] text-slate-400 rounded border border-slate-700">ESC</kbd>
+              </button>
+            </div>
           </div>
         </div>
       )}

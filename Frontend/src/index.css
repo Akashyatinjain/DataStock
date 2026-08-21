@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/scrollbar.css";
 
 @variant dark (&:where(.dark, .dark *));
 
@@ -17,10 +18,17 @@
   --ds-error: #EF4444;
 }
 
-/* Optional global styles */
+/* ═══════════════════════════════════════════════
+   Base Reset & Rendering
+   ═══════════════════════════════════════════════ */
 
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html, body {
@@ -31,7 +39,11 @@ html, body {
 }
 
 body {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   @apply bg-[#f7f8fa] text-gray-900 transition-colors duration-200;
 }
 
@@ -49,49 +61,86 @@ img, video, iframe {
   height: auto;
 }
 
-/* Add to your global CSS file */
+/* Crisp image rendering on non-retina displays */
+img:not([class*="rounded-full"]) {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ═══════════════════════════════════════════════
+   Keyframe Animations (Consolidated)
+   ═══════════════════════════════════════════════ */
+
 @keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
 }
 
 @keyframes slideOut {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-100%);
-  }
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(2rem); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marquee-badge-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════
+   Animation Utility Classes
+   ═══════════════════════════════════════════════ */
+
 .sidebar-transition {
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .overlay-transition {
   transition: opacity 0.3s ease-in-out;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
 }
 
 /* Premium Micro-Animations & Hover states */
@@ -99,7 +148,8 @@ img, video, iframe {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 .hover-scale:hover {
-  transform: translateY(-2px) scale(1.01);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .hover-rotate {
@@ -109,40 +159,18 @@ img, video, iframe {
   transform: rotate(5deg);
 }
 
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-up {
-  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out forwards;
-}
-
 /* Staggered load animation delays */
 .stagger > * {
   animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.stagger > *:nth-child(1) { animation-delay: 30ms; }
-.stagger > *:nth-child(2) { animation-delay: 60ms; }
-.stagger > *:nth-child(3) { animation-delay: 90ms; }
-.stagger > *:nth-child(4) { animation-delay: 120ms; }
-.stagger > *:nth-child(5) { animation-delay: 150ms; }
-.stagger > *:nth-child(6) { animation-delay: 180ms; }
+.stagger > *:nth-child(1)  { animation-delay: 30ms; }
+.stagger > *:nth-child(2)  { animation-delay: 60ms; }
+.stagger > *:nth-child(3)  { animation-delay: 90ms; }
+.stagger > *:nth-child(4)  { animation-delay: 120ms; }
+.stagger > *:nth-child(5)  { animation-delay: 150ms; }
+.stagger > *:nth-child(6)  { animation-delay: 180ms; }
+.stagger > *:nth-child(7)  { animation-delay: 210ms; }
+.stagger > *:nth-child(8)  { animation-delay: 240ms; }
 
 /* Custom Dot Grid Pattern */
 .bg-dot-grid {
@@ -154,12 +182,35 @@ img, video, iframe {
   background-size: 20px 20px;
 }
 
-/* ============================================
+/* ═══════════════════════════════════════════════
+   Accessibility: Reduced Motion
+   ═══════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hover-scale:hover {
+    transform: none;
+  }
+
+  .hover-rotate:hover {
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════
    DOCX Paper Viewer — Scoped Light Mode Styles
    Forces all mammoth-generated HTML to render
    with readable dark-on-white styling, even when
    the app is in dark mode.
-   ============================================ */
+   ═══════════════════════════════════════════════ */
 .docx-paper,
 .docx-paper * {
   color: #1e293b !important;

@@ -14,7 +14,7 @@ export function MobileSidebarOverlay({ isOpen, onClose }) {
 export function MobileSidebarPanel({ isOpen, onClose, children }) {
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-[70] h-full w-[min(85vw,20rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
+      className={`fixed inset-y-0 left-0 z-[70] h-full w-[min(85vw,20rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
@@ -51,8 +51,8 @@ export function DesktopSidebarPanel({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] transition-all duration-300 ${
-        sidebarCollapsed ? 'w-20' : 'w-72'
+      className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] transition-all duration-300 will-change-[width] ${
+        sidebarCollapsed ? 'w-20' : 'w-60 xl:w-72'
       }`}
     >
       {children}

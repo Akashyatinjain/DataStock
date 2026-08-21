@@ -56,7 +56,7 @@ const Sidebar = ({
   const reduxFoldersLoading = useSelector((state) => state.folders.loading);
 
   const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 768
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
   );
   const folders = syncFolders ? (foldersFromParent ?? []) : reduxFolders;
   const selectedFolderId = getActiveFolderId(activeTab);
@@ -79,7 +79,7 @@ const Sidebar = ({
 
   useEffect(() => {
     const check = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (mobile) {
         setIsMobileMenuOpen(false);
@@ -233,7 +233,7 @@ const Sidebar = ({
 
   return (
     <>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <MobileSidebarOverlay
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
@@ -246,7 +246,7 @@ const Sidebar = ({
         </MobileSidebarPanel>
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <DesktopSidebarPanel
           sidebarCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}

@@ -108,8 +108,8 @@ const Header = ({
     : 'p-2 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-lg transition-colors duration-200';
 
   const inputClass = isDark
-    ? 'w-80 md:w-[28rem] lg:w-[38rem] pl-10 pr-12 py-2 bg-slate-800/90 text-slate-100 placeholder-slate-400 border border-slate-700/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/40 focus:border-[#3B82F6] focus:bg-[#0F172A] transition-all shadow-3xs'
-    : 'w-80 md:w-[28rem] lg:w-[38rem] pl-10 pr-12 py-2 bg-gray-100/90 text-gray-900 placeholder-gray-500 border border-gray-200/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] focus:bg-white transition-all shadow-3xs';
+    ? 'w-full max-w-md lg:max-w-lg xl:max-w-2xl pl-10 pr-12 py-2 bg-slate-800/90 text-slate-100 placeholder-slate-400 border border-slate-700/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/40 focus:border-[#3B82F6] focus:bg-[#0F172A] transition-all shadow-3xs'
+    : 'w-full max-w-md lg:max-w-lg xl:max-w-2xl pl-10 pr-12 py-2 bg-gray-100/90 text-gray-900 placeholder-gray-500 border border-gray-200/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] focus:bg-white transition-all shadow-3xs';
 
   const upgradeBtnClass = isDark
     ? 'h-10 items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/50 px-2.5 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800 lg:gap-2.5 lg:px-3'
@@ -152,18 +152,11 @@ const Header = ({
   }
 
   return (
-    <>
-      <style>{`
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slideDown { animation: slideDown 0.2s ease-out; }
-      `}</style>
+
 
       <nav className={navClass}>
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16 gap-4">
 
             <div className="flex items-center space-x-4">
               <button
@@ -190,7 +183,7 @@ const Header = ({
                 </div>
               </div>
 
-              <div className="hidden md:flex items-center">
+              <div className="hidden lg:flex items-center flex-1 max-w-2xl">
                 <div className="relative">
                   <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
                   <input
@@ -320,7 +313,7 @@ const Header = ({
 
               <button
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
-                className={`${iconBtnClass} md:hidden`}
+                className={`${iconBtnClass} lg:hidden`}
                 aria-label="Toggle search"
               >
                 <Search className="w-5 h-5" />
@@ -329,7 +322,7 @@ const Header = ({
           </div>
 
           {showMobileSearch && (
-            <div className="py-2 pb-3 md:hidden animate-slideDown">
+            <div className="py-2 pb-3 lg:hidden animate-slideDown">
               <div className="relative">
                 <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
                 <input
@@ -344,8 +337,7 @@ const Header = ({
             </div>
           )}
         </div>
-      </nav>
-    </>
+    </nav>
   );
 };
 

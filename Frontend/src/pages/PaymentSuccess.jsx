@@ -20,6 +20,8 @@ import {
   plansMatch,
 } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import SeoHead from "../seo/SeoHead";
+import { getPageSeo } from "../seo/config";
 
 const PLAN_DETAILS = {
   PRO: {
@@ -170,8 +172,16 @@ export default function PaymentSuccess() {
     };
   }, [planKey, returnParams, dispatch]);
 
+  const paySeo = getPageSeo("payment-success");
+
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative transition-colors duration-200">
+      <SeoHead
+        title={paySeo?.title || "Payment Confirmation | DataStock"}
+        description={paySeo?.description || "Subscription confirmation."}
+        path="/payment-success"
+        noindex
+      />
       <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>

@@ -1,20 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { decryptFilesInWorker } from '../workers/cryptoWorkerClient';
 
 export const useDecryptedFiles = (files) => {
   const { privateKey, isE2eeUnlocked } = useCrypto();
-  const [decryptedFiles, setDecryptedFiles] = useState([]);
+  const [decryptedFiles, setDecryptedFiles] = useState(() => files || []);
+
+  const hasEncrypted = files && files.length > 0 && files.some(f => f && (f.isEncrypted || f.encryptedKey));
 
   useEffect(() => {
+    if (!files || files.length === 0) {
+      setDecryptedFiles([]);
+      return;
+    }
+
+    // Fast path: if no files are encrypted or E2EE is locked, return immediately without worker serialization
+    if (!hasEncrypted || !isE2eeUnlocked || !privateKey) {
+      setDecryptedFiles(files);
+      return;
+    }
+
     let active = true;
 
     const decryptAll = async () => {
-      if (!files || files.length === 0) {
-        if (active) setDecryptedFiles([]);
-        return;
-      }
-
       try {
         const result = await decryptFilesInWorker(files, privateKey, isE2eeUnlocked);
         if (active) {
@@ -33,7 +41,8 @@ export const useDecryptedFiles = (files) => {
     return () => {
       active = false;
     };
-  }, [files, isE2eeUnlocked, privateKey]);
+  }, [files, hasEncrypted, isE2eeUnlocked, privateKey]);
 
-  return decryptedFiles;
+  return hasEncrypted && isE2eeUnlocked ? decryptedFiles : (files || []);
 };
+

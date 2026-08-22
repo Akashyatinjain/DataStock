@@ -34,6 +34,8 @@ import {
 import { fetchProfile } from '../store/slices/authSlice';
 import { connectSocket, socket } from '../socket';
 import ThemeToggle from '../components/ui/ThemeToggle';
+import SeoHead from '../seo/SeoHead';
+import { getPageSeo } from '../seo/config';
 
 // Custom CSS for card hovering, glows, and outline animations
 const customStyles = `
@@ -308,9 +310,17 @@ export default function Notifications() {
     { key: 'payment', label: 'Payment' }
   ];
 
+  const notifSeo = getPageSeo("notifications");
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] pb-16 transition-colors duration-200 font-['Inter']">
-      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+    <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] flex flex-col font-['Inter'] selection:bg-blue-200 selection:text-blue-900 pb-20 transition-colors duration-200">
+      <SeoHead
+        title={notifSeo?.title || "Notifications | DataStock"}
+        description={notifSeo?.description || "Your DataStock notifications."}
+        path="/notifications"
+        noindex
+      />
+      <style>{customStyles}</style>
       
       {/* ── HEADER PANEL: COMPACT & BALANCED ── */}
       <div className="bg-white/90 dark:bg-[#1E293B]/90 backdrop-blur-xl border-b border-gray-200 dark:border-[#334155] py-3.5 sticky top-0 z-40 shadow-xs">

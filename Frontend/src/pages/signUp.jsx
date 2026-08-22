@@ -13,6 +13,9 @@ import {
   Chrome
 } from 'lucide-react';
 import { useNavigate, Link } from "react-router-dom";
+import SeoHead from "../seo/SeoHead";
+import { getPageSeo } from "../seo/config";
+import { jsonLdForPublicRoute } from "../seo/structuredData";
 import { useDispatch, useSelector } from "react-redux";
 import { signupUser, logoutUser } from "../store/slices/authSlice";
 import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
@@ -116,14 +119,21 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0F172A] font-['Inter'] transition-colors duration-200">
+      <SeoHead
+        title={getPageSeo("signup").title}
+        description={getPageSeo("signup").description}
+        path="/signup"
+        keywords={getPageSeo("signup").keywords}
+        jsonLd={jsonLdForPublicRoute("signup")}
+      />
       {/* Simple Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-[#334155]">
+      <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-[#334155]" aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => navigate('/')}>
-              <img src="/datastock-logo.svg" alt="DataStock Logo" className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200" />
+            <Link to="/" className="flex items-center space-x-2 group">
+              <img src="/datastock-logo.svg" alt="DataStock" width={32} height={32} className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200" />
               <span className="font-bold text-xl text-black dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
-            </div>
+            </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Link 
@@ -138,8 +148,7 @@ const handleSubmit = async (e) => {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
+      <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             
@@ -394,7 +403,7 @@ const handleSubmit = async (e) => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

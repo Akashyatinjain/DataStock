@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       (function () {
         var stored = localStorage.getItem('datastock-theme');
@@ -15,16 +17,44 @@
         }
       })();
     </script>
-    <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/datastock-logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="DataStock — Zero-knowledge encrypted cloud storage. Upload, organize, and securely share files with end-to-end encryption. 10GB free forever." />
+    <link rel="apple-touch-icon" href="/datastock-logo.svg" />
+    <!--seo-head-->
+    <title>DataStock — Encrypted Cloud Storage | 10 GB Free</title>
+    <meta name="description" content="DataStock is encrypted cloud storage for files and folders. Upload, organize, and share securely with 10 GB free forever. No credit card required." />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="keywords" content="encrypted cloud storage, secure file sharing, online drive, DataStock" />
+    <meta name="author" content="DataStock" />
+    <meta name="application-name" content="DataStock" />
+    <link rel="canonical" href="https://data-stock.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DataStock" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="DataStock — Encrypted Cloud Storage | 10 GB Free" />
+    <meta property="og:description" content="DataStock is encrypted cloud storage for files and folders. Upload, organize, and share securely with 10 GB free forever. No credit card required." />
+    <meta property="og:url" content="https://data-stock.vercel.app/" />
+    <meta property="og:image" content="https://data-stock.vercel.app/og-image.png" />
+    <meta property="og:image:alt" content="DataStock — encrypted cloud storage" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DataStock — Encrypted Cloud Storage | 10 GB Free" />
+    <meta name="twitter:description" content="DataStock is encrypted cloud storage for files and folders. Upload, organize, and share securely with 10 GB free forever. No credit card required." />
+    <meta name="twitter:image" content="https://data-stock.vercel.app/og-image.png" />
+    <!--/seo-head-->
     <meta name="theme-color" content="#0F172A" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <title>DataStock — Secure Cloud Storage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    </noscript>
+    <!--seo-jsonld-->
+    <script type="application/ld+json" data-seo-jsonld="0">
+      {"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"DataStock","url":"https://data-stock.vercel.app","logo":"https://data-stock.vercel.app/datastock-logo.svg","email":"support@datastock.app","description":"DataStock is a secure, end-to-end encrypted cloud storage platform with 10 GB free forever.","sameAs":["https://github.com","https://twitter.com"]},{"@type":"WebSite","name":"DataStock","url":"https://data-stock.vercel.app","description":"Encrypted cloud storage to upload, organize, and share files with 10 GB free.","publisher":{"@type":"Organization","name":"DataStock","url":"https://data-stock.vercel.app","logo":"https://data-stock.vercel.app/datastock-logo.svg"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://data-stock.vercel.app/help?q={search_term_string}"},"query-input":"required name=search_term_string"}},{"@type":["SoftwareApplication","WebApplication"],"name":"DataStock","url":"https://data-stock.vercel.app","applicationCategory":"CloudStorageApplication","operatingSystem":"Web, Windows, macOS, Linux, iOS, Android","description":"Web-based encrypted cloud storage for uploading, organizing, and sharing files and folders with zero-knowledge encryption.","image":"https://data-stock.vercel.app/og-image.png","featureList":["10 GB Free Encrypted Storage","Client-side End-to-End Encryption (AES-GCM + RSA)","Instant In-browser Document & Media Previews","Secure File & Folder Sharing with View/Edit Permissions","30-day Trash Retention & One-Click Recovery","Cross-device Responsiveness with 60 FPS Smooth UI"],"offers":[{"@type":"Offer","name":"Basic Plan","price":"0","priceCurrency":"INR","description":"10 GB free encrypted cloud storage forever"},{"@type":"Offer","name":"Pro Plan","price":"149","priceCurrency":"INR","description":"2 TB high-speed encrypted cloud storage"},{"@type":"Offer","name":"Family Plan","price":"399","priceCurrency":"INR","description":"5 TB shared encrypted cloud storage for up to 6 members"}]}]}
+    </script>
+    <!--/seo-jsonld-->
   </head>
   <body>
     <div id="root"></div>

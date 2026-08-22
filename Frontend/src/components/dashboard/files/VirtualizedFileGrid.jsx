@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import FileCard from './FileCard';
 import { useMarqueeSelection } from '../../../hooks/useMarqueeSelection';
 
@@ -61,14 +61,14 @@ const VirtualizedFileGrid = ({
   });
 
   // Enhanced toggle that supports Shift+Click range selection
-  const handleEnhancedToggle = (e, fileId) => {
+  const handleEnhancedToggle = useCallback((e, fileId) => {
     if (e.shiftKey) {
       handleShiftClick(fileId);
       return;
     }
     trackLastClicked(fileId);
     if (onToggleSelect) onToggleSelect(e, fileId);
-  };
+  }, [handleShiftClick, trackLastClicked, onToggleSelect]);
 
   // Measure container width and resize responsiveness
   useEffect(() => {
@@ -255,7 +255,7 @@ const VirtualizedFileGrid = ({
             onRestore={onRestore}
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-            onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
+            onToggleSelect={handleEnhancedToggle}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />
@@ -295,7 +295,7 @@ const VirtualizedFileGrid = ({
             onRestore={onRestore}
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-            onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
+            onToggleSelect={handleEnhancedToggle}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />

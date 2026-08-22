@@ -24,8 +24,9 @@ import {
 import { fetchProfile } from '../store/slices/authSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import { formatFileSize, getFileType } from '../utils/fileHelpers';
-import { getErrorMessage } from '../utils/errorMessage';
 import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
+import SeoHead from '../seo/SeoHead';
+import { getPageSeo } from '../seo/config';
 
 export default function TrashPage() {
   const navigate = useNavigate();
@@ -136,8 +137,16 @@ export default function TrashPage() {
     });
   };
 
+  const trashSeo = getPageSeo("trash");
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
+      <SeoHead
+        title={trashSeo?.title || "Trash | DataStock"}
+        description={trashSeo?.description || "Restore or permanently delete files."}
+        path="/trash"
+        noindex
+      />
       {/* Top Header */}
       <header className="sticky top-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-40 border-b border-slate-200 dark:border-[#334155]">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">

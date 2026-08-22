@@ -199,8 +199,25 @@ export const useMarqueeSelection = ({
             }
           }
 
-          setSelectedCount(newSelection.size);
-          setSelectedFileIds(newSelection);
+          // Only update React state if the selection set has actually changed
+          const prevSet = initialSelectionRef.current || new Set();
+          let changed = false;
+          if (newSelection.size !== prevSet.size) {
+            changed = true;
+          } else {
+            for (const item of newSelection) {
+              if (!prevSet.has(item)) {
+                changed = true;
+                break;
+              }
+            }
+          }
+
+          if (changed) {
+            initialSelectionRef.current = newSelection;
+            setSelectedCount(newSelection.size);
+            setSelectedFileIds(newSelection);
+          }
         }
       };
 

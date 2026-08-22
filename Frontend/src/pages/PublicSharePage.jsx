@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
-import JSZip from 'jszip';
 import {
   Cloud,
   Download,
@@ -29,6 +26,8 @@ import {
 } from 'lucide-react';
 import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
+import SeoHead from '../seo/SeoHead';
+import { getPageSeo } from '../seo/config';
 
 /* ─── helpers ─── */
 const formatSize = (bytes) => {
@@ -168,24 +167,36 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
 
   useEffect(() => {
     if (isDocx && url) {
+      let active = true;
       setDocxLoading(true);
       fetch(url)
         .then(res => res.arrayBuffer())
-        .then(buffer => mammoth.convertToHtml({ arrayBuffer: buffer }))
+        .then(async (buffer) => {
+          const mammothMod = await import('mammoth');
+          const mammoth = mammothMod.default || mammothMod;
+          return mammoth.convertToHtml({ arrayBuffer: buffer });
+        })
         .then(result => {
+          if (!active) return;
           setDocxHtml(result.value || '<p>Empty document</p>');
           setDocxLoading(false);
         })
-        .catch(() => setDocxLoading(false));
+        .catch(() => {
+          if (active) setDocxLoading(false);
+        });
+      return () => { active = false; };
     }
   }, [isDocx, url]);
 
   useEffect(() => {
     if (isExcel && url) {
+      let active = true;
       setXlsxLoading(true);
       fetch(url)
         .then(res => res.arrayBuffer())
-        .then(buffer => {
+        .then(async (buffer) => {
+          const XLSX = await import('xlsx');
+          if (!active) return;
           const wb = XLSX.read(buffer, { type: 'array' });
           const map = {};
           wb.SheetNames.forEach(n => {
@@ -196,17 +207,26 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
           setXlsxActiveSheet(wb.SheetNames[0] || '');
           setXlsxLoading(false);
         })
-        .catch(() => setXlsxLoading(false));
+        .catch(() => {
+          if (active) setXlsxLoading(false);
+        });
+      return () => { active = false; };
     }
   }, [isExcel, url]);
 
   useEffect(() => {
     if (isArchive && url) {
+      let active = true;
       setZipLoading(true);
       fetch(url)
         .then(res => res.arrayBuffer())
-        .then(buffer => JSZip.loadAsync(buffer))
+        .then(async (buffer) => {
+          const jszipMod = await import('jszip');
+          const JSZip = jszipMod.default || jszipMod;
+          return JSZip.loadAsync(buffer);
+        })
         .then(zip => {
+          if (!active || !zip) return;
           const entries = [];
           zip.forEach((relativePath, entry) => {
             entries.push({
@@ -218,7 +238,10 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
           setZipEntries(entries);
           setZipLoading(false);
         })
-        .catch(() => setZipLoading(false));
+        .catch(() => {
+          if (active) setZipLoading(false);
+        });
+      return () => { active = false; };
     }
   }, [isArchive, url]);
 

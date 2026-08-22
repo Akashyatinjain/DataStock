@@ -35,7 +35,10 @@ import {
   Server,
   LockKeyhole
 } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import SeoHead from "../seo/SeoHead";
+import { getPageSeo } from "../seo/config";
+import { homeJsonLdGraph } from "../seo/structuredData";
 import { useDispatch, useSelector } from "react-redux";
 import { startCheckout } from "../store/slices/paymentSlice";
 import useSubscription from "../hooks/useSubscription";
@@ -209,22 +212,33 @@ const HomePage = () => {
     }
   ];
 
+  const homeSeo = getPageSeo("home");
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-['Inter'] selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-[#3B82F6] dark:selection:text-[#F8FAFC] overflow-x-hidden transition-colors duration-200">
+      <SeoHead
+        title={homeSeo.title}
+        description={homeSeo.description}
+        path={homeSeo.path}
+        keywords={homeSeo.keywords}
+        jsonLd={homeJsonLdGraph()}
+      />
       
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-gray-200/80 dark:border-[#334155] shadow-sm' : 'bg-transparent'}`}>
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-gray-200/80 dark:border-[#334155] shadow-sm' : 'bg-transparent'}`} aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <Link to="/" className="flex items-center space-x-3 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <img 
                 src="/datastock-logo.svg" 
-                alt="DataStock Logo" 
+                alt="DataStock" 
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20" 
               />
               <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-7">
@@ -240,7 +254,7 @@ const HomePage = () => {
                 <ShieldCheck className="w-4 h-4 text-blue-500" />
                 <span>Security</span>
               </a>
-              <button onClick={() => navigate('/help')} className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Docs</button>
+              <Link to="/help" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Help Center</Link>
               <a href="#pricing" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Pricing</a>
               <button onClick={() => setShowContactModal(true)} className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Contact</button>
 
@@ -275,7 +289,10 @@ const HomePage = () => {
 
             {/* Mobile Menu Button */}
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMenuOpen}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors"
             >
               {isMenuOpen ? <X className="w-6 h-6 text-gray-900 dark:text-[#F8FAFC]" /> : <Menu className="w-6 h-6 text-gray-900 dark:text-[#F8FAFC]" />}
@@ -292,7 +309,7 @@ const HomePage = () => {
               <ShieldCheck className="w-4 h-4 text-blue-500" />
               <span>Security</span>
             </a>
-            <button onClick={() => { setIsMenuOpen(false); navigate('/help'); }} className="px-4 py-2 text-left text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium">Docs</button>
+            <Link to="/help" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-left text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium">Help Center</Link>
             <a href="#pricing" className="px-4 py-2 text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Pricing</a>
             <button onClick={() => { setIsMenuOpen(false); setShowContactModal(true); }} className="px-4 py-2 text-left text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium">Contact</button>
 
@@ -326,6 +343,7 @@ const HomePage = () => {
         </div>
       </nav>
 
+      <main id="main-content">
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 lg:pt-44 lg:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Background decorative elements */}
@@ -760,10 +778,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-sm font-bold text-[#3B82F6] tracking-wide uppercase mb-3">Why Choose DataStock?</h2>
-              <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mb-6 leading-tight">
+              <p className="text-sm font-bold text-[#3B82F6] tracking-wide uppercase mb-3">Why Choose DataStock?</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-[#F8FAFC] mb-6 leading-tight">
                 More than storage. <br />It's your central digital hub.
-              </h3>
+              </h2>
               <p className="text-lg text-gray-600 dark:text-[#94A3B8] mb-8">
                 DataStock brings together intelligent indexing, seamless cloud backup, and instant team collaboration into one simple interface.
               </p>
@@ -793,7 +811,11 @@ const HomePage = () => {
               <div className="absolute inset-0 bg-[#3B82F6] rounded-3xl transform rotate-3 scale-105 opacity-10"></div>
               <img
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
-                alt="Person using cloud storage on laptop"
+                alt="Analytics dashboard on a laptop used to manage cloud files"
+                width={1000}
+                height={650}
+                loading="lazy"
+                decoding="async"
                 className="rounded-3xl shadow-2xl relative z-10 object-cover h-130 w-full border border-gray-200 dark:border-[#334155]"
               />
 
@@ -984,20 +1006,23 @@ const HomePage = () => {
           <p className="mt-6 text-sm text-gray-500 dark:text-[#94A3B8]">Takes less than 30 seconds. No credit card required.</p>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="bg-gray-50 dark:bg-[#0F172A] pt-20 pb-10 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-[#334155] transition-colors">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12 mb-16">
             <div className="col-span-2 lg:col-span-2">
-              <div className="flex items-center space-x-3 mb-6 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <Link to="/" className="flex items-center space-x-3 mb-6 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <img 
                   src="/datastock-logo.svg" 
-                  alt="DataStock Logo" 
+                  alt="DataStock" 
+                  width={36}
+                  height={36}
                   className="w-9 h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200" 
                 />
                 <span className="font-extrabold text-xl text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
-              </div>
+              </Link>
               <p className="text-gray-500 dark:text-[#94A3B8] mb-6 max-w-xs leading-relaxed text-sm">
                 The most secure, beautiful, and intelligent home for all your files. Built for modern teams and creators.
               </p>
@@ -1016,7 +1041,7 @@ const HomePage = () => {
             <div>
               <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 uppercase text-xs tracking-wider">Resources</h4>
               <ul className="space-y-3 text-sm">
-                <li><button onClick={() => navigate('/help')} className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Help & Docs</button></li>
+                <li><Link to="/help" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Help Center</Link></li>
                 <li><button onClick={() => setShowDemoModal(true)} className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Product Tour</button></li>
                 <li><button onClick={() => setShowContactModal(true)} className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Contact Support</button></li>
               </ul>
@@ -1025,9 +1050,9 @@ const HomePage = () => {
             <div>
               <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 uppercase text-xs tracking-wider">Legal</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Terms of Service</a></li>
-                <li><a href="#" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Cookie Policy</a></li>
+                <li><Link to="/help" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Terms of Service</Link></li>
+                <li><Link to="/help" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Privacy Policy</Link></li>
+                <li><Link to="/help" className="text-gray-500 dark:text-[#94A3B8] hover:text-[#3B82F6]">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>

@@ -7,10 +7,11 @@ import {
   Settings, Star, Gift, ShieldAlert, ShieldCheck, Lock, Unlock, Eye, EyeOff, Key
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useCrypto } from "../context/CryptoContext";
 import { getErrorMessage } from "../utils/errorMessage";
+import SeoHead from "../seo/SeoHead";
+import { getPageSeo } from "../seo/config";
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -302,8 +303,16 @@ export default function ProfilePage() {
     );
   }
 
+  const profileSeo = getPageSeo("profile");
+
   return (
     <div className="h-full overflow-y-auto bg-linear-to-br from-gray-50 to-green-50 dark:from-slate-950 dark:to-slate-900 transition-colors duration-200">
+      <SeoHead
+        title={profileSeo?.title || "Account Settings | DataStock"}
+        description={profileSeo?.description || "Manage your DataStock profile and settings."}
+        path="/profile"
+        noindex
+      />
       {/* ---------- Success Toast ---------- */}
       {successMessage && (
         <div className="fixed top-20 right-6 z-50 animate-slide-down">

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProfile } from '../store/slices/authSlice';
 import { authFetch, apiUrl } from '../utils/auth';
@@ -41,7 +41,7 @@ export const CryptoProvider = ({ children }) => {
     }
   }, [user]);
 
-  const setupE2ee = async (passphrase) => {
+  const setupE2ee = useCallback(async (passphrase) => {
     setLoading(true);
     setError(null);
     try {
@@ -101,9 +101,9 @@ export const CryptoProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  const unlockE2ee = async (passphrase) => {
+  const unlockE2ee = useCallback(async (passphrase) => {
     if (!isE2eeSetup) {
       throw new Error('E2EE is not set up yet.');
     }
@@ -146,30 +146,40 @@ export const CryptoProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isE2eeSetup, user]);
 
-  const lockE2ee = () => {
+  const lockE2ee = useCallback(() => {
     setMasterKey(null);
     setPrivateKey(null);
     setIsE2eeUnlocked(false);
     setError(null);
     clearCryptoWorker();
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    isE2eeSetup,
+    isE2eeUnlocked,
+    masterKey,
+    privateKey,
+    setupE2ee,
+    unlockE2ee,
+    lockE2ee,
+    loading,
+    error,
+  }), [
+    isE2eeSetup,
+    isE2eeUnlocked,
+    masterKey,
+    privateKey,
+    setupE2ee,
+    unlockE2ee,
+    lockE2ee,
+    loading,
+    error,
+  ]);
 
   return (
-    <CryptoContext.Provider
-      value={{
-        isE2eeSetup,
-        isE2eeUnlocked,
-        masterKey,
-        privateKey,
-        setupE2ee,
-        unlockE2ee,
-        lockE2ee,
-        loading,
-        error,
-      }}
-    >
+    <CryptoContext.Provider value={contextValue}>
       {children}
     </CryptoContext.Provider>
   );

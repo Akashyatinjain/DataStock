@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
-import JSZip from 'jszip';
 import {
   X,
   FileText,
@@ -534,6 +531,8 @@ const FilePreviewModal = ({
         }
 
         try {
+          const mammothMod = await import('mammoth');
+          const mammoth = mammothMod.default || mammothMod;
           const result = await mammoth.convertToHtml({ arrayBuffer });
           if (active) {
             if (result && result.value) {
@@ -563,6 +562,7 @@ const FilePreviewModal = ({
   // --- XLSX / CSV SPREADSHEET CLIENT-SIDE PARSER EFFECT ---
   useEffect(() => {
     if (isOpen && (isExcel || isCsv) && url) {
+      let active = true;
       setXlsxLoading(true);
       setXlsxError(null);
       fetch(url)
@@ -570,7 +570,9 @@ const FilePreviewModal = ({
           if (!res.ok) throw new Error("Failed to fetch spreadsheet file");
           return res.arrayBuffer();
         })
-        .then((buffer) => {
+        .then(async (buffer) => {
+          const XLSX = await import('xlsx');
+          if (!active) return;
           const wb = XLSX.read(buffer, { type: 'array' });
           const sheetsMap = {};
           wb.SheetNames.forEach((name) => {
@@ -583,15 +585,21 @@ const FilePreviewModal = ({
         })
         .catch((err) => {
           console.error("Spreadsheet parsing error:", err);
-          setXlsxError("Failed to parse spreadsheet content.");
-          setXlsxLoading(false);
+          if (active) {
+            setXlsxError("Failed to parse spreadsheet content.");
+            setXlsxLoading(false);
+          }
         });
+      return () => {
+        active = false;
+      };
     }
   }, [isOpen, fileId, isExcel, isCsv, url]);
 
   // --- ZIP ARCHIVE INSPECTOR PARSER EFFECT ---
   useEffect(() => {
     if (isOpen && isArchive && url) {
+      let active = true;
       setZipLoading(true);
       setZipError(null);
       fetch(url)
@@ -599,8 +607,13 @@ const FilePreviewModal = ({
           if (!res.ok) throw new Error("Failed to fetch archive file");
           return res.arrayBuffer();
         })
-        .then((buffer) => JSZip.loadAsync(buffer))
+        .then(async (buffer) => {
+          const jszipMod = await import('jszip');
+          const JSZip = jszipMod.default || jszipMod;
+          return JSZip.loadAsync(buffer);
+        })
         .then((zip) => {
+          if (!active || !zip) return;
           const entries = [];
           zip.forEach((relativePath, entry) => {
             entries.push({
@@ -615,9 +628,14 @@ const FilePreviewModal = ({
         })
         .catch((err) => {
           console.error("ZIP parsing error:", err);
-          setZipError("Failed to extract zip archive structure.");
-          setZipLoading(false);
+          if (active) {
+            setZipError("Failed to extract zip archive structure.");
+            setZipLoading(false);
+          }
         });
+      return () => {
+        active = false;
+      };
     }
   }, [isOpen, fileId, isArchive, url]);
 

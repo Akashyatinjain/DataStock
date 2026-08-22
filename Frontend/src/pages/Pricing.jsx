@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import SeoHead from "../seo/SeoHead";
+import { getPageSeo } from "../seo/config";
+import { jsonLdForPublicRoute } from "../seo/structuredData";
 import {
   Cloud,
   CheckCircle2,
@@ -176,26 +179,37 @@ export default function Pricing() {
   const displayUsedStorage = formatStorage(storageUsed);
   const displayLimitStorage = formatStorage(storageLimit);
 
+  const pricingSeo = getPageSeo("pricing");
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-['Inter'] selection:bg-blue-200 selection:text-blue-900 overflow-x-hidden transition-colors duration-200">
+      <SeoHead
+        title={pricingSeo.title}
+        description={pricingSeo.description}
+        path={pricingSeo.path}
+        keywords={pricingSeo.keywords}
+        jsonLd={jsonLdForPublicRoute("pricing")}
+      />
       
       {/* NAVBAR */}
-      <nav className="relative z-20 bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-gray-200 dark:border-[#334155]">
+      <nav className="relative z-20 bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-gray-200 dark:border-[#334155]" aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div
-              className="flex items-center space-x-3 cursor-pointer group"
-              onClick={() => navigate("/")}
+            <Link
+              to="/"
+              className="flex items-center space-x-3 group"
             >
               <img 
                 src="/datastock-logo.svg" 
-                alt="DataStock Logo" 
+                alt="DataStock" 
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20" 
               />
               <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">
                 Data<span className="text-[#3B82F6]">Stock</span>
               </span>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-4">
               <ThemeToggle />
@@ -229,7 +243,7 @@ export default function Pricing() {
       </nav>
 
       {/* MAIN CONTENT */}
-      <section className="relative z-10 pt-10 pb-20 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="relative z-10 pt-10 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto relative">
           
           {/* Hero Header */}
@@ -528,27 +542,29 @@ export default function Pricing() {
             </div>
           </div>
         </div>
-      </section>
+      </main>
 
       {/* FOOTER */}
       <footer className="relative z-10 bg-white dark:bg-[#0F172A] border-t border-gray-200 dark:border-[#334155] pt-12 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 pb-8 border-b border-gray-200 dark:border-[#334155]">
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => navigate("/")}>
+            <Link to="/" className="flex items-center space-x-3 group">
               <img 
                 src="/datastock-logo.svg" 
-                alt="DataStock Logo" 
+                alt="DataStock" 
+                width={36}
+                height={36}
                 className="w-9 h-9 rounded-xl shadow-md group-hover:scale-105 transition-transform duration-200" 
               />
               <span className="font-extrabold text-xl text-gray-900 dark:text-white">Data<span className="text-[#3B82F6]">Stock</span></span>
-            </div>
+            </Link>
 
             <div className="flex flex-wrap justify-center gap-6 text-xs sm:text-sm font-semibold text-gray-600 dark:text-[#94A3B8]">
-              <button onClick={() => navigate("/help")} className="hover:text-[#3B82F6] transition">Docs</button>
-              <button onClick={() => navigate("/help")} className="hover:text-[#3B82F6] transition">Security</button>
-              <button onClick={() => navigate("/help")} className="hover:text-[#3B82F6] transition">Privacy</button>
-              <button onClick={() => navigate("/help")} className="hover:text-[#3B82F6] transition">Terms</button>
-              <button onClick={() => navigate("/help")} className="hover:text-[#3B82F6] transition">Contact</button>
+              <Link to="/help" className="hover:text-[#3B82F6] transition">Help Center</Link>
+              <Link to="/#security" className="hover:text-[#3B82F6] transition">Security</Link>
+              <Link to="/help" className="hover:text-[#3B82F6] transition">Privacy</Link>
+              <Link to="/help" className="hover:text-[#3B82F6] transition">Terms</Link>
+              <Link to="/help" className="hover:text-[#3B82F6] transition">Contact</Link>
               <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-[#3B82F6] transition flex items-center gap-1">
                 <Github className="w-4 h-4" /> GitHub
               </a>

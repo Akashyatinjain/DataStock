@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFiles } from '../../../store/slices/filesSlice';
@@ -78,16 +78,22 @@ const Sidebar = ({
   const closeMobile = () => isMobile && setIsMobileMenuOpen(false);
 
   useEffect(() => {
+    let timeoutId = null;
     const check = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsMobileMenuOpen(false);
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const mobile = window.innerWidth < 1024;
+        setIsMobile(mobile);
+        if (mobile) {
+          setIsMobileMenuOpen(false);
+        }
+      }, 150);
     };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    window.addEventListener('resize', check, { passive: true });
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', check);
+    };
   }, [setIsMobileMenuOpen]);
 
   useEffect(() => {
@@ -260,4 +266,4 @@ const Sidebar = ({
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

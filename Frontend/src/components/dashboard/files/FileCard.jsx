@@ -92,7 +92,7 @@ const FileCard = ({
         } catch (err) {}
       }
       if (onToggleSelect) {
-        onToggleSelect({ stopPropagation: () => {} });
+        onToggleSelect({ stopPropagation: () => {} }, file.id);
       }
     }, 600);
   };
@@ -192,7 +192,7 @@ const FileCard = ({
           }`}
           onClick={(e) => {
             e.stopPropagation();
-            if (onToggleSelect) onToggleSelect(e);
+            if (onToggleSelect) onToggleSelect(e, file.id);
           }}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
@@ -255,6 +255,8 @@ const FileCard = ({
               <img
                 src={file.url}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 onError={() => setImgError(true)}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -477,4 +479,4 @@ const FileCard = ({
   );
 };
 
-export default FileCard;
+export default React.memo(FileCard);

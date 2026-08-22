@@ -75,7 +75,7 @@ const FileRow = ({
         } catch (err) {}
       }
       if (onToggleSelect) {
-        onToggleSelect({ stopPropagation: () => {} });
+        onToggleSelect({ stopPropagation: () => {} }, file.id);
       }
     }, 600);
   };
@@ -159,7 +159,7 @@ const FileRow = ({
             }`}
             onClick={(e) => {
               e.stopPropagation();
-              if (onToggleSelect) onToggleSelect(e);
+              if (onToggleSelect) onToggleSelect(e, file.id);
             }}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -371,4 +371,4 @@ const FileRow = ({
   );
 };
 
-export default FileRow;
+export default React.memo(FileRow);

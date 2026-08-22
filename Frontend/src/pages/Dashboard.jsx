@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JSZip from 'jszip';
 import {
   Plus,
   Folder,
@@ -111,6 +110,8 @@ import StorageAnalyticsView from '../components/dashboard/StorageAnalyticsView';
 import NotificationsView from '../components/dashboard/NotificationsView';
 import FileCard from '../components/dashboard/files/FileCard';
 import FileRow from '../components/dashboard/files/FileRow';
+import SeoHead from '../seo/SeoHead';
+import { getPageSeo } from '../seo/config';
 import VirtualizedFileGrid from '../components/dashboard/files/VirtualizedFileGrid';
 import VirtualizedFileList from '../components/dashboard/files/VirtualizedFileList';
 import SuggestedFileCard from '../components/dashboard/files/SuggestedFileCard';
@@ -675,6 +676,30 @@ const Dashboard = () => {
   const totalFoldersCount = folders?.length || 0;
   const totalSharedFilesCount = allFiles?.filter(f => f.isShared || f.sharedWith?.length > 0 || f._isDirectlyShared || f._isSharedDescendant).length || 0;
 
+  const sidebarStorageData = useMemo(() => ({
+    used: usedGB,
+    total: totalGB,
+    usedLabel: usedFormatted,
+    totalLabel: totalFormatted,
+    plan: user?.subscriptionPlan || 'BASIC',
+    categories: [],
+  }), [usedGB, totalGB, usedFormatted, totalFormatted, user?.subscriptionPlan]);
+
+  const handleSidebarFileUploaded = useCallback((file) => {
+    dispatch(addUploadedFile(normalizeFile(file)));
+    refreshAllFiles();
+  }, [dispatch, refreshAllFiles]);
+
+  const handleSidebarFolderCreated = useCallback(() => {
+    dispatch(fetchFolders());
+  }, [dispatch]);
+
+  const handleSidebarFolderDeleted = useCallback((folderId) => {
+    dispatch(fetchFolders());
+    refreshAllFiles();
+    if (selectedFolderId === folderId) loadFiles(null);
+  }, [dispatch, refreshAllFiles, selectedFolderId, loadFiles]);
+
   const suggestedFiles = useMemo(() => {
     if (!decryptedAllFiles || decryptedAllFiles.length === 0) return [];
     return [...decryptedAllFiles]
@@ -863,14 +888,16 @@ const Dashboard = () => {
     return { title: 'No items found', desc: 'Get started by uploading a file or creating a folder', showUpload: true };
   }, [activeTab, searchQuery, selectedFolder]);
 
+  const deferredSearchQuery = React.useDeferredValue(searchQuery);
+
   const decryptedDisplayFiles = useDecryptedFiles(displayFiles);
 
   const filteredFiles = useMemo(() =>
     decryptedDisplayFiles.filter(f =>
-      (f.originalName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (f.ocrText || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (f.originalName || '').toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+      (f.ocrText || '').toLowerCase().includes(deferredSearchQuery.toLowerCase())
     ),
-    [decryptedDisplayFiles, searchQuery]
+    [decryptedDisplayFiles, deferredSearchQuery]
   );
 
   const handleUpload = async (e) => {
@@ -1261,6 +1288,8 @@ const Dashboard = () => {
     // Multi-file download (2+ files): Bundle into a single ZIP using JSZip to avoid browser multi-file download popup blocks and memory crashes
     addToast(`Packaging ${filesToDownload.length} files into ZIP archive…`, "info");
     try {
+      const jszipMod = await import('jszip');
+      const JSZip = jszipMod.default || jszipMod;
       const zip = new JSZip();
       let addedCount = 0;
 
@@ -1442,6 +1471,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] transition-colors duration-200">
+      <SeoHead
+        title={getPageSeo("dashboard").title}
+        description={getPageSeo("dashboard").description}
+        path="/dashboard"
+        noindex
+      />
 
       {/* Inline keyframes */}
       <style>{`
@@ -1482,38 +1517,25 @@ const Dashboard = () => {
         setSidebarCollapsed={setSidebarCollapsed}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        storageData={{
-          used: usedGB,
-          total: totalGB,
-          usedLabel: usedFormatted,
-          totalLabel: totalFormatted,
-          plan: user?.subscriptionPlan || 'BASIC',
-          categories: [],
-        }}
+        storageData={sidebarStorageData}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         syncFiles
         files={files}
         allFiles={allFiles}
-        onFileUploaded={(file) => {
-          dispatch(addUploadedFile(normalizeFile(file)));
-          refreshAllFiles();
-        }}
+        onFileUploaded={handleSidebarFileUploaded}
         onFilesChanged={refreshAllFiles}
         syncFolders
         folders={folders}
         foldersLoading={foldersLoading}
-        onFolderCreated={() => dispatch(fetchFolders())}
-        onFolderDeleted={(folderId) => {
-          dispatch(fetchFolders());
-          refreshAllFiles();
-          if (selectedFolderId === folderId) loadFiles(null);
-        }}
+        onFolderCreated={handleSidebarFolderCreated}
+        onFolderDeleted={handleSidebarFolderDeleted}
         onMoveFile={handleMoveFile}
         onShareFolder={handleShareFolder}
       />
 
       <main
+        id="main-content"
         className={`w-full md:w-auto pt-14 md:pt-16 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
           }`}
       >

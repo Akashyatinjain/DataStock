@@ -55,31 +55,7 @@ const Header = ({
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (user?.id) {
-      const activeSocket = connectSocket();
-
-      const joinUserRoom = () => {
-        if (activeSocket.connected && user?.id) {
-          activeSocket.emit("join", user.id);
-        }
-      };
-
-      joinUserRoom();
-      activeSocket.on("connect", joinUserRoom);
-
-      const handleNewNotification = (notification) => {
-        dispatch(addNotification(notification));
-      };
-
-      activeSocket.on("notification", handleNewNotification);
-
-      return () => {
-        activeSocket.off("connect", joinUserRoom);
-        activeSocket.off("notification", handleNewNotification);
-      };
-    }
-  }, [user, dispatch]);
+  // Socket notifications are managed centrally in Dashboard / socket manager
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -341,4 +317,4 @@ const Header = ({
   );
 };
 
-export default Header;
+export default React.memo(Header);

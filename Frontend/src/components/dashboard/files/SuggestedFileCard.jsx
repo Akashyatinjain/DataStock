@@ -73,4 +73,4 @@ const SuggestedFileCard = ({ file, onPreview }) => {
   );
 };
 
-export default SuggestedFileCard;
+export default React.memo(SuggestedFileCard);

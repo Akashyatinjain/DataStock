@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import FileRow from './FileRow';
 import { useMarqueeSelection } from '../../../hooks/useMarqueeSelection';
 
@@ -48,14 +48,14 @@ const VirtualizedFileList = ({
   });
 
   // Enhanced toggle that supports Shift+Click range selection
-  const handleEnhancedToggle = (e, fileId) => {
+  const handleEnhancedToggle = useCallback((e, fileId) => {
     if (e.shiftKey) {
       handleShiftClick(fileId);
       return;
     }
     trackLastClicked(fileId);
     if (onToggleSelect) onToggleSelect(e, fileId);
-  };
+  }, [handleShiftClick, trackLastClicked, onToggleSelect]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -117,14 +117,14 @@ const VirtualizedFileList = ({
     const startRowRaw = Math.floor(relativeScrollY / ESTIMATED_ROW_HEIGHT);
     const visibleRowCount = Math.ceil(viewportHeight / ESTIMATED_ROW_HEIGHT);
 
-    const startIndex = Math.max(0, startRowRaw - OVERSCAN_ROWS);
-    const endIndex = Math.min(totalItems, startRowRaw + visibleRowCount + OVERSCAN_ROWS);
+    const startRow = Math.max(0, startRowRaw - OVERSCAN_ROWS);
+    const endRow = Math.min(totalItems, startRowRaw + visibleRowCount + OVERSCAN_ROWS);
 
-    const topSpacer = startIndex * ESTIMATED_ROW_HEIGHT;
-    const bottomSpacer = Math.max(0, (totalItems - endIndex) * ESTIMATED_ROW_HEIGHT);
+    const topSpacer = startRow * ESTIMATED_ROW_HEIGHT;
+    const bottomSpacer = Math.max(0, (totalItems - endRow) * ESTIMATED_ROW_HEIGHT);
 
     return {
-      visibleFiles: files.slice(startIndex, endIndex),
+      visibleFiles: files.slice(startRow, endRow),
       topSpacerHeight: topSpacer,
       bottomSpacerHeight: bottomSpacer,
     };
@@ -240,7 +240,7 @@ const VirtualizedFileList = ({
           onRestore={onRestore}
           restoringId={restoringId}
           isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
-          onToggleSelect={(e) => handleEnhancedToggle(e, file.id)}
+          onToggleSelect={handleEnhancedToggle}
           onExtract={onExtract}
           selectedFileIds={selectedFileIds}
         />

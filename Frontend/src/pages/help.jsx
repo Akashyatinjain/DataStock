@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Search,
   HelpCircle,
@@ -32,6 +32,10 @@ import {
 
 import Header from '../components/dashboard/layout/Header';
 import ThemeToggle from '../components/ui/ThemeToggle';
+import SeoHead from '../seo/SeoHead';
+import { getPageSeo } from '../seo/config';
+import { jsonLdForPublicRoute } from '../seo/structuredData';
+import { FAQ_ITEMS } from '../seo/faq';
 
 const HELP_ARTICLES = [
   {
@@ -154,34 +158,6 @@ const HELP_ARTICLES = [
       'We accept major credit cards and UPI for Indian users.',
       'Contact billing@datastock.app for any payment or refund questions.',
     ],
-  },
-];
-
-const FAQ_ITEMS = [
-  {
-    question: 'How do I invite team members to shared folders?',
-    answer:
-      "Open a file or folder, click Share, enter their email, and set permission to View or Edit. They'll receive a notification and the file will appear under their Shared tab.",
-  },
-  {
-    question: 'What file types are supported for preview?',
-    answer:
-      'DataStock supports preview for images (JPEG, PNG, GIF, WebP), videos (MP4, MOV), PDFs, and plain text files. Other types can be downloaded.',
-  },
-  {
-    question: 'How is my data protected?',
-    answer:
-      'Files are stored securely on Cloudinary with encrypted HTTPS transfer. Your account is protected by password or Google OAuth sign-in.',
-  },
-  {
-    question: 'How do I star a file for quick access?',
-    answer:
-      'Hover over any file in My Drive and click the star icon. Starred files appear under the Starred tab in the sidebar.',
-  },
-  {
-    question: 'What happens when I reach my storage limit?',
-    answer:
-      "You'll see your usage on the Dashboard progress bar. New uploads may fail once you hit 10 GB — delete unused files or empty Trash to free space.",
   },
 ];
 
@@ -410,6 +386,13 @@ const HelpPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#0F172A] transition-colors duration-200">
+      <SeoHead
+        title={getPageSeo("help").title}
+        description={getPageSeo("help").description}
+        path="/help"
+        keywords={getPageSeo("help").keywords}
+        jsonLd={jsonLdForPublicRoute("help")}
+      />
       <style>{`
         @keyframes slide-in {
           from { opacity: 0; transform: translateX(2rem); }
@@ -430,7 +413,7 @@ const HelpPage = () => {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      <div className="pt-14 sm:pt-16">
+      <main id="main-content" className="pt-14 sm:pt-16">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -755,13 +738,13 @@ const HelpPage = () => {
               <span>© 2026 DataStock. All rights reserved.</span>
             </div>
             <div className="flex gap-4">
-              <button onClick={() => navigate('/')} className="hover:text-gray-700 dark:hover:text-gray-200 transition">Home</button>
-              <button onClick={() => navigate('/login')} className="hover:text-gray-700 dark:hover:text-gray-200 transition">Login</button>
-              <button onClick={() => navigate('/signup')} className="hover:text-gray-700 dark:hover:text-gray-200 transition">Sign Up</button>
+              <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-200 transition">Home</Link>
+              <Link to="/login" className="hover:text-gray-700 dark:hover:text-gray-200 transition">Login</Link>
+              <Link to="/signup" className="hover:text-gray-700 dark:hover:text-gray-200 transition">Sign Up</Link>
             </div>
           </div>
         </footer>
-      </div>
+      </main>
 
       {showContactModal && (
         <ContactModal

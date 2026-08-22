@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /help
+Allow: /login
+Allow: /signup
+
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /settings
+Disallow: /notifications
+Disallow: /trash
+Disallow: /payment-success
+Disallow: /share/
+
+Sitemap: https://data-stock.vercel.app/sitemap.xml

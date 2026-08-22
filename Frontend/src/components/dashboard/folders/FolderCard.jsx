@@ -12,7 +12,7 @@ const formatFolderSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-export default function FolderCard({
+function FolderCard({
   folder,
   activeTab,
   setActiveTab,
@@ -225,14 +225,14 @@ export default function FolderCard({
     )}
   </div>
 
-  {
-    isDownloading && (
-      <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
-        <Loader2 className="w-6 h-6 text-[#3B82F6] animate-spin mb-1" />
-        <span className="text-[11px] font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
-      </div>
-    )
-  }
-    </div >
+  {isDownloading && (
+    <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
+      <Loader2 className="w-6 h-6 text-[#3B82F6] animate-spin mb-1" />
+      <span className="text-[11px] font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
+    </div>
+  )}
+    </div>
   );
 }
+
+export default React.memo(FolderCard);

@@ -38,6 +38,10 @@ html, body {
   min-height: 100%;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;

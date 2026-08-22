@@ -1522,7 +1522,7 @@ const Dashboard = () => {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 pb-20 sm:pb-28 max-w-[1920px] w-full relative"
+          className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 pb-32 sm:pb-28 max-w-[1920px] w-full relative"
         >
           {isDraggingFile && (
             <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
@@ -1909,7 +1909,7 @@ const Dashboard = () => {
                   }}
                   className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition flex items-center gap-1.5"
                 >
-                  <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select"}</span>
+                  <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select All"}</span>
                 </button>
 
                 {/* View Mode Toggle */}
@@ -2098,7 +2098,7 @@ const Dashboard = () => {
         </div>
 
         {/* MOBILE BOTTOM NAVIGATION BAR (Point 21) */}
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-xl border-t border-gray-200/90 dark:border-[#334155] px-3 py-2 flex items-center justify-around z-50 shadow-2xl">
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-xl border-t border-gray-200/90 dark:border-[#334155] px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around z-40 shadow-2xl">
           {/* 1. Drive */}
           <button
             onClick={() => setActiveTab('my-drive')}
@@ -2229,7 +2229,7 @@ const Dashboard = () => {
 
       {/* BULK ACTIONS FLOATING DOCK — Google Drive / macOS Finder Style */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed inset-x-4 bottom-6 z-50 mx-auto max-w-2xl bg-slate-950/90 dark:bg-[#0B1120]/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-white animate-fade-up">
+        <div className="fixed inset-x-3 sm:inset-x-4 bottom-20 sm:bottom-6 z-50 mx-auto max-w-2xl bg-slate-950/95 dark:bg-[#0B1120]/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-white animate-fade-up">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Counter badge & Select all / Deselect */}
             <div className="flex items-center gap-2 pl-2">

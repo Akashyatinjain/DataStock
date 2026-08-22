@@ -185,19 +185,34 @@ const FileCard = ({
       {/* Checkbox Overlay */}
       {!isTrashView && onToggleSelect && (
         <div
-          className={`absolute top-2.5 left-2.5 z-20 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-          onClick={(e) => e.stopPropagation()}
+          className={`absolute top-2.5 left-2.5 z-20 transition-all duration-150 ${
+            isSelected || (selectedFileIds && selectedFileIds.size > 0)
+              ? 'opacity-100 scale-100'
+              : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onToggleSelect) onToggleSelect(e);
+          }}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
           onMouseUp={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
+          title={isSelected ? 'Deselect file' : 'Select file'}
         >
-          <input
-            type="checkbox"
-            checked={!!isSelected}
-            onChange={onToggleSelect}
-            className="w-4 h-4 text-[#3B82F6] rounded border-gray-300 focus:ring-[#3B82F6] cursor-pointer shadow-xs"
-          />
+          <div
+            className={`w-5 h-5 rounded-md flex items-center justify-center cursor-pointer transition-all shadow-xs ${
+              isSelected
+                ? 'bg-[#3B82F6] text-white ring-2 ring-white dark:ring-[#1E293B] shadow-sm shadow-blue-500/30'
+                : 'bg-white/90 dark:bg-slate-800/90 border border-gray-300 dark:border-slate-600 backdrop-blur-md hover:border-[#3B82F6]'
+            }`}
+          >
+            {isSelected && (
+              <svg className="w-3.5 h-3.5 stroke-current stroke-[3] fill-none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
         </div>
       )}
 
@@ -223,7 +238,7 @@ const FileCard = ({
         {file.mimeType?.includes('image') ? (
           isLocked || imgError || (isEncrypted && !file.url) ? (
             <div className="h-20 sm:h-24 overflow-hidden bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 dark:from-slate-950 dark:via-amber-950/60 dark:to-slate-950 relative flex flex-col items-center justify-center border-b border-amber-500/20 select-none group">
-              <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-xs">
                 <Lock className="w-2.5 h-2.5 text-amber-400" /> {type.label}
               </span>
               <div className="flex flex-col items-center justify-center gap-1.5 transition-transform duration-300 group-hover:scale-105">
@@ -243,8 +258,8 @@ const FileCard = ({
                 onError={() => setImgError(true)}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              {/* File type badge overlay directly on image */}
-              <span className="absolute top-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
+              {/* File type badge overlay positioned at bottom-left so it never collides with top-left checkbox */}
+              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
                 {type.label}
               </span>
             </div>
@@ -263,9 +278,6 @@ const FileCard = ({
             <Icon
               className={`w-5 h-5 sm:w-6 sm:h-6 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
             />
-            <span className="absolute bottom-1 right-2 text-[8px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-black/25 dark:bg-black/50 text-white backdrop-blur-xs">
-              {type.label}
-            </span>
           </div>
         )}
       </div>

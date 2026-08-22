@@ -51,3 +51,16 @@
 .dark * {
   scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
 }
+
+/* On mobile touch devices, use native auto-hiding scrollbars to prevent static scrollbar tracks */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    display: none;
+  }
+  * {
+    scrollbar-width: none;
+  }
+}
+

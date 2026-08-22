@@ -152,19 +152,34 @@ const FileRow = ({
       <div className="col-span-1 md:col-span-6 flex items-center gap-3 min-w-0">
         {!isTrashView && onToggleSelect && (
           <div
-            className={`mr-1 shrink-0 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`}
-            onClick={(e) => e.stopPropagation()}
+            className={`mr-1 shrink-0 transition-opacity duration-200 ${
+              isSelected || (selectedFileIds && selectedFileIds.size > 0)
+                ? 'opacity-100'
+                : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onToggleSelect) onToggleSelect(e);
+            }}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onMouseUp={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
+            title={isSelected ? 'Deselect file' : 'Select file'}
           >
-            <input
-              type="checkbox"
-              checked={!!isSelected}
-              onChange={onToggleSelect}
-              className="w-4 h-4 text-[#3B82F6] bg-white dark:bg-[#334155] border-gray-300 dark:border-[#334155] rounded focus:ring-[#3B82F6] cursor-pointer shadow-xs focus:ring-2 focus:ring-offset-0"
-            />
+            <div
+              className={`w-4.5 h-4.5 rounded flex items-center justify-center cursor-pointer transition-all shadow-xs ${
+                isSelected
+                  ? 'bg-[#3B82F6] text-white'
+                  : 'bg-white dark:bg-[#334155] border border-gray-300 dark:border-slate-600 hover:border-[#3B82F6]'
+              }`}
+            >
+              {isSelected && (
+                <svg className="w-3 h-3 stroke-current stroke-[3] fill-none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
           </div>
         )}
         <div

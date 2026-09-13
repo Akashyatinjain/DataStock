@@ -13,25 +13,21 @@ import {
   CreditCard,
   Upload,
   Users,
-  FolderKanban,
-  HardDrive,
-  LifeBuoy,
   FileText,
   MessageSquare,
-  Star,
   Shield,
   Clock,
   ArrowRight,
   ArrowLeft,
   X,
   CheckCircle2,
-  Share2,
-  Trash2,
   Cloud,
+  Star,
+  LifeBuoy,
 } from 'lucide-react';
 
-import Header from '../components/dashboard/layout/Header';
 import ThemeToggle from '../components/ui/ThemeToggle';
+import Header from '../components/dashboard/layout/Header';
 import SeoHead from '../seo/SeoHead';
 import { getPageSeo } from '../seo/config';
 import { jsonLdForPublicRoute } from '../seo/structuredData';

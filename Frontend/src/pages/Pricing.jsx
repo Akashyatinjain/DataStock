@@ -13,12 +13,10 @@ import {
   Shield,
   Users,
   HardDrive,
-  Clock,
-  Database,
   Sparkles,
+  Database,
+  Clock,
   Github,
-  Lock,
-  X
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { startCheckout } from "../store/slices/paymentSlice";
@@ -43,8 +41,8 @@ const PLANS = [
     ],
     ctaText: "Start Free Plan",
     icon: Cloud,
-    gradient: "from-slate-600 to-slate-700",
-    buttonStyle: "bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-700 dark:hover:bg-slate-600",
+    gradient: "from-ds-text-secondary to-slate-700",
+    buttonStyle: "bg-ds-text-secondary hover:bg-slate-800 text-white dark:bg-slate-700 dark:hover:bg-slate-600",
     cardBorder: "border-gray-200 dark:border-[#334155]",
     glow: "shadow-md hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-600",
     badge: null
@@ -67,10 +65,10 @@ const PLANS = [
     ctaText: "Unlock Pro Today",
     popular: true,
     icon: Zap,
-    gradient: "from-[#3B82F6] to-blue-600",
-    buttonStyle: "bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/25",
-    cardBorder: "border-[#3B82F6] dark:border-[#3B82F6]",
-    glow: "shadow-xl shadow-blue-500/20 dark:shadow-blue-500/30",
+    gradient: "from-ds-brand to-blue-700",
+    buttonStyle: "bg-ds-brand hover:bg-ds-brand-hover text-white shadow-lg shadow-ds-brand/25",
+    cardBorder: "border-ds-brand dark:border-ds-brand",
+    glow: "shadow-xl shadow-ds-brand/20 dark:shadow-ds-brand/30",
     badge: "Most Popular"
   },
   {
@@ -90,10 +88,10 @@ const PLANS = [
     ],
     ctaText: "Get Family Pass",
     icon: Crown,
-    gradient: "from-purple-600 to-indigo-600",
-    buttonStyle: "bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/30",
-    cardBorder: "border-purple-500 dark:border-purple-500",
-    glow: "shadow-xl shadow-purple-500/25 dark:shadow-purple-500/35",
+    gradient: "from-ds-file-presentation to-purple-700",
+    buttonStyle: "bg-linear-to-r from-ds-file-presentation to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg shadow-ds-file-presentation/30",
+    cardBorder: "border-ds-file-presentation dark:border-ds-file-presentation",
+    glow: "shadow-xl shadow-ds-file-presentation/25 dark:shadow-ds-file-presentation/35",
     badge: "Best Value"
   }
 ];

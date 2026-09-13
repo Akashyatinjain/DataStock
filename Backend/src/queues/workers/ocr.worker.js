@@ -3,13 +3,11 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import axios from "axios";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../config/db.js";
 import { extractText } from "../../utils/ocr.js";
 import { invalidateUserFilesCache } from "../../services/cache.service.js";
 import { getIO } from "../../socket.js";
 import { getRedisConnectionOptions } from "../queue.config.js";
-
-const prisma = new PrismaClient();
 
 /**
  * Core OCR worker processing function
@@ -124,12 +122,11 @@ export const initOcrWorker = () => {
       console.warn(`⚠️ [OCR Worker] Job #${job?.id} failed (attempt ${job?.attemptsMade}): ${err.message}`);
     });
 
-    let lastWorkerErrorLog = 0;
-    ocrWorker.on("error", (err) => {
-      const now = Date.now();
-      if (now - lastWorkerErrorLog > 60000) {
-        lastWorkerErrorLog = now;
-        console.warn("⚠️ BullMQ OCR Worker notice (fallback mode active):", err.message);
+    let hasLoggedOcrNotice = false;
+    ocrWorker.on("error", () => {
+      if (!hasLoggedOcrNotice) {
+        hasLoggedOcrNotice = true;
+        console.warn("⚠️ BullMQ OCR Worker operating in background fallback mode (Redis offline).");
       }
     });
 

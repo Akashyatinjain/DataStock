@@ -1,5 +1,6 @@
 import dodoClient from "../../services/dodo.service.js";
 import prisma from "../../config/db.js";
+import { invalidateUserStorageCache } from "../../services/cache.service.js";
 
 const STORAGE_LIMITS = {
   BASIC: BigInt(10 * 1024 * 1024 * 1024),
@@ -162,6 +163,8 @@ export const handleWebhook = async (req, res) => {
           },
         });
 
+        await invalidateUserStorageCache(userId);
+
         console.log(`[Dodo Webhook] User ${userId} upgraded to ${plan}`);
         break;
       }
@@ -181,6 +184,8 @@ export const handleWebhook = async (req, res) => {
               storageLimit: STORAGE_LIMITS.BASIC,
             },
           });
+
+          await invalidateUserStorageCache(userId);
 
           console.log(`[Dodo Webhook] User ${userId} downgraded to BASIC`);
         }
@@ -205,6 +210,9 @@ export const handleWebhook = async (req, res) => {
               storageLimit: getStorageLimit(plan),
             },
           });
+
+          await invalidateUserStorageCache(userId);
+
           console.log(`[Dodo Webhook] User ${userId} upgraded to ${plan} via payment.succeeded`);
         }
         break;
@@ -309,6 +317,8 @@ export const syncPaymentReturn = async (req, res) => {
       `[Payment Sync] User ${userId} synced to ${resolvedPlan}` +
         (paymentId ? ` via payment ${paymentId}` : "")
     );
+
+    await invalidateUserStorageCache(userId);
 
     return res.json({
       success: true,

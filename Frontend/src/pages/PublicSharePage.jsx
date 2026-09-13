@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -7,14 +7,10 @@ import {
   FileText,
   FileImage,
   FileVideo,
-  FileAudio,
-  FileSpreadsheet,
   FileCode,
-  FileArchive,
   Loader2,
   AlertCircle,
   Clock,
-  HardDrive,
   Lock,
   Search,
   Folder,
@@ -23,6 +19,10 @@ import {
   Eye,
   X,
   ArrowLeft,
+  HardDrive,
+  FileAudio,
+  FileSpreadsheet,
+  FileArchive,
 } from 'lucide-react';
 import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';

@@ -2,8 +2,8 @@ import { MORE_ITEMS } from '../../../utils/constants';
 
 export default function SidebarMore({ activeTab, setActiveTab, onNavigate }) {
   return (
-    <div className="pt-3 mt-3 border-t border-gray-100 dark:border-slate-800/80">
-      <p className="text-xs font-bold tracking-wider uppercase text-gray-400 dark:text-slate-500 px-2 mb-2">
+    <div className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-600">
+      <p className="text-[11px] font-semibold tracking-wider uppercase text-[#64748B] dark:text-slate-400 px-2 mb-2">
         Utilities
       </p>
       <div className="space-y-0.5">
@@ -18,14 +18,14 @@ export default function SidebarMore({ activeTab, setActiveTab, onNavigate }) {
                 onNavigate?.();
               }}
               className={`
-                w-full flex items-center gap-3 px-3 py-1.5 rounded-xl transition-all text-xs sm:text-sm font-medium
+                w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-xs sm:text-sm font-medium
                 ${isActive
-                  ? 'bg-blue-50 dark:bg-[#3B82F6]/10 text-[#3B82F6] dark:text-[#3B82F6] font-semibold'
-                  : 'text-gray-600 dark:text-[#94A3B8] hover:bg-gray-100/80 dark:hover:bg-[#334155]/60'}
-                hover:translate-x-0.5 duration-150
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-[#2563EB] dark:text-blue-400 font-semibold'
+                  : 'text-[#64748B] dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#334155] hover:text-[#0F172A] dark:hover:text-white'}
+                duration-150
               `}
             >
-              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#3B82F6]' : 'text-gray-400 dark:text-slate-400'}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#2563EB] dark:text-blue-400' : 'text-[#64748B] dark:text-slate-400'}`} />
               <span className="flex-1 text-left truncate">{item.label}</span>
             </button>
           );
@@ -34,3 +34,4 @@ export default function SidebarMore({ activeTab, setActiveTab, onNavigate }) {
     </div>
   );
 }
+

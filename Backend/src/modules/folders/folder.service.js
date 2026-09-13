@@ -5,7 +5,8 @@ import * as fileRepo
 from "../files/file.repository.js";
 
 import {
-  deleteFromCloudinary
+  deleteFromCloudinary,
+  resolveCloudinaryResourceType,
 } from "../../services/cloudinary.js";
 
 import prisma from "../../config/db.js";
@@ -13,11 +14,11 @@ import { createNotificationService } from "../notifications/notification.service
 import { logActivity } from "../../utils/activityLogger.js";
 import { getIO } from "../../socket.js";
 import { checkFolderAccess } from "../../utils/permission.js";
-import { seedUserDemoData } from "../user/user.service.js";
 import {
   getCache,
   setCache,
   invalidateUserFoldersCache,
+  invalidateAllUserData,
 } from "../../services/cache.service.js";
 
 export const createFolderService = async (name,userId,parentId = null) => {
@@ -160,85 +161,141 @@ export const getFoldersService = async (userId) => {
   return result;
 };
 
-export const deleteFolderService =
-  async (
-    folderId,
-    userId
-  ) => {
+export const deleteFolderService = async (folderId, userId) => {
+  // find folder
+  const folder = await folderRepo.findFolderById(folderId);
 
-    // find folder
-    const folder =
-      await folderRepo.findFolderById(
-        folderId
-      );
+  if (!folder) {
+    throw new Error("Folder not found");
+  }
 
-    if (!folder) {
-      throw new Error(
-        "Folder not found"
-      );
+  let canDelete = folder.ownerId === userId;
+  if (!canDelete && folder.parentId) {
+    const parentAccess = await checkFolderAccess(folder.parentId, userId);
+    if (parentAccess && parentAccess.permission === "EDIT") {
+      canDelete = true;
     }
+  }
 
-    let canDelete = folder.ownerId === userId;
-    if (!canDelete && folder.parentId) {
-      const parentAccess = await checkFolderAccess(folder.parentId, userId);
-      if (parentAccess && parentAccess.permission === "EDIT") {
-        canDelete = true;
+  if (!canDelete) {
+    throw new Error("Unauthorized: You do not have permission to delete this folder");
+  }
+
+  // 1. Recursively find all descendant folder IDs in subtree
+  const allFolderIds = [folderId];
+  const queue = [folderId];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    const children = await prisma.folder.findMany({
+      where: { parentId: currentId },
+      select: { id: true },
+    });
+    for (const child of children) {
+      allFolderIds.push(child.id);
+      queue.push(child.id);
+    }
+  }
+
+  // 2. Find all files residing within this folder or any of its subfolders
+  const filesToDelete = await prisma.file.findMany({
+    where: { folderId: { in: allFolderIds } },
+    include: { versions: true },
+  });
+
+  const fileIdsToDelete = filesToDelete.map((f) => f.id);
+
+  // 3. Delete files from Cloudinary and sum reclaimed storage
+  let totalSizeFreed = 0;
+
+  for (const file of filesToDelete) {
+    const versions = file.versions || [];
+    const uniquePublicIds = [
+      ...new Set([file.publicId, ...versions.map((v) => v.publicId)].filter(Boolean)),
+    ];
+
+    for (const pid of uniquePublicIds) {
+      const referencedElsewhere =
+        (await prisma.fileVersion.count({
+          where: {
+            publicId: pid,
+            fileId: { notIn: fileIdsToDelete },
+          },
+        })) +
+        (await prisma.file.count({
+          where: {
+            publicId: pid,
+            id: { notIn: fileIdsToDelete },
+          },
+        }));
+
+      if (referencedElsewhere === 0) {
+        try {
+          await deleteFromCloudinary(pid, resolveCloudinaryResourceType(file.mimeType));
+        } catch (err) {
+          console.error(`Failed to delete asset ${pid} from Cloudinary:`, err);
+        }
       }
     }
 
-    if (!canDelete) {
-      throw new Error("Unauthorized: You do not have permission to delete this folder");
-    }
+    const fileSize =
+      versions.length > 0
+        ? versions.reduce((sum, v) => sum + v.size, 0)
+        : file.size;
+    totalSizeFreed += fileSize;
+  }
 
-    for (const file of folder.files) {
+  // 4. Delete all files in these folders from the database (cascades file versions, shares, comments)
+  if (fileIdsToDelete.length > 0) {
+    await prisma.file.deleteMany({
+      where: { id: { in: fileIdsToDelete } },
+    });
+  }
 
-      await deleteFromCloudinary(
-
-        file.publicId,
-
-        file.mimeType.startsWith("video")
-          ? "video"
-          : "image"
-      );
-    }
-
-  
-
-    await fileRepo.deleteFilesByFolderId(
-      folderId
-    );
-
-    
-    if (folder.children.length > 0) {
-
-      await prisma.folder.deleteMany({
-
-        where: {
-          parentId: folderId
-        }
+  // 5. Delete all subfolders and the folder itself in reverse order
+  for (const fId of allFolderIds.slice().reverse()) {
+    try {
+      await prisma.folder.delete({
+        where: { id: fId },
       });
+    } catch (folderDelErr) {
+      // Ignored if already cleaned up
     }
+  }
 
- 
+  // 6. Reclaim user storage quota
+  if (totalSizeFreed > 0) {
+    await prisma.user.update({
+      where: { id: folder.ownerId },
+      data: {
+        storageUsed: {
+          decrement: totalSizeFreed,
+        },
+      },
+    });
+  }
 
-    await folderRepo.deleteFolderById(
-      folderId
-    );
+  // 7. Invalidate all user data caches
+  await invalidateAllUserData(userId);
+  if (folder.ownerId !== userId) {
+    await invalidateAllUserData(folder.ownerId);
+  }
 
-    await invalidateUserFoldersCache(userId);
+  await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
+  await logActivity(userId, `You deleted Folder "${folder.name}"`);
 
-    await createNotificationService(userId, `Folder "${folder.name}" deleted successfully`);
+  // Broadcast folder deleted event
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${folder.parentId || "root"}`).emit("folder_deleted", {
+      folderId,
+      parentId: folder.parentId || "root",
+    });
+  }
 
-    await logActivity(userId, `You deleted Folder "${folder.name}"`);
-
-    // Broadcast folder deleted event
-    const io = getIO();
-    if (io) {
-      io.to(`folder:${folder.parentId || 'root'}`).emit("folder_deleted", { folderId, parentId: folder.parentId || 'root' });
-    }
-
-    return {
-      message:
-        "Folder deleted successfully"
-    };
+  return {
+    message: "Folder deleted successfully",
+    deletedFilesCount: filesToDelete.length,
+    deletedFoldersCount: allFolderIds.length,
+  };
 };

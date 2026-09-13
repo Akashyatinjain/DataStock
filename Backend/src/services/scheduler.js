@@ -1,9 +1,7 @@
 import cron from 'node-cron';
-import { PrismaClient } from '@prisma/client';
-import { deleteFromCloudinary } from './cloudinary.js';
+import prisma from '../config/db.js';
+import { deleteFromCloudinary, resolveCloudinaryResourceType } from './cloudinary.js';
 import * as fileRepo from '../modules/files/file.repository.js';
-
-const prisma = new PrismaClient();
 
 /**
  * Permanently deletes a single file from Cloudinary and PostgreSQL.
@@ -37,7 +35,7 @@ export const purgeFilePermanently = async (file) => {
       try {
         await deleteFromCloudinary(
           pid,
-          file.mimeType?.startsWith("video") ? "video" : "image"
+          resolveCloudinaryResourceType(file.mimeType)
         );
       } catch (err) {
         console.error(`[Scheduler] Failed to delete Cloudinary asset ${pid}:`, err);

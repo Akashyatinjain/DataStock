@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useCrypto } from '../../../context/CryptoContext';
 import { getFileType, formatFileSize } from '../../../utils/fileHelpers';
+import SecurityBadge from './SecurityBadge';
 
 const FileCard = ({
   file,
@@ -152,14 +153,14 @@ const FileCard = ({
         e.dataTransfer.effectAllowed = 'move';
       }}
       className={`
-        relative group bg-white dark:bg-[#1E293B] border rounded-2xl
+        relative group bg-white dark:bg-[#1E293B] border rounded-xl
         transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
         ${showMenu ? 'z-40 overflow-visible' : 'z-0 overflow-hidden'}
         ${file.mimeType?.includes('image') ? 'sm:h-[195px] h-[168px]' : 'sm:h-[155px] h-[138px]'}
         ${isDeleting || isRestoring
           ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-gray-200/80 dark:border-slate-800 hover:border-[#3B82F6] dark:hover:border-[#3B82F6] shadow-sm hover:shadow-xl dark:shadow-slate-900/40'}
-        ${isSelected ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/40 shadow-lg shadow-blue-500/15 scale-[0.985] bg-blue-50/20 dark:bg-blue-950/20' : ''}
+          : 'border-[#E2E8F0] dark:border-slate-800 hover:border-[#2563EB] dark:hover:border-blue-500 shadow-xs hover:shadow-md'}
+        ${isSelected ? 'border-[#2563EB] ring-2 ring-[#2563EB]/30 shadow-md bg-blue-50/20 dark:bg-blue-950/20' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}
@@ -201,10 +202,10 @@ const FileCard = ({
           title={isSelected ? 'Deselect file' : 'Select file'}
         >
           <div
-            className={`w-5 h-5 rounded-md flex items-center justify-center cursor-pointer transition-all shadow-xs ${
+            className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer transition-all shadow-xs ${
               isSelected
-                ? 'bg-[#3B82F6] text-white ring-2 ring-white dark:ring-[#1E293B] shadow-sm shadow-blue-500/30'
-                : 'bg-white/90 dark:bg-slate-800/90 border border-gray-300 dark:border-slate-600 backdrop-blur-md hover:border-[#3B82F6]'
+                ? 'bg-[#2563EB] text-white ring-2 ring-white dark:ring-[#1E293B]'
+                : 'bg-white/95 dark:bg-slate-800/95 border border-[#E2E8F0] dark:border-slate-600 hover:border-[#2563EB]'
             }`}
           >
             {isSelected && (
@@ -234,51 +235,50 @@ const FileCard = ({
       )}
 
       {/* Top Banner (Thumbnail or File icon) */}
-      <div className="relative rounded-t-2xl overflow-hidden">
+      <div className="relative rounded-t-xl overflow-hidden">
         {file.mimeType?.includes('image') ? (
           isLocked || imgError || (isEncrypted && !file.url) ? (
-            <div className="h-20 sm:h-24 overflow-hidden bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 dark:from-slate-950 dark:via-amber-950/60 dark:to-slate-950 relative flex flex-col items-center justify-center border-b border-amber-500/20 select-none group">
-              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+            <div className="h-20 sm:h-24 overflow-hidden bg-slate-900 dark:bg-slate-950 relative flex flex-col items-center justify-center border-b border-slate-800 select-none group">
+              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md text-slate-200 border border-slate-700 flex items-center gap-1 shadow-xs">
                 <Lock className="w-2.5 h-2.5 text-amber-400" /> {type.label}
               </span>
-              <div className="flex flex-col items-center justify-center gap-1.5 transition-transform duration-300 group-hover:scale-105">
-                <div className="w-9 h-9 rounded-full bg-amber-500/15 dark:bg-amber-500/25 border border-amber-500/40 flex items-center justify-center shadow-md shadow-amber-500/10">
-                  <Lock className="w-4.5 h-4.5 text-amber-400" />
+              <div className="flex flex-col items-center justify-center gap-1 transition-transform duration-200 group-hover:scale-105">
+                <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                  <Lock className={`w-4 h-4 ${isLocked ? 'text-amber-400' : 'text-[#2563EB]'}`} />
                 </div>
-                <span className="text-[10px] font-extrabold tracking-wider uppercase text-amber-300/90 dark:text-amber-300">
-                  {isLocked ? 'Encrypted Image' : 'Secured Image'}
+                <span className="text-[10px] font-semibold tracking-wide text-slate-300">
+                  {isLocked ? 'Encrypted (Locked)' : 'E2EE Image'}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="h-20 sm:h-24 overflow-hidden bg-gray-50 dark:bg-slate-800 relative flex items-center justify-center">
+            <div className="h-20 sm:h-24 overflow-hidden bg-slate-50 dark:bg-slate-800 relative flex items-center justify-center">
               <img
                 src={file.url}
                 alt=""
                 loading="lazy"
                 decoding="async"
                 onError={() => setImgError(true)}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              {/* File type badge overlay positioned at bottom-left so it never collides with top-left checkbox */}
-              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20">
+              <span className="absolute bottom-2 left-2 z-10 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-white border border-white/20">
                 {type.label}
               </span>
             </div>
           )
         ) : isLocked ? (
-          <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-gray-100 dark:border-slate-800 relative select-none">
-            <Lock className="w-4 h-4 text-amber-500" />
-            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-              Encrypted File
+          <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-[#E2E8F0] dark:border-slate-800 relative select-none">
+            <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+              Encrypted (Locked)
             </span>
           </div>
         ) : (
           <div
-            className={`h-10 sm:h-12 flex items-center justify-center ${type.bg} relative transition-transform duration-300`}
+            className="h-10 sm:h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/80 relative transition-colors duration-200"
           >
             <Icon
-              className={`w-5 h-5 sm:w-6 sm:h-6 ${type.color} opacity-80 group-hover:scale-110 duration-200`}
+              className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500 dark:text-slate-400 group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors duration-200"
             />
           </div>
         )}
@@ -295,13 +295,13 @@ const FileCard = ({
             disabled={isStarring}
             className={`p-1 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
               isStarred
-                ? 'text-yellow-500'
-                : 'text-gray-400 hover:text-yellow-500'
+                ? 'text-amber-500'
+                : 'text-slate-400 hover:text-amber-500'
             }`}
             title="Favorite"
           >
             <Star
-              className={`w-3.5 h-3.5 ${isStarred ? 'fill-yellow-400' : ''}`}
+              className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400' : ''}`}
             />
           </button>
         </div>
@@ -313,7 +313,7 @@ const FileCard = ({
           {/* File Name */}
           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
             <h3
-              className={`truncate text-xs sm:text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-amber-600 dark:text-amber-400 font-bold' : 'font-extrabold text-gray-900 dark:text-[#F8FAFC]'}`}
+              className={`truncate text-xs sm:text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-amber-600 dark:text-amber-400 font-bold' : 'font-semibold text-slate-900 dark:text-slate-100'}`}
               title={file.originalName}
             >
               {file.originalName}
@@ -323,28 +323,26 @@ const FileCard = ({
           <div className="flex flex-wrap items-center gap-1 mb-1.5">
             {!file.mimeType?.includes('image') && (
               <span
-                className={`inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${type.bg} ${type.color}`}
+                className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60"
               >
                 {type.label}
               </span>
             )}
             {isEncrypted && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 border border-orange-200/50 dark:border-orange-900/30">
-                <Lock className="w-2.5 h-2.5" /> {isLocked ? 'Locked' : 'Secure'}
-              </span>
+              <SecurityBadge isEncrypted={isEncrypted} isLocked={isLocked} />
             )}
             {isShared && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-900/30">
-                <Users className="w-2.5 h-2.5" /> Shared
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                <Users className="w-2.5 h-2.5 text-slate-500" /> Shared
               </span>
             )}
             {isArchived && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-200/50 dark:border-purple-900/30">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60">
                 Archived
               </span>
             )}
             {(file.isTrash || isTrashView) && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border border-red-200/50 dark:border-red-900/30">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-200/60 dark:border-red-900/40">
                 Trash
               </span>
             )}
@@ -353,7 +351,7 @@ const FileCard = ({
                 ?.toLowerCase()
                 .includes(searchQuery.toLowerCase()) && (
                 <span
-                  className="inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-[#3B82F6] border border-emerald-100 dark:border-emerald-900/50"
+                  className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] dark:bg-blue-950/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50"
                   title="Found in file contents"
                 >
                   🔍 Content Match
@@ -363,8 +361,8 @@ const FileCard = ({
         </div>
 
         {/* Footer Metrics & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#334155]/60 mt-auto">
-          <div className="text-[10px] text-gray-500 dark:text-slate-400 font-semibold tracking-wide truncate mr-1 flex-1">
+        <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0] dark:border-slate-800 mt-auto">
+          <div className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium tracking-wide truncate mr-1 flex-1">
             {isLocked ? '🔒 Locked' : formatFileSize(file.size)} •{' '}
             {new Date(file.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',
@@ -387,23 +385,23 @@ const FileCard = ({
                 e.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-lg transition cursor-pointer"
+              className="p-1.5 text-[#64748B] hover:text-[#0F172A] dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
               title="Options"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white dark:bg-[#2A3547] border border-gray-200 dark:border-[#334155] rounded-xl shadow-2xl py-1.5 z-50 animate-fade-in text-left">
+              <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-lg shadow-lg py-1 z-50 animate-fade-in text-left">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowMenu(false);
                     onPreview(file);
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                  className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <Eye className="w-3.5 h-3.5 text-blue-500" /> Preview
+                  <Eye className="w-3.5 h-3.5 text-[#2563EB]" /> Preview
                 </button>
                 {!isTrashView && (
                   <>
@@ -413,9 +411,9 @@ const FileCard = ({
                         setShowMenu(false);
                         onShare(file);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
                     >
-                      <Share2 className="w-3.5 h-3.5 text-green-500" /> Share
+                      <Share2 className="w-3.5 h-3.5 text-emerald-600" /> Share
                     </button>
                     <button
                       onClick={(e) => {
@@ -423,9 +421,9 @@ const FileCard = ({
                         setShowMenu(false);
                         onToggleArchive(file.id);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
                     >
-                      <Archive className="w-3.5 h-3.5 text-amber-500" />{' '}
+                      <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                       {isArchived ? 'Unarchive' : 'Archive'}
                     </button>
                     {(file.mimeType === 'application/zip' ||
@@ -437,9 +435,9 @@ const FileCard = ({
                             setShowMenu(false);
                             onExtract(file.id, file.originalName);
                           }}
-                          className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
                         >
-                          <Archive className="w-3.5 h-3.5 text-purple-500" />{' '}
+                          <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                           Extract ZIP
                         </button>
                       )}
@@ -452,9 +450,9 @@ const FileCard = ({
                       setShowMenu(false);
                       onRestore(file.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2 cursor-pointer"
+                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-green-500" />{' '}
+                    <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />{' '}
                     Restore
                   </button>
                 ) : (
@@ -464,9 +462,9 @@ const FileCard = ({
                       setShowMenu(false);
                       onDelete(file.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2 cursor-pointer"
+                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2 cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-red-500" />{' '}
+                    <Trash2 className="w-3.5 h-3.5 text-red-600" />{' '}
                     {isTrashView ? 'Delete Forever' : 'Delete'}
                   </button>
                 )}

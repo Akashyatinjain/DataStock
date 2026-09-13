@@ -1,6 +1,6 @@
 import "./src/config/env.js";
 import app from "./src/app.js";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./src/config/db.js";
 import { setIO } from "./src/socket.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -9,7 +9,6 @@ import { verifyAccessToken } from "./src/utils/token.utils.js";
 import { validateAccessPayload } from "./src/utils/authSession.utils.js";
 import { startScheduler } from "./src/services/scheduler.js";
 import { initQueuesAndWorkers } from "./src/queues/index.js";
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 
@@ -163,23 +162,38 @@ io.on("connection", (socket) => {
 });
 
 async function StartServer() {
-  try {
-    await prisma.$connect();
-    console.log("Database Connected");
+  const maxRetries = 5;
+  let attempt = 0;
+  let connected = false;
 
-    // Start background automated jobs scheduler
-    startScheduler();
-
-    // Start BullMQ background queues & workers (OCR & Emails)
-    initQueuesAndWorkers();
-
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.log(err);
-    process.exit(1);
+  while (attempt < maxRetries && !connected) {
+    try {
+      attempt++;
+      console.log(`Connecting to database (attempt ${attempt}/${maxRetries})...`);
+      await prisma.$connect();
+      connected = true;
+      console.log("Database Connected successfully");
+    } catch (err) {
+      console.warn(`Database connection attempt ${attempt} failed: ${err.message}`);
+      if (attempt < maxRetries) {
+        console.log("Retrying database connection in 3 seconds (waiting for serverless DB wake-up)...");
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      } else {
+        console.error("Could not connect to database after maximum retries:", err);
+        process.exit(1);
+      }
+    }
   }
+
+  // Start background automated jobs scheduler
+  startScheduler();
+
+  // Start BullMQ background queues & workers (OCR & Emails)
+  initQueuesAndWorkers();
+
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
 StartServer();

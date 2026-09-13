@@ -29,8 +29,24 @@ export const extractText = async (filePath, mimetype) => {
     } else if (mimetype === 'application/pdf') {
       console.log(`[OCR] Parsing text from PDF: ${filePath}`);
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse(dataBuffer);
-      const text = data?.text;
+      let text = null;
+
+      if (typeof pdfParse === "function") {
+        const data = await pdfParse(dataBuffer);
+        text = data?.text;
+      } else if (pdfParse?.PDFParse) {
+        const parser = new pdfParse.PDFParse({ data: dataBuffer });
+        try {
+          await parser.load();
+          const result = await parser.getText();
+          text = typeof result === "string" ? result : result?.text;
+        } finally {
+          if (typeof parser.destroy === "function") {
+            await parser.destroy();
+          }
+        }
+      }
+
       if (text) {
         return text.replace(/\s+/g, ' ').trim();
       }

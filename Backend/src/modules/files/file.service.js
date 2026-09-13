@@ -1,4 +1,4 @@
-import { uploadOnCloudinary, deleteFromCloudinary } from "../../services/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary, resolveCloudinaryResourceType } from "../../services/cloudinary.js";
 
 import * as fileRepo from "./file.repository.js";
 import { addOcrJob } from "../../queues/index.js";
@@ -326,7 +326,7 @@ export const deleteFileService = async (
       try {
         await deleteFromCloudinary(
           pid,
-          file.mimeType.startsWith("video") ? "video" : "image"
+          resolveCloudinaryResourceType(file.mimeType)
         );
       } catch (err) {
         console.error(`Failed to delete asset ${pid} from Cloudinary:`, err);
@@ -537,7 +537,7 @@ export const emptyTrashService = async (userId) => {
         try {
           await deleteFromCloudinary(
             pid,
-            file.mimeType.startsWith("video") ? "video" : "image"
+            resolveCloudinaryResourceType(file.mimeType)
           );
         } catch (err) {
           console.error(`Failed to delete asset ${pid} from Cloudinary:`, err);
@@ -810,7 +810,7 @@ export const deleteVersionService = async (fileId, versionId, userId) => {
     try {
       await deleteFromCloudinary(
         version.publicId,
-        file.mimeType.startsWith("video") ? "video" : "image"
+        resolveCloudinaryResourceType(file.mimeType)
       );
     } catch (err) {
       console.error(`Failed to delete version asset ${version.publicId} from Cloudinary:`, err);

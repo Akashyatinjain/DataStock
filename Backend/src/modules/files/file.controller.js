@@ -384,7 +384,8 @@ export const compressFiles = asyncHandler(async (req, res) => {
         method: 'GET',
         responseType: 'stream'
       });
-      archive.append(response.data, { name: path.join(relativePath, file.originalName) });
+      const entryName = path.join(relativePath, file.originalName).replace(/\\/g, '/');
+      archive.append(response.data, { name: entryName });
     } catch (err) {
       console.error(`Error appending file ${file.id} to compress zip:`, err);
     }
@@ -402,7 +403,8 @@ export const compressFiles = asyncHandler(async (req, res) => {
       where: { parentId: currentFolderId }
     });
     for (const subfolder of subfolders) {
-      await appendFolderToArchive(subfolder.id, path.join(relativePath, subfolder.name));
+      const nextRelativePath = path.join(relativePath, subfolder.name).replace(/\\/g, '/');
+      await appendFolderToArchive(subfolder.id, nextRelativePath);
     }
   };
 

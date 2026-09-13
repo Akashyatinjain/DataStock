@@ -9,7 +9,6 @@ import {
   EyeOff,
   ArrowRight,
   Check,
-  Github,
   Chrome
 } from 'lucide-react';
 import { useNavigate, Link } from "react-router-dom";
@@ -17,8 +16,7 @@ import SeoHead from "../seo/SeoHead";
 import { getPageSeo } from "../seo/config";
 import { jsonLdForPublicRoute } from "../seo/structuredData";
 import { useDispatch, useSelector } from "react-redux";
-import { signupUser, logoutUser } from "../store/slices/authSlice";
-import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
+import { signupUser } from "../store/slices/authSlice";
 import { getErrorMessage } from "../utils/errorMessage";
 import ThemeToggle from "../components/ui/ThemeToggle";
 

@@ -19,11 +19,9 @@ import {
   Database,
   ChevronRight,
   ShieldCheck,
-  CreditCard,
-  AlertTriangle,
-  RotateCcw,
   Eye,
-  ExternalLink
+  RotateCcw,
+  ExternalLink,
 } from 'lucide-react';
 import {
   fetchNotifications,
@@ -123,65 +121,65 @@ export default function Notifications() {
       upload: {
         icon: Upload,
         label: 'UPLOAD',
-        color: 'text-emerald-500',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-800/40',
-        badgeBg: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+        color: 'text-ds-success',
+        bg: 'bg-ds-success/10 border-ds-success/20',
+        badgeBg: 'bg-ds-success/15 text-ds-success'
       },
       delete: {
         icon: Trash2,
         label: 'TRASHED',
-        color: 'text-rose-500',
-        bg: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-800/40',
-        badgeBg: 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+        color: 'text-ds-error',
+        bg: 'bg-ds-error/10 border-ds-error/20',
+        badgeBg: 'bg-ds-error/15 text-ds-error'
       },
       share: {
         icon: Users,
         label: 'SHARED',
-        color: 'text-amber-500',
-        bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-800/40',
-        badgeBg: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+        color: 'text-ds-success',
+        bg: 'bg-ds-success/10 border-ds-success/20',
+        badgeBg: 'bg-ds-success/15 text-ds-success'
       },
       folder: {
         icon: Folder,
         label: 'FOLDER',
-        color: 'text-blue-500',
-        bg: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/60 dark:border-blue-800/40',
-        badgeBg: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+        color: 'text-ds-brand',
+        bg: 'bg-ds-brand/10 border-ds-brand/20',
+        badgeBg: 'bg-ds-brand/15 text-ds-brand'
       },
       payment: {
         icon: CreditCard,
         label: 'PAYMENT',
-        color: 'text-purple-500',
-        bg: 'bg-purple-50 dark:bg-purple-950/40 border-purple-200/60 dark:border-purple-800/40',
-        badgeBg: 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300'
+        color: 'text-ds-warning',
+        bg: 'bg-ds-warning/10 border-ds-warning/20',
+        badgeBg: 'bg-ds-warning/15 text-ds-warning'
       },
       storage: {
         icon: AlertTriangle,
         label: 'STORAGE',
-        color: 'text-orange-500',
-        bg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200/60 dark:border-orange-800/40',
-        badgeBg: 'bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300'
+        color: 'text-ds-warning',
+        bg: 'bg-ds-warning/10 border-ds-warning/20',
+        badgeBg: 'bg-ds-warning/15 text-ds-warning'
       },
       login: {
         icon: Activity,
         label: 'ACTIVITY',
-        color: 'text-indigo-500',
-        bg: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200/60 dark:border-indigo-800/40',
-        badgeBg: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+        color: 'text-ds-brand',
+        bg: 'bg-ds-brand/10 border-ds-brand/20',
+        badgeBg: 'bg-ds-brand/15 text-ds-brand'
       },
       security: {
         icon: Lock,
         label: 'SECURITY',
-        color: 'text-slate-600 dark:text-slate-400',
-        bg: 'bg-slate-100 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800/40',
-        badgeBg: 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+        color: 'text-ds-text-secondary',
+        bg: 'bg-ds-bg-secondary border-ds-border',
+        badgeBg: 'bg-ds-bg-secondary text-ds-text-secondary'
       },
       system: {
         icon: Bell,
         label: 'SYSTEM',
-        color: 'text-sky-500',
-        bg: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200/60 dark:border-sky-800/40',
-        badgeBg: 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
+        color: 'text-ds-brand',
+        bg: 'bg-ds-brand/10 border-ds-brand/20',
+        badgeBg: 'bg-ds-brand/15 text-ds-brand'
       }
     };
     return configs[type] || configs.system;

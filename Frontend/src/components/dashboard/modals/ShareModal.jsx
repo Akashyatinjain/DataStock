@@ -36,8 +36,8 @@ const PermBadge = ({ permission }) => (
   <span
     className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
       permission === 'EDIT'
-        ? 'bg-violet-50 text-violet-600'
-        : 'bg-sky-50 text-sky-600'
+        ? 'bg-ds-brand/10 text-ds-brand'
+        : 'bg-ds-accent/10 text-ds-accent'
     }`}
   >
     {permission === 'EDIT' ? (
@@ -53,7 +53,7 @@ const Avatar = ({ user, size = 'w-8 h-8' }) => {
   const sizeClasses = typeof size === 'number' ? `w-${size} h-${size}` : (size || 'w-8 h-8');
   return (
     <div
-      className={`${sizeClasses} rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 overflow-hidden`}
+      className={`${sizeClasses} rounded-full bg-ds-brand flex items-center justify-center shrink-0 overflow-hidden`}
     >
       {user?.imageUrl ? (
         <img src={user.imageUrl} alt={user?.username || 'Avatar'} className="w-full h-full object-cover" />

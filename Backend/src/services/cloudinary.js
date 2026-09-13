@@ -100,6 +100,14 @@ const getPublicIdFromUrl = (url) => {
   }
 };
 
+export const resolveCloudinaryResourceType = (mimeType = "") => {
+  if (!mimeType) return "image";
+  const lower = mimeType.toLowerCase();
+  if (lower.startsWith("video/")) return "video";
+  if (lower.startsWith("image/")) return "image";
+  return "raw";
+};
+
 const deleteFromCloudinary = async (
   publicId,
   resourceType = "image"
@@ -107,12 +115,27 @@ const deleteFromCloudinary = async (
 
   try {
 
-    return await cloudinary.uploader.destroy(
+    let res = await cloudinary.uploader.destroy(
       publicId,
       {
         resource_type: resourceType
       }
     );
+
+    // If not found under the specified resourceType, try "raw" (common for documents/PDFs/archives)
+    if (res?.result === "not found" && resourceType !== "raw") {
+      const rawRes = await cloudinary.uploader.destroy(
+        publicId,
+        {
+          resource_type: "raw"
+        }
+      );
+      if (rawRes?.result === "ok") {
+        return rawRes;
+      }
+    }
+
+    return res;
 
   } catch (error) {
 

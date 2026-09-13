@@ -1613,7 +1613,7 @@ const FilePreviewModal = ({
                     return (
                       <div key={c.id} className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-gray-100 dark:border-[#334155] shadow-xs group relative transition-colors duration-200">
                         <div className="flex items-start gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-linear-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-white text-[11px] font-bold overflow-hidden shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-ds-brand flex items-center justify-center text-white text-[11px] font-bold overflow-hidden shrink-0">
                             {c.user?.imageUrl ? (
                               <img src={c.user.imageUrl} className="w-full h-full object-cover" alt={c.user.username} />
                             ) : (

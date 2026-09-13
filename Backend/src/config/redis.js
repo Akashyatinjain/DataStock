@@ -34,19 +34,21 @@ try {
     });
   }
 
+  let hasLoggedOffline = false;
+
   redisClient.on("ready", () => {
     if (!isConnected) {
       isConnected = true;
+      hasLoggedOffline = false;
       console.log("⚡ Redis Cache connected and ready");
     }
   });
 
-  redisClient.on("error", (err) => {
+  redisClient.on("error", () => {
     const wasConnected = isConnected;
     isConnected = false;
-    const now = Date.now();
-    if (wasConnected || now - lastLogTime > LOG_COOLDOWN_MS) {
-      lastLogTime = now;
+    if (wasConnected || !hasLoggedOffline) {
+      hasLoggedOffline = true;
       console.warn("⚠️ Redis unreachable. Operating in direct database mode (cache disabled).");
     }
   });
@@ -60,11 +62,10 @@ try {
   });
 
   // Attempt initial connect asynchronously without blocking server boot
-  redisClient.connect().catch((err) => {
+  redisClient.connect().catch(() => {
     isConnected = false;
-    const now = Date.now();
-    if (now - lastLogTime > LOG_COOLDOWN_MS) {
-      lastLogTime = now;
+    if (!hasLoggedOffline) {
+      hasLoggedOffline = true;
       console.warn("⚠️ Redis not available at startup. Operating in direct database fallback mode.");
     }
   });

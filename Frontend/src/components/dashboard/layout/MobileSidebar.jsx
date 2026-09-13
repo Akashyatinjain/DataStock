@@ -14,12 +14,12 @@ export function MobileSidebarOverlay({ isOpen, onClose }) {
 export function MobileSidebarPanel({ isOpen, onClose, children }) {
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-[70] h-full w-[min(85vw,20rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
+      className={`fixed inset-y-0 left-0 z-[70] h-full w-[min(85vw,20rem)] border-r border-slate-200 dark:border-slate-600 bg-white dark:bg-[#1E293B] shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       {/* Mobile Drawer Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-[#334155] shrink-0 bg-white dark:bg-[#1E293B]">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-slate-600 shrink-0 bg-white dark:bg-[#1E293B]">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
             <Cloud className="w-5 h-5" />
@@ -51,14 +51,14 @@ export function DesktopSidebarPanel({
 }) {
   return (
     <aside
-      className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] border-r border-gray-200 dark:border-[#334155] bg-white dark:bg-[#1E293B] transition-all duration-300 will-change-[width] ${
-        sidebarCollapsed ? 'w-20' : 'w-60 xl:w-72'
+      className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] border-r border-slate-200 dark:border-slate-600 bg-white dark:bg-[#1E293B] transition-all duration-300 will-change-[width] ${
+        sidebarCollapsed ? 'w-20' : 'w-60'
       }`}
     >
       {children}
       <button
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-20 w-7 h-7 bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-[#334155] transition"
+        className="absolute -right-3 top-20 w-7 h-7 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition"
       >
         <ChevronRight
           className={`w-4 h-4 text-gray-500 transition-transform ${

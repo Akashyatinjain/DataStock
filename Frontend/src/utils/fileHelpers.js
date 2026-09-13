@@ -38,53 +38,55 @@ export const getAvatarUrl = (profile) => {
   const name = profile?.name || 'User';
   return (
     profile?.imageUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=16a34a&color=fff`
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2563EB&color=fff`
   );
 };
 
 export const FILE_TYPES = {
-  image:   { icon: ImageIcon, color: 'text-sky-500',     bg: 'bg-sky-50 dark:bg-sky-950/40',     label: 'Image'    },
-  video:   { icon: Video,     color: 'text-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/40',  label: 'Video'    },
-  pdf:     { icon: FileText,  color: 'text-rose-500',    bg: 'bg-rose-50 dark:bg-rose-950/40',    label: 'PDF'      },
-  zip:     { icon: Archive,   color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/40',   label: 'ZIP'      },
-  default: { icon: FileText,  color: 'text-slate-500',   bg: 'bg-slate-100 dark:bg-slate-800',   label: 'FILE'     },
+  image:      { icon: ImageIcon, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Image' },
+  video:      { icon: Video,     color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Video' },
+  pdf:        { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'PDF' },
+  zip:        { icon: Archive,   color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'ZIP' },
+  audio:      { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Audio' },
+  default:    { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'FILE' },
 };
 
 export const getFileType = (mimeType, originalName = '') => {
   const ext = originalName ? originalName.split('.').pop().toLowerCase() : '';
+  const neutralStyle = { icon: FileText, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800' };
   
   if (['docx', 'doc'].includes(ext) || mimeType?.includes('word')) {
-    return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', label: 'DOCX' };
+    return { ...neutralStyle, icon: FileText, label: 'DOCX' };
   }
   if (['xlsx', 'xls', 'csv'].includes(ext) || mimeType?.includes('sheet') || mimeType?.includes('excel')) {
-    return { icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', label: 'XLSX' };
+    return { ...neutralStyle, icon: FileText, label: 'XLSX' };
   }
   if (['pptx', 'ppt'].includes(ext) || mimeType?.includes('presentation') || mimeType?.includes('powerpoint')) {
-    return { icon: FileText, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/40', label: 'PPTX' };
+    return { ...neutralStyle, icon: FileText, label: 'PPTX' };
   }
   if (['png'].includes(ext)) {
-    return { icon: ImageIcon, color: 'text-sky-500', bg: 'bg-sky-50 dark:bg-sky-950/40', label: 'PNG' };
+    return { ...neutralStyle, icon: ImageIcon, label: 'PNG' };
   }
   if (['jpg', 'jpeg'].includes(ext)) {
-    return { icon: ImageIcon, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', label: 'JPG' };
+    return { ...neutralStyle, icon: ImageIcon, label: 'JPG' };
   }
   if (['webp', 'gif', 'svg'].includes(ext)) {
-    return { icon: ImageIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/40', label: ext.toUpperCase() };
+    return { ...neutralStyle, icon: ImageIcon, label: ext.toUpperCase() };
   }
   if (['zip', 'rar', 'tar', '7z', 'gz'].includes(ext) || mimeType?.includes('zip') || mimeType?.includes('compressed')) {
-    return { icon: Archive, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/40', label: 'ZIP' };
+    return { ...neutralStyle, icon: Archive, label: 'ZIP' };
   }
   if (ext === 'pdf' || mimeType?.includes('pdf')) {
-    return { icon: FileText, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/40', label: 'PDF' };
+    return { ...neutralStyle, icon: FileText, label: 'PDF' };
   }
   if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType?.includes('video')) {
-    return { icon: Video, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/40', label: 'MP4' };
+    return { ...neutralStyle, icon: Video, label: 'MP4' };
   }
   if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext) || mimeType?.includes('audio')) {
-    return { icon: FileText, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950/40', label: 'MP3' };
+    return { ...neutralStyle, icon: FileText, label: 'MP3' };
   }
   if (ext && ext.length <= 5) {
-    return { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800', label: ext.toUpperCase() };
+    return { ...neutralStyle, icon: FileText, label: ext.toUpperCase() };
   }
 
   if (mimeType?.includes('image')) return FILE_TYPES.image;
@@ -108,41 +110,41 @@ export const ANALYTICS_CATEGORIES = [
     key: 'images',
     label: 'Images',
     icon: ImageIcon,
-    text: 'text-sky-600 dark:text-sky-400',
-    bg: 'bg-sky-50 dark:bg-sky-950/30',
-    bar: 'bg-sky-500',
-  },
-  {
-    key: 'videos',
-    label: 'Videos',
-    icon: Video,
-    text: 'text-violet-600 dark:text-violet-400',
-    bg: 'bg-violet-50 dark:bg-violet-950/30',
-    bar: 'bg-violet-500',
+    text: 'text-slate-900 dark:text-slate-100',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    bar: 'bg-[#2563EB]',
   },
   {
     key: 'documents',
     label: 'Documents',
     icon: FileText,
-    text: 'text-rose-600 dark:text-rose-400',
-    bg: 'bg-rose-50 dark:bg-rose-950/30',
-    bar: 'bg-rose-500',
+    text: 'text-slate-900 dark:text-slate-100',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    bar: 'bg-slate-600 dark:bg-slate-400',
+  },
+  {
+    key: 'videos',
+    label: 'Videos',
+    icon: Video,
+    text: 'text-slate-900 dark:text-slate-100',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    bar: 'bg-slate-500 dark:bg-slate-500',
   },
   {
     key: 'archives',
     label: 'Archives',
     icon: Archive,
-    text: 'text-amber-600 dark:text-amber-400',
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    bar: 'bg-amber-500',
+    text: 'text-slate-900 dark:text-slate-100',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    bar: 'bg-slate-400 dark:bg-slate-600',
   },
   {
     key: 'others',
     label: 'Others',
     icon: Folder,
-    text: 'text-slate-600 dark:text-[#94A3B8]',
-    bg: 'bg-slate-50 dark:bg-[#1E293B]',
-    bar: 'bg-slate-500',
+    text: 'text-slate-900 dark:text-slate-100',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    bar: 'bg-slate-300 dark:bg-slate-700',
   },
 ];
 

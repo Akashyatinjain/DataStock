@@ -115,11 +115,11 @@ export default function MediaPlayer({
         for (let i = 0; i < bufferLength; i++) {
           const barHeight = (dataArray[i] / 255) * height * 0.85;
 
-          // Gradient color from cyan-500 to purple-600
+          // Gradient color from brand to accent
           const gradient = ctx.createLinearGradient(0, height, 0, 0);
-          gradient.addColorStop(0, '#3B82F6');
+          gradient.addColorStop(0, '#2563EB');
           gradient.addColorStop(0.5, '#8B5CF6');
-          gradient.addColorStop(1, '#EC4899');
+          gradient.addColorStop(1, '#06B6D4');
 
           ctx.fillStyle = gradient;
           ctx.beginPath();
@@ -254,9 +254,9 @@ export default function MediaPlayer({
         {/* Audio Visualizer & Banner for Audio Files */}
         {isAudio && (
           <div className="flex flex-col items-center justify-center p-4 sm:p-8 w-full max-w-lg">
-            <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-500 p-1 shadow-2xl mb-4 sm:mb-6 flex items-center justify-center animate-pulse">
+            <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-ds-brand via-ds-file-presentation to-ds-accent p-1 shadow-2xl mb-4 sm:mb-6 flex items-center justify-center animate-pulse">
               <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center">
-                <Music className={`w-8 h-8 sm:w-12 sm:h-12 ${isPlaying ? 'text-blue-400 animate-spin' : 'text-slate-400'}`} style={{ animationDuration: '8s' }} />
+                <Music className={`w-8 h-8 sm:w-12 sm:h-12 ${isPlaying ? 'text-ds-brand animate-spin' : 'text-slate-400'}`} style={{ animationDuration: '8s' }} />
               </div>
             </div>
 
@@ -264,7 +264,7 @@ export default function MediaPlayer({
               {title || 'Audio Stream'}
             </h4>
             <p className="text-[11px] sm:text-xs text-slate-400 font-semibold mb-4 sm:mb-6 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" /> Web Audio Frequency Equalizer
+              <Sparkles className="w-3.5 h-3.5 text-ds-accent" /> Web Audio Frequency Equalizer
             </p>
 
             {/* Equalizer Canvas */}

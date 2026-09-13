@@ -13,20 +13,23 @@ const UploadButton = ({ uploading, onChange }) => (
     />
     <div
       className={`
-      px-4 py-2 rounded-xl inline-flex items-center gap-2 transition-all duration-200 font-bold text-xs sm:text-sm whitespace-nowrap shadow-sm
+      px-3.5 py-1.5 rounded-lg inline-flex items-center gap-2 transition-all duration-200 font-medium text-xs sm:text-sm whitespace-nowrap shadow-xs cursor-pointer select-none
       ${uploading
-        ? 'bg-blue-100 dark:bg-[#3B82F6]/10 text-[#3B82F6] cursor-not-allowed'
-        : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-blue-500/20 hover:shadow-blue-500/35 hover:scale-[1.02] active:scale-95'}
+        ? 'bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] dark:text-blue-400 cursor-not-allowed border border-blue-200 dark:border-blue-800'
+        : 'bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1D4ED8] text-white border border-[#2563EB] hover:shadow-sm active:translate-y-0.5'}
     `}
     >
       {uploading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin text-[#2563EB] dark:text-blue-400" />
       ) : (
-        <Upload className="w-4 h-4" />
+        <Upload className="w-4 h-4 text-white" />
       )}
-      <span>{uploading ? 'Uploading…' : 'Upload'}</span>
+      <span className={uploading ? 'text-[#2563EB] dark:text-blue-400' : 'text-white'}>
+        {uploading ? 'Uploading…' : 'Upload'}
+      </span>
     </div>
   </label>
 );
 
 export default UploadButton;
+

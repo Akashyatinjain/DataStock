@@ -71,62 +71,62 @@ export default function NotificationsView({
       upload: {
         icon: Upload,
         label: 'Upload Log',
-        color: 'text-emerald-600 dark:text-emerald-400',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30'
+        color: 'text-[#2563EB] dark:text-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-150 dark:border-blue-900/40'
       },
       delete: {
         icon: Trash2,
         label: 'Delete Log',
-        color: 'text-rose-600 dark:text-rose-400',
-        bg: 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30'
+        color: 'text-red-600 dark:text-red-400',
+        bg: 'bg-red-50 dark:bg-red-950/20 border-red-150 dark:border-red-900/30'
       },
       share: {
         icon: Users,
         label: 'Share Log',
-        color: 'text-amber-600 dark:text-amber-400',
-        bg: 'bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30'
+        color: 'text-slate-700 dark:text-slate-300',
+        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       },
       folder: {
         icon: Folder,
         label: 'Folder Created',
-        color: 'text-blue-600 dark:text-blue-400',
+        color: 'text-[#2563EB] dark:text-blue-400',
         bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
       },
       login: {
         icon: Activity,
         label: 'Login Alert',
-        color: 'text-purple-600 dark:text-purple-400',
-        bg: 'bg-purple-50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/30'
+        color: 'text-slate-700 dark:text-slate-300',
+        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       },
       security: {
         icon: Lock,
         label: 'Security Alert',
-        color: 'text-slate-600 dark:text-slate-400',
-        bg: 'bg-slate-100 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/40'
+        color: 'text-slate-700 dark:text-slate-300',
+        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       },
       restore: {
         icon: RotateCcw,
         label: 'File Restored',
-        color: 'text-teal-600 dark:text-teal-400',
-        bg: 'bg-teal-50 dark:bg-teal-950/20 border-teal-100 dark:border-teal-900/30'
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-150 dark:border-emerald-900/30'
       },
       warning: {
         icon: AlertCircle,
         label: 'Storage Warning',
-        color: 'text-orange-600 dark:text-orange-400',
-        bg: 'bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/30'
+        color: 'text-amber-600 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-950/20 border-amber-150 dark:border-amber-900/30'
       },
       encryption: {
         icon: Lock,
         label: 'Encryption Log',
-        color: 'text-indigo-600 dark:text-indigo-400',
-        bg: 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30'
+        color: 'text-[#2563EB] dark:text-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
       },
       system: {
         icon: Bell,
         label: 'System Notification',
-        color: 'text-indigo-600 dark:text-indigo-400',
-        bg: 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30'
+        color: 'text-[#2563EB] dark:text-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
       }
     };
     return configs[type] || configs.system;
@@ -275,57 +275,57 @@ export default function NotificationsView({
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
       
       {/* ── 1. HEADER FILTERS AND DYNAMIC STATS PANEL ── */}
-      <div className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-5 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Bell className="w-5 h-5 text-white stroke-[2]" />
+            <div className="w-9 h-9 bg-[#2563EB] rounded-lg flex items-center justify-center shadow-xs text-white">
+              <Bell className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">Notifications Index</h2>
-              <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">
-                Telemetry Log Center
+              <h2 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">Notifications</h2>
+              <p className="text-[11px] text-[#64748B] dark:text-slate-400 font-medium">
+                Workspace Activity & Audit Logs
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative flex-1 md:w-60 min-w-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#64748B]" />
               <input
                 type="text"
                 placeholder="Search logs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9.5 pr-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-slate-800 text-gray-950 dark:text-[#F8FAFC] rounded-xl border border-gray-150 dark:border-slate-750 focus:outline-hidden focus:border-blue-500/80 transition-all duration-300 placeholder-gray-400"
+                className="w-full pl-8.5 pr-3 py-1.5 text-xs font-medium bg-[#F8FAFC] dark:bg-slate-800 text-[#0F172A] dark:text-[#F8FAFC] rounded-lg border border-[#E2E8F0] dark:border-slate-700 focus:outline-hidden focus:border-[#2563EB] transition-colors placeholder-[#64748B]"
               />
             </div>
 
             {unreadCount > 0 && (
               <button
                 onClick={onMarkAllAsRead}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/30 rounded-xl transition cursor-pointer active:scale-95 border border-blue-200/20"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/30 rounded-lg transition cursor-pointer active:scale-95 border border-blue-200/40"
               >
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                Mark Read
+                <Check className="w-3.5 h-3.5" />
+                Mark All Read
               </button>
             )}
           </div>
         </div>
 
         {/* Category filters */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto pt-5 scrollbar-thin">
+        <div className="flex items-center space-x-1.5 overflow-x-auto pt-4 scrollbar-thin">
           {categoriesList.map((cat) => {
             const isActive = activeCategory === cat.key;
             return (
               <button
                 key={cat.key}
                 onClick={() => setActiveCategory(cat.key)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer hover:scale-102 active:scale-98 ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/20'
-                    : 'bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-600 dark:text-[#94A3B8] border border-gray-100 dark:border-slate-750'
+                    ? 'bg-[#2563EB] text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#64748B] dark:text-slate-300 border border-transparent'
                 }`}
               >
                 {cat.label}
@@ -334,15 +334,15 @@ export default function NotificationsView({
           })}
         </div>
 
-        {/* Dynamic Telemetry Stats Row (Context at a glance) */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-4 border-t border-gray-100 dark:border-slate-750 text-[10px] font-black uppercase text-gray-400 tracking-wider">
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" /> Unread: <span className="text-gray-900 dark:text-white">{stats.unread}</span></span>
-          <span className="text-gray-200 dark:text-slate-750">/</span>
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Today: <span className="text-gray-900 dark:text-white">{stats.today}</span></span>
-          <span className="text-gray-200 dark:text-slate-750">/</span>
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Security: <span className="text-gray-900 dark:text-white">{stats.security}</span></span>
-          <span className="text-gray-200 dark:text-slate-750">/</span>
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Uploads: <span className="text-gray-900 dark:text-white">{stats.uploads}</span></span>
+        {/* Dynamic Telemetry Stats Row */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3.5 border-t border-[#E2E8F0] dark:border-slate-800 text-[11px] font-medium text-[#64748B] dark:text-slate-400">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Unread: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.unread}</span></span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2563EB]" /> Today: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.today}</span></span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-500" /> Security: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.security}</span></span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-400" /> Uploads: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.uploads}</span></span>
         </div>
       </div>
 
@@ -370,11 +370,11 @@ export default function NotificationsView({
         ) : (
           groupedNotifications.map((group) => (
             <div key={group.id} className="space-y-2.5">
-              <h3 className="text-[10px] font-black text-gray-400 dark:text-slate-500 tracking-widest pl-2">
+              <h3 className="text-[11px] font-semibold text-[#64748B] dark:text-slate-400 tracking-wider uppercase pl-1">
                 {group.title}
               </h3>
               
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {group.items.map((notif) => {
                   const isRead = notif.isRead || notif.read;
                   const type = getNotificationType(notif);
@@ -385,48 +385,46 @@ export default function NotificationsView({
                   return (
                     <div
                       key={notif.id}
-                      className={`notif-timeline-card group relative rounded-2xl border bg-white dark:bg-[#1E293B] cursor-pointer ${
+                      className={`notif-timeline-card group relative rounded-xl border bg-white dark:bg-[#1E293B] cursor-pointer ${
                         !isRead
-                          ? 'notif-timeline-card-unread border-emerald-100 dark:border-emerald-950/20 bg-emerald-50/5 dark:bg-emerald-950/2 shadow-3xs'
-                          : 'border-gray-100 dark:border-slate-800'
+                          ? 'border-[#2563EB]/40 dark:border-blue-500/40 bg-blue-50/10 dark:bg-blue-950/10 shadow-3xs'
+                          : 'border-[#E2E8F0] dark:border-slate-800'
                       }`}
                       onClick={() => !isRead && onMarkAsRead(notif.id)}
                     >
-                      {/* Compact card layout: Height reduced by 20%, spacing tightened */}
-                      <div className="py-3 px-4.5">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center space-x-3.5 min-w-0">
+                      <div className="py-2.5 px-3.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center space-x-3 min-w-0">
                             
-                            {/* Color-Coordinated Icon / Avatar with top unread badge (No left margin gaps) */}
+                            {/* Icon / Avatar */}
                             <div className="relative shrink-0 select-none">
                               {shareUserName ? (
-                                <div className="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 text-white flex items-center justify-center font-black text-xs uppercase shadow-sm border border-indigo-400/20">
+                                <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
                                   {shareUserName.charAt(0)}
                                 </div>
                               ) : (
-                                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${config.bg}`}>
-                                  <TypeIcon className={`w-4.5 h-4.5 ${config.color} stroke-[1.75]`} />
+                                <div className={`w-8 h-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
+                                  <TypeIcon className={`w-4 h-4 ${config.color}`} />
                                 </div>
                               )}
-                              {/* Pulsing unread dot in corner */}
                               {!isRead && (
-                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#1E293B] animate-pulse" />
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#2563EB] rounded-full ring-2 ring-white dark:ring-[#1E293B]" />
                               )}
                             </div>
 
-                            {/* Core text section (Message serves as header, redundant notifications omitted) */}
+                            {/* Core text section */}
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <h4 className="text-xs font-black text-gray-900 dark:text-[#F8FAFC] leading-snug truncate">
+                                <h4 className="text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] leading-snug truncate">
                                   {formatNotificationMessage(notif.message)}
                                 </h4>
                                 {!isRead && (
-                                  <span className="inline-flex px-1.5 py-0.25 rounded-md text-[8px] font-black uppercase bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 tracking-wider">
+                                  <span className="inline-flex px-1.5 py-0.25 rounded text-[8px] font-bold uppercase bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] dark:text-blue-400 tracking-wider">
                                     New
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase mt-0.5">
+                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
                                 <span>{config.label}</span>
                                 <span>•</span>
                                 <span>{formatTimeLabel(notif.createdAt)}</span>
@@ -435,17 +433,17 @@ export default function NotificationsView({
 
                           </div>
 
-                          {/* Hover action delete icon (inside a small rounded button) */}
+                          {/* Hover action delete icon */}
                           <div className="shrink-0">
                             <button
                               onClick={(e) => {
-                                e.stopPropagation(); // Avoid triggering markAsRead click
+                                e.stopPropagation();
                                 handleLocalDelete(notif.id);
                               }}
-                              className="p-1.5 bg-gray-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/20 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-all duration-200 cursor-pointer shadow-3xs hover:shadow-2xs opacity-0 group-hover:opacity-100"
-                              title="Delete Event"
+                              className="p-1 text-[#64748B] hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                              title="Dismiss Event"
                             >
-                              <Trash2 className="w-3.5 h-3.5 stroke-[1.75]" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>

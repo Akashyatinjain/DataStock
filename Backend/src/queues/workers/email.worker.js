@@ -49,12 +49,11 @@ export const initEmailWorker = () => {
       console.warn(`⚠️ [Email Worker] Job #${job?.id} (${job?.name}) failed (attempt ${job?.attemptsMade}): ${err.message}`);
     });
 
-    let lastWorkerErrorLog = 0;
-    emailWorker.on("error", (err) => {
-      const now = Date.now();
-      if (now - lastWorkerErrorLog > 60000) {
-        lastWorkerErrorLog = now;
-        console.warn("⚠️ BullMQ Email Worker notice (fallback mode active):", err.message);
+    let hasLoggedEmailNotice = false;
+    emailWorker.on("error", () => {
+      if (!hasLoggedEmailNotice) {
+        hasLoggedEmailNotice = true;
+        console.warn("⚠️ BullMQ Email Worker operating in background fallback mode (Redis offline).");
       }
     });
 

@@ -136,7 +136,8 @@ export const downloadFolder = asyncHandler(async (req, res) => {
           method: 'GET',
           responseType: 'stream'
         });
-        archive.append(response.data, { name: path.join(relativePath, file.originalName) });
+        const entryName = path.join(relativePath, file.originalName).replace(/\\/g, '/');
+        archive.append(response.data, { name: entryName });
       } catch (err) {
         console.error(`[Archive] Failed to fetch stream for file "${file.originalName}" (${file.id}):`, err);
       }
@@ -147,7 +148,8 @@ export const downloadFolder = asyncHandler(async (req, res) => {
     });
 
     for (const subfolder of subfolders) {
-      await addFolderToArchive(subfolder.id, path.join(relativePath, subfolder.name));
+      const nextRelativePath = path.join(relativePath, subfolder.name).replace(/\\/g, '/');
+      await addFolderToArchive(subfolder.id, nextRelativePath);
     }
   };
 

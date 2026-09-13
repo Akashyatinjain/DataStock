@@ -11,14 +11,10 @@ import {
   HelpCircle,
   Menu,
   X,
-  Star,
-  ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../store/slices/authSlice';
-import { addNotification } from '../../../store/slices/notificationsSlice';
-import { connectSocket, socket } from "../../../socket";
 import ThemeToggle from '../../ui/ThemeToggle';
 
 const Header = ({
@@ -75,40 +71,20 @@ const Header = ({
   const unreadCount = notifications.filter((n) => !n.isRead && !n.read).length;
   const subscriptionPlan = user?.subscriptionPlan || currentPlan || 'BASIC';
 
-  const navClass = isDark
-    ? 'fixed top-0 w-full bg-[#0f172a]/80 backdrop-blur-md z-50 border-b border-slate-800/60'
-    : 'fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-200/60';
+  const navClass =
+    'fixed top-0 w-full bg-white dark:bg-[#1E293B] backdrop-blur-md z-50 border-b border-slate-200 dark:border-slate-600 transition-colors duration-200';
 
-  const iconBtnClass = isDark
-    ? 'p-2 text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition-colors duration-200'
-    : 'p-2 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-lg transition-colors duration-200';
+  const iconBtnClass =
+    'p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 rounded-lg transition-colors duration-200 cursor-pointer outline-none focus:outline-none';
 
-  const inputClass = isDark
-    ? 'w-full max-w-md lg:max-w-lg xl:max-w-2xl pl-10 pr-12 py-2 bg-slate-800/90 text-slate-100 placeholder-slate-400 border border-slate-700/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/40 focus:border-[#3B82F6] focus:bg-[#0F172A] transition-all shadow-3xs'
-    : 'w-full max-w-md lg:max-w-lg xl:max-w-2xl pl-10 pr-12 py-2 bg-gray-100/90 text-gray-900 placeholder-gray-500 border border-gray-200/80 rounded-xl focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] focus:bg-white transition-all shadow-3xs';
+  const inputClass =
+    'w-72 sm:w-80 md:w-96 lg:w-[380px] xl:w-[420px] pl-9 pr-16 py-2 bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 border border-slate-200 dark:border-slate-600 rounded-lg outline-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#0F172A] transition-all shadow-3xs text-xs sm:text-sm font-normal';
 
-  const upgradeBtnClass = isDark
-    ? 'h-10 items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-800/50 px-2.5 text-left transition-colors duration-200 hover:border-emerald-500/40 hover:bg-slate-800 lg:gap-2.5 lg:px-3'
-    : 'h-10 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/80 px-2.5 text-left transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50/70 lg:gap-2.5 lg:px-3';
-
-  const upgradeIconClass = isDark
-    ? 'flex h-7 w-7 items-center justify-center rounded-md bg-[#3B82F6]/15 text-[#3B82F6] transition-colors duration-200 group-hover:bg-[#3B82F6]/25 group-hover:text-[#3B82F6]'
-    : 'flex h-7 w-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600 transition-colors duration-200 group-hover:bg-emerald-200 group-hover:text-emerald-700';
-
-  const upgradeTitleClass = isDark
-    ? 'text-sm font-semibold leading-none text-slate-100 transition-colors duration-200 group-hover:text-[#3B82F6]'
-    : 'text-sm font-semibold leading-none text-gray-900 transition-colors duration-200 group-hover:text-emerald-700';
-
-  const upgradeMetaClass = isDark
-    ? 'mt-1 text-[10px] font-medium leading-none text-slate-400'
-    : 'mt-1 text-[10px] font-medium leading-none text-gray-500';
-
-  const dropdownClass = isDark
-    ? 'absolute right-0 mt-2 w-64 bg-[#0f172a]/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-700/50 py-2 z-50 animate-slideDown'
-    : 'absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 py-2 z-50 animate-slideDown';
+  const dropdownClass =
+    'absolute right-0 mt-2 w-60 bg-white dark:bg-[#1E293B] rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 py-1.5 z-50 animate-slideDown';
 
   if (authLoading && !user) {
-    const skeletonBg = isDark ? 'bg-slate-700' : 'bg-gray-200';
+    const skeletonBg = isDark ? 'bg-slate-800' : 'bg-slate-200';
     return (
       <nav className={navClass}>
         <div className="px-4 sm:px-6 lg:px-8">
@@ -128,8 +104,6 @@ const Header = ({
   }
 
   return (
-
-
       <nav className={navClass}>
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16 gap-4">
@@ -147,38 +121,38 @@ const Header = ({
                 <img 
                   src="/datastock-logo.svg" 
                   alt="DataStock Logo" 
-                  className="w-8.5 h-8.5 rounded-xl shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200" 
+                  className="w-8 h-8 rounded-lg shadow-xs group-hover:scale-105 transition-transform duration-200" 
                 />
                 <div className="hidden sm:flex flex-col">
-                  <span className={`font-extrabold text-lg leading-none tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Data<span className="text-[#3B82F6]">Stock</span>
+                  <span className="font-bold text-base leading-none tracking-tight text-slate-900 dark:text-white">
+                    Data<span className="text-[#2563EB]">Stock</span>
                   </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mt-0.5">
-                    Zero-Knowledge Workspace
+                  <span className="text-[10px] font-normal tracking-tight text-slate-500 dark:text-slate-400 mt-0.5">
+                    Enterprise Cloud Storage
                   </span>
                 </div>
               </div>
 
               <div className="hidden lg:flex items-center flex-1 max-w-2xl">
                 <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search files and folders..."
+                    placeholder="Search files, folders..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={inputClass}
                   />
                   {!searchQuery && (
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none select-none text-xs font-bold text-gray-600 dark:text-slate-200 bg-gray-200/90 dark:bg-slate-700/90 border border-gray-300/80 dark:border-slate-600/80 px-2 py-0.5 rounded-md shadow-2xs">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 pointer-events-none select-none text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#1E293B] border border-slate-200 dark:border-slate-600 px-1.5 py-0.5 rounded shadow-2xs">
                       <span>Ctrl</span>
-                      <span className="text-[11px] font-black">K</span>
+                      <span className="font-semibold">K</span>
                     </div>
                   )}
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'} text-lg leading-none`}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg leading-none cursor-pointer"
                       aria-label="Clear search"
                     >
                       ×
@@ -188,7 +162,7 @@ const Header = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-3.5 lg:space-x-5">
+            <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
               <ThemeToggle />
 
               <button
@@ -212,7 +186,7 @@ const Header = ({
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className={`absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ${isDark ? 'ring-[#0f172a]' : 'ring-white'}`} />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-[#2563EB] rounded-full ring-2 ring-white dark:ring-[#1E293B]" />
                 )}
               </button>
 
@@ -227,58 +201,58 @@ const Header = ({
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className={`flex items-center space-x-2 p-1.5 ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-gray-100'} rounded-lg transition-colors duration-200`}
+                  className="flex items-center space-x-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/60 rounded-lg transition-colors duration-200 cursor-pointer outline-none focus:outline-none"
                   aria-label="User menu"
                 >
-                  <div className="w-8 h-8 bg-linear-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
+                  <div className="w-8 h-8 bg-[#2563EB] rounded-full flex items-center justify-center shadow-xs overflow-hidden text-white font-semibold text-xs">
                     {user?.imageUrl ? (
                       <img src={user.imageUrl} className="w-8 h-8 rounded-full object-cover" alt="Profile" />
                     ) : (
-                      <span className="text-white text-sm font-medium">{getUserInitial()}</span>
+                      <span className="text-white">{getUserInitial()}</span>
                     )}
                   </div>
                   <div className="hidden lg:block text-left">
-                    <span className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'} leading-tight`}>
-                      {user?.username}
+                    <span className="block text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                      {user?.username || user?.name || 'User'}
                     </span>
-                    <span className={`block text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} leading-tight`}>
+                    <span className="block text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
                       {user?.email}
                     </span>
                   </div>
-                  <ChevronDown className={`hidden sm:block w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+                  <ChevronDown className="hidden sm:block w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 {showUserMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                     <div className={dropdownClass}>
-                      <div className={`px-4 py-3 border-b ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'}`}>
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{user?.username || user?.name}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} truncate`}>{user?.email}</p>
+                      <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-600">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{user?.username || user?.name}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                       </div>
                       <div className="py-1">
                         <button
                           onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
-                          className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800/60' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} transition`}
+                          className="flex items-center w-full px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition cursor-pointer"
                         >
-                          <User className={`w-4 h-4 mr-3 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+                          <User className="w-4 h-4 mr-3 text-slate-400" />
                           Your Profile
                         </button>
                         <button
                           onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
-                          className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-slate-300 hover:text-white hover:bg-slate-800/60' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} transition`}
+                          className="flex items-center w-full px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition cursor-pointer"
                         >
-                          <Settings className={`w-4 h-4 mr-3 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+                          <Settings className="w-4 h-4 mr-3 text-slate-400" />
                           Account Settings
                         </button>
                       </div>
-                      <div className={`border-t ${isDark ? 'border-slate-700/50' : 'border-gray-200/50'} my-1`} />
+                      <div className="border-t border-slate-200 dark:border-slate-600 my-1" />
                       <div className="py-1">
                         <button
                           onClick={handleLogout}
-                          className={`flex items-center w-full px-4 py-2 text-sm ${isDark ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-600 hover:text-red-700 hover:bg-red-50'} transition`}
+                          className="flex items-center w-full px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition cursor-pointer"
                         >
-                          <LogOut className="w-4 h-4 mr-3" />
+                          <LogOut className="w-4 h-4 mr-3 text-red-500" />
                           Sign Out
                         </button>
                       </div>
@@ -300,13 +274,13 @@ const Header = ({
           {showMobileSearch && (
             <div className="py-2 pb-3 lg:hidden animate-slideDown">
               <div className="relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 ${isDark ? 'bg-slate-800/60 text-slate-100 placeholder-slate-400 border-slate-700/50' : 'bg-gray-100 text-gray-800 placeholder-gray-500 border-gray-200'} border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB] outline-none focus:outline-none"
                   autoFocus
                 />
               </div>

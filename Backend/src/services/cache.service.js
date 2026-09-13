@@ -111,7 +111,8 @@ export const invalidateUserFilesCache = async (userId) => {
 export const invalidateUserFoldersCache = async (userId) => {
   if (!userId) return;
   await Promise.allSettled([
-    deleteCachePattern(`folders:${userId}:*`),
+    deleteCache(`folders:${userId}`),
+    deleteCachePattern(`folders:${userId}*`),
     deleteCachePattern(`files:${userId}:*`),
   ]);
 };

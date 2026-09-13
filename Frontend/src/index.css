@@ -3,19 +3,123 @@
 
 @variant dark (&:where(.dark, .dark *));
 
-/* DataStock Dark Theme Palette */
+@theme {
+  --color-ds-brand: var(--ds-brand);
+  --color-ds-brand-hover: var(--ds-brand-hover);
+  --color-ds-brand-light: var(--ds-brand-light);
+  --color-ds-accent: var(--ds-accent);
+  --color-ds-accent-hover: var(--ds-accent-hover);
+  --color-ds-accent-light: var(--ds-accent-light);
+  --color-ds-bg: var(--ds-bg);
+  --color-ds-bg-secondary: var(--ds-bg-secondary);
+  --color-ds-card: var(--ds-card);
+  --color-ds-border: var(--ds-border);
+  --color-ds-text-primary: var(--ds-text-primary);
+  --color-ds-text-secondary: var(--ds-text-secondary);
+  --color-ds-text-muted: var(--ds-text-muted);
+  --color-ds-success: var(--ds-success);
+  --color-ds-warning: var(--ds-warning);
+  --color-ds-error: var(--ds-error);
+  --color-ds-file-document: var(--ds-file-document);
+  --color-ds-file-document-bg: var(--ds-file-document-bg);
+  --color-ds-file-spreadsheet: var(--ds-file-spreadsheet);
+  --color-ds-file-spreadsheet-bg: var(--ds-file-spreadsheet-bg);
+  --color-ds-file-presentation: var(--ds-file-presentation);
+  --color-ds-file-presentation-bg: var(--ds-file-presentation-bg);
+  --color-ds-file-media: var(--ds-file-media);
+  --color-ds-file-media-bg: var(--ds-file-media-bg);
+  --color-ds-file-archive: var(--ds-file-archive);
+  --color-ds-file-archive-bg: var(--ds-file-archive-bg);
+  --color-ds-file-audio: var(--ds-file-audio);
+  --color-ds-file-audio-bg: var(--ds-file-audio-bg);
+  --color-ds-folder-1: var(--ds-folder-1);
+  --color-ds-folder-2: var(--ds-folder-2);
+  --color-ds-folder-3: var(--ds-folder-3);
+  --color-ds-folder-4: var(--ds-folder-4);
+  --color-ds-badge-positive: var(--ds-badge-positive);
+  --color-ds-badge-negative: var(--ds-badge-negative);
+  --color-ds-badge-info: var(--ds-badge-info);
+  --color-ds-badge-financial: var(--ds-badge-financial);
+}
+
+/* DataStock Design Tokens — Light Mode (default) */
 :root {
-  --ds-bg: #0F172A;
+  --ds-brand: #2563EB;
+  --ds-brand-hover: #1D4ED8;
+  --ds-brand-light: #3B82F6;
+  --ds-accent: #2563EB;
+  --ds-accent-hover: #1D4ED8;
+  --ds-accent-light: #60A5FA;
+  --ds-bg: #F8FAFC;
+  --ds-bg-secondary: #F1F5F9;
+  --ds-card: #FFFFFF;
+  --ds-border: #E2E8F0;
+  --ds-text-primary: #0F172A;
+  --ds-text-secondary: #475569;
+  --ds-text-muted: #94A3B8;
+  --ds-success: #10B981;
+  --ds-warning: #F59E0B;
+  --ds-error: #EF4444;
+  --ds-file-document: #475569;
+  --ds-file-document-bg: #F1F5F9;
+  --ds-file-spreadsheet: #475569;
+  --ds-file-spreadsheet-bg: #F1F5F9;
+  --ds-file-presentation: #475569;
+  --ds-file-presentation-bg: #F1F5F9;
+  --ds-file-media: #475569;
+  --ds-file-media-bg: #F1F5F9;
+  --ds-file-archive: #475569;
+  --ds-file-archive-bg: #F1F5F9;
+  --ds-file-audio: #475569;
+  --ds-file-audio-bg: #F1F5F9;
+  --ds-folder-1: #2563EB;
+  --ds-folder-2: #2563EB;
+  --ds-folder-3: #2563EB;
+  --ds-folder-4: #2563EB;
+  --ds-badge-positive: #10B981;
+  --ds-badge-negative: #EF4444;
+  --ds-badge-info: #2563EB;
+  --ds-badge-financial: #F59E0B;
+}
+
+/* DataStock Design Tokens — Dark Mode */
+.dark {
+  --ds-brand: #3B82F6;
+  --ds-brand-hover: #2563EB;
+  --ds-brand-light: #60A5FA;
+  --ds-accent: #3B82F6;
+  --ds-accent-hover: #2563EB;
+  --ds-accent-light: #60A5FA;
+  --ds-bg: #0B0F19;
   --ds-bg-secondary: #1E293B;
   --ds-card: #1E293B;
   --ds-border: #334155;
   --ds-text-primary: #F8FAFC;
   --ds-text-secondary: #94A3B8;
-  --ds-blue: #3B82F6;
-  --ds-blue-hover: #2563EB;
-  --ds-success: #22C55E;
+  --ds-text-muted: #64748B;
+  --ds-success: #10B981;
   --ds-warning: #F59E0B;
   --ds-error: #EF4444;
+  --ds-file-document: #94A3B8;
+  --ds-file-document-bg: #1E293B;
+  --ds-file-spreadsheet: #94A3B8;
+  --ds-file-spreadsheet-bg: #1E293B;
+  --ds-file-presentation: #94A3B8;
+  --ds-file-presentation-bg: #1E293B;
+  --ds-file-media: #94A3B8;
+  --ds-file-media-bg: #1E293B;
+  --ds-file-archive: #94A3B8;
+  --ds-file-archive-bg: #1E293B;
+  --ds-file-audio: #94A3B8;
+  --ds-file-audio-bg: #1E293B;
+  --ds-folder-1: #3B82F6;
+  --ds-folder-2: #3B82F6;
+  --ds-folder-3: #3B82F6;
+  --ds-folder-4: #3B82F6;
+  --ds-badge-positive: #10B981;
+  --ds-badge-negative: #EF4444;
+  --ds-badge-info: #3B82F6;
+  --ds-badge-financial: #F59E0B;
 }
 
 /* ═══════════════════════════════════════════════

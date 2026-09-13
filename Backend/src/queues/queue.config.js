@@ -1,8 +1,7 @@
 import { Queue } from "bullmq";
 import Redis from "ioredis";
 
-let lastQueueLogTime = 0;
-const QUEUE_LOG_COOLDOWN_MS = 60000;
+let hasLoggedQueueNotice = false;
 
 const getRedisConnectionOptions = () => {
   const redisUrl = process.env.REDIS_URL;
@@ -46,10 +45,9 @@ export const getOcrQueue = () => {
       });
 
       ocrQueue.on("error", (err) => {
-        const now = Date.now();
-        if (now - lastQueueLogTime > QUEUE_LOG_COOLDOWN_MS) {
-          lastQueueLogTime = now;
-          console.warn("⚠️ BullMQ Queue notice (fallback mode active):", err.message);
+        if (!hasLoggedQueueNotice) {
+          hasLoggedQueueNotice = true;
+          console.warn("⚠️ BullMQ Queues operating in background fallback mode (Redis offline).");
         }
       });
     } catch (err) {
@@ -77,10 +75,9 @@ export const getEmailQueue = () => {
       });
 
       emailQueue.on("error", (err) => {
-        const now = Date.now();
-        if (now - lastQueueLogTime > QUEUE_LOG_COOLDOWN_MS) {
-          lastQueueLogTime = now;
-          console.warn("⚠️ BullMQ Queue notice (fallback mode active):", err.message);
+        if (!hasLoggedQueueNotice) {
+          hasLoggedQueueNotice = true;
+          console.warn("⚠️ BullMQ Queues operating in background fallback mode (Redis offline).");
         }
       });
     } catch (err) {

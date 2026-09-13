@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchFiles } from '../../../store/slices/filesSlice';
-import { fetchFolders, deleteExistingFolder } from '../../../store/slices/foldersSlice';
-import { DEFAULT_STORAGE } from '../../../utils/constants';
-import {
-  computeUsedGB,
-  normalizeFile,
-  getActiveFolderId,
-} from '../../../utils/fileHelpers';
+import { Plus } from 'lucide-react';
 
 import useToast from '../toast/useToast';
 import Toast from '../toast/Toast';
-import NewFolderModal from '../modals/NewFolderModal';
-import UploadModal from '../modals/UploadModal';
-import ProfileModal from '../modals/ProfileModal';
 
 import NewMenu from './NewMenu';
 import SidebarNav from './SidebarNav';
@@ -27,6 +16,14 @@ import {
   MobileSidebarPanel,
   DesktopSidebarPanel,
 } from './MobileSidebar';
+import NewFolderModal from '../modals/NewFolderModal';
+import UploadModal from '../modals/UploadModal';
+import ProfileModal from '../modals/ProfileModal';
+import { DEFAULT_STORAGE } from '../../../utils/constants';
+import { computeUsedGB, getActiveFolderId, normalizeFile } from '../../../utils/fileHelpers';
+import { fetchFiles } from '../../../store/slices/filesSlice';
+import { fetchFolders, deleteExistingFolder } from '../../../store/slices/foldersSlice';
+
 
 const Sidebar = ({
   sidebarCollapsed,
@@ -140,10 +137,10 @@ const Sidebar = ({
         <div className="relative" data-newmenu>
           <button
             onClick={() => setShowNewMenu((p) => !p)}
-            className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-2xl py-3 flex items-center justify-center gap-2 transition font-medium shadow-sm"
+            className="w-full h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg flex items-center justify-center gap-2 transition font-medium shadow-xs active:scale-[0.99] cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
-            {expanded && <span>New</span>}
+            <Plus className="w-5 h-5 text-white" />
+            {expanded && <span className="text-white font-medium">New</span>}
           </button>
           {showNewMenu && (
             <NewMenu

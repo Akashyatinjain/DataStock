@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Folder, Share2, Trash2, Users, MoreVertical, Eye, Edit3, Download, Loader2 } from 'lucide-react';
+import { Folder, Share2, Trash2, Users, MoreVertical, Download, Loader2 } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
 import { authFetch, apiUrl } from '../../../utils/auth';
 
@@ -38,6 +38,7 @@ function FolderCard({
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showMenu]);
+
   const id = getFolderId(folder);
   const tabId = `folder-${id}`;
 
@@ -58,19 +59,8 @@ function FolderCard({
   }, [allFiles, id]);
 
   const isOwner = folder.ownerId === currentUserId || folder._isOwner;
-  const isShared = folder.sharedWith && folder.sharedWith.length > 0 || folder._isDirectlyShared || folder._isSharedDescendant;
+  const isShared = (folder.sharedWith && folder.sharedWith.length > 0) || folder._isDirectlyShared || folder._isSharedDescendant;
   const permission = folder._sharedPermission || (folder.sharedWith && folder.sharedWith.find(sw => sw.sharedToId === currentUserId)?.permission) || 'VIEW';
-
-  const colorSchemes = [
-    { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-500 fill-blue-500/10' },
-    { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-500 fill-emerald-500/10' },
-    { bg: 'bg-amber-50 dark:bg-amber-950/30', text: 'text-amber-500 fill-amber-500/10' },
-    { bg: 'bg-purple-50 dark:bg-purple-950/30', text: 'text-purple-500 fill-purple-500/10' },
-    { bg: 'bg-rose-50 dark:bg-rose-950/30', text: 'text-rose-500 fill-rose-500/10' },
-    { bg: 'bg-cyan-50 dark:bg-cyan-950/30', text: 'text-cyan-500 fill-cyan-500/10' }
-  ];
-  const charCodeSum = (folder.name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const scheme = colorSchemes[charCodeSum % colorSchemes.length];
 
   const getModifiedLabel = () => {
     const targetDate = folder.updatedAt || folder.createdAt;
@@ -89,8 +79,7 @@ function FolderCard({
     return `Updated ${date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`;
   };
 
-  const ownerInitial = folder.owner?.username?.charAt(0).toUpperCase() || folder.owner?.email?.charAt(0).toUpperCase() || 'U';
-  const ownerName = isOwner ? 'You' : (folder.owner?.username || folder.owner?.email || 'Shared User');
+  const ownerName = isOwner ? 'You' : (folder.owner?.username || folder.owner?.email || 'Shared');
 
   const handleOpen = () => {
     setActiveTab(tabId);
@@ -114,7 +103,7 @@ function FolderCard({
     setIsDownloading(true);
     try {
       const res = await authFetch(apiUrl(`/folders/${id}/download`));
-      if (!res.ok) throw new Error("Download failed");
+      if (!res.ok) throw new Error('Download failed');
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -126,7 +115,7 @@ function FolderCard({
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert("Failed to download folder ZIP");
+      alert('Failed to download folder ZIP');
     } finally {
       setIsDownloading(false);
     }
@@ -135,58 +124,59 @@ function FolderCard({
   return (
     <div
       onClick={handleOpen}
-      className="group relative bg-white dark:bg-[#1E293B] border border-gray-100/80 dark:border-slate-800/80 hover:border-[#3B82F6]/60 dark:hover:border-[#3B82F6]/60 rounded-2xl p-3.5 shadow-3xs hover:shadow-[0_4px_20px_rgba(59,130,246,0.08)] transition-all duration-200 cursor-pointer select-none flex flex-col justify-between h-[105px] animate-fade-up"
+      className="group relative bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 hover:border-[#2563EB] dark:hover:border-blue-500 rounded-xl p-4 shadow-3xs hover:shadow-md transition-all duration-200 cursor-pointer select-none flex flex-col justify-between min-h-[118px] animate-fade-up"
     >
-      {/* Row 1: Icon + Name and Dropdown Action */}
-      <div className="flex items-center justify-between min-w-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/20 border border-cyan-500/20 flex items-center justify-center shrink-0 shadow-xs">
-            <Folder className="w-5 h-5 text-cyan-600 dark:text-cyan-300 stroke-[2.25]" />
+      {/* Top Row: Icon, Title & Action Menu */}
+      <div className="flex items-start justify-between gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-lg border border-blue-150 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center shrink-0 transition-colors">
+            <Folder className="w-5 h-5 text-[#2563EB] dark:text-blue-400" />
           </div>
-          <div className="min-w-0">
-            <h4 className="font-bold text-gray-900 dark:text-[#F8FAFC] text-xs sm:text-sm truncate group-hover:text-[#3B82F6] transition-colors leading-tight">
+          <div className="min-w-0 flex-1">
+            <h4 className="font-semibold text-[#0F172A] dark:text-slate-100 text-sm truncate group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors leading-tight tracking-tight">
               {folder.name}
             </h4>
-            <p className="text-[11px] text-gray-400 font-medium mt-0.5 truncate">
+            <p className="text-xs text-[#64748B] dark:text-slate-400 font-normal mt-0.5 truncate">
               {getModifiedLabel()}
             </p>
           </div>
         </div>
 
         {/* Action Dropdown Menu */}
-        <div ref={menuRef} className="relative shrink-0 pr-1" onClick={(e) => e.stopPropagation()}>
+        <div ref={menuRef} className="relative shrink-0 -mr-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowMenu((prev) => !prev);
             }}
-            className="p-1.5 hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+            aria-label="Folder options"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-xl shadow-xl py-1.5 z-50 animate-fade-in text-left">
+            <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5 z-50 animate-fade-in text-left">
               {isOwner && (
                 <button
                   onClick={handleShareClick}
-                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
                 >
-                  <Share2 className="w-3.5 h-3.5 text-[#3B82F6]" />
+                  <Share2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   Share Folder
                 </button>
               )}
               <button
                 onClick={handleDownloadZip}
-                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-gray-50 dark:hover:bg-[#334155] transition flex items-center gap-2"
+                className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
               >
-                <Download className="w-3.5 h-3.5 text-amber-500" />
+                <Download className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
                 Download ZIP
               </button>
               {(isOwner || permission === 'EDIT') && (
                 <button
                   onClick={handleDeleteClick}
-                  className="w-full px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-red-500" />
                   Delete
@@ -194,45 +184,46 @@ function FolderCard({
               )}
             </div>
           )}
+        </div>
       </div>
-    </div>
 
-      {/* Row 2: Stats & Created By / Shared Badge */ }
-  <div className="flex items-center justify-between text-[11px] font-medium text-gray-500 dark:text-slate-400 mt-2 pt-2 border-t border-gray-100/60 dark:border-slate-800/60">
-    <span>{fileCount} {fileCount === 1 ? 'file' : 'files'} · {formatFolderSize(folderSize)}</span>
-    {isShared ? (
-      <div className="flex items-center gap-1.5">
-        {folder.sharedWith && folder.sharedWith.length > 0 && (
-          <div className="flex items-center -space-x-1.5">
-            {folder.sharedWith.slice(0, 3).map((sw, idx) => (
-              <div
-                key={`sw-${idx}`}
-                className="w-4.5 h-4.5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 border border-white dark:border-[#1E293B] flex items-center justify-center text-[8px] font-bold text-white uppercase shadow-2xs"
-                title={sw.sharedTo?.username || sw.sharedTo?.email}
-              >
-                {sw.sharedTo?.username?.charAt(0) || sw.sharedTo?.email?.charAt(0) || 'U'}
+      {/* Bottom Row: Metadata & Sharing Status */}
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800/80">
+        <span>{fileCount} {fileCount === 1 ? 'file' : 'files'} · {formatFolderSize(folderSize)}</span>
+        {isShared ? (
+          <div className="flex items-center gap-1.5">
+            {folder.sharedWith && folder.sharedWith.length > 0 && (
+              <div className="flex items-center -space-x-1.5">
+                {folder.sharedWith.slice(0, 3).map((sw, idx) => (
+                  <div
+                    key={`sw-${idx}`}
+                    className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 border border-white dark:border-[#1E293B] flex items-center justify-center text-[8px] font-semibold text-slate-700 dark:text-slate-200 uppercase"
+                    title={sw.sharedTo?.username || sw.sharedTo?.email}
+                  >
+                    {sw.sharedTo?.username?.charAt(0) || sw.sharedTo?.email?.charAt(0) || 'U'}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-[11px] font-medium">
+              <Users className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+              <span>Shared</span>
+            </span>
           </div>
+        ) : (
+          <span className="text-xs text-slate-400 dark:text-slate-500">By {ownerName}</span>
         )}
-        <span className="flex items-center gap-1 text-[#3B82F6] dark:text-blue-400 font-bold bg-blue-50/60 dark:bg-blue-950/30 px-1.5 py-0.5 rounded-md text-[10px]">
-          <Users className="w-3 h-3" />
-          <span>Shared</span>
-        </span>
       </div>
-    ) : (
-      <span className="text-[10px] text-gray-400 font-medium">By {ownerName}</span>
-    )}
-  </div>
 
-  {isDownloading && (
-    <div className="absolute inset-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-2xl animate-fade-in pointer-events-auto cursor-wait">
-      <Loader2 className="w-6 h-6 text-[#3B82F6] animate-spin mb-1" />
-      <span className="text-[11px] font-bold text-gray-700 dark:text-[#D1D5DB]">Zipping Folder…</span>
-    </div>
-  )}
+      {isDownloading && (
+        <div className="absolute inset-0 bg-white/85 dark:bg-[#1E293B]/85 backdrop-blur-xs z-30 flex flex-col items-center justify-center rounded-xl animate-fade-in pointer-events-auto cursor-wait">
+          <Loader2 className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin mb-1.5" />
+          <span className="text-xs font-medium text-slate-700 dark:text-slate-200">Preparing ZIP…</span>
+        </div>
+      )}
     </div>
   );
 }
 
 export default React.memo(FolderCard);
+

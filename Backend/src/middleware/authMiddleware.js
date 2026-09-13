@@ -27,6 +27,8 @@ export const authenticateUser = async (req, res, next) => {
     req.user = {
       userId: user.id,
       email: user.email,
+      username: user.username,
+      imageUrl: user.imageUrl,
       tokenVersion: user.tokenVersion,
     };
 
@@ -59,6 +61,8 @@ export const optionalAuthenticateUser = async (req, res, next) => {
       req.user = {
         userId: user.id,
         email: user.email,
+        username: user.username,
+        imageUrl: user.imageUrl,
         tokenVersion: user.tokenVersion,
       };
     }

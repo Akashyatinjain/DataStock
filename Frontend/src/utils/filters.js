@@ -18,25 +18,25 @@ export const QUICK_FILTERS = [
   {
     name: 'Images',
     icon: Image,
-    color: 'text-[#3B82F6]',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) => getMimeType(f).startsWith('image'),
   },
   {
     name: 'Videos',
     icon: Video,
-    color: 'text-purple-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) => getMimeType(f).startsWith('video'),
   },
   {
     name: 'PDFs',
     icon: FileText,
-    color: 'text-rose-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) => getMimeType(f).includes('pdf') || getFileName(f).endsWith('.pdf'),
   },
   {
     name: 'Word Docs',
     icon: FileCheck,
-    color: 'text-blue-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) =>
       getMimeType(f).includes('word') ||
       getMimeType(f).includes('wordprocessingml') ||
@@ -45,7 +45,7 @@ export const QUICK_FILTERS = [
   {
     name: 'Spreadsheets',
     icon: FileSpreadsheet,
-    color: 'text-emerald-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) =>
       getMimeType(f).includes('excel') ||
       getMimeType(f).includes('spreadsheetml') ||
@@ -55,7 +55,7 @@ export const QUICK_FILTERS = [
   {
     name: 'Presentations',
     icon: Presentation,
-    color: 'text-orange-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) =>
       getMimeType(f).includes('powerpoint') ||
       getMimeType(f).includes('presentationml') ||
@@ -64,7 +64,7 @@ export const QUICK_FILTERS = [
   {
     name: 'ZIP Files',
     icon: FileArchive,
-    color: 'text-amber-500',
+    color: 'text-[#64748B] dark:text-slate-400',
     filter: (f) =>
       ['.zip', '.rar', '.7z', '.tar', '.gz'].some((ext) => getFileName(f).endsWith(ext)) ||
       getMimeType(f).includes('zip') ||

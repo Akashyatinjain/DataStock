@@ -87,14 +87,17 @@ const FileView = ({
   };
 
   const getFileColor = (file) => {
-    if (file.isFolder) return 'bg-yellow-50 text-yellow-600';
+    if (file.isFolder) return 'bg-amber-50 dark:bg-ds-file-archive-bg text-amber-600 dark:text-ds-file-archive';
     const ext = file.name?.split('.').pop().toLowerCase();
-    if (['jpg', 'png', 'gif', 'svg'].includes(ext)) return 'bg-blue-50 text-blue-600';
-    if (['mp4', 'mov', 'avi'].includes(ext)) return 'bg-purple-50 text-purple-600';
-    if (['pdf'].includes(ext)) return 'bg-red-50 text-red-600';
-    if (['xlsx', 'xls'].includes(ext)) return 'bg-blue-50 text-[#3B82F6]';
-    if (['docx', 'doc'].includes(ext)) return 'bg-blue-50 text-blue-600';
-    return 'bg-gray-100 text-gray-600';
+    if (['jpg', 'png', 'gif', 'svg', 'webp'].includes(ext)) return 'bg-teal-50 dark:bg-ds-file-media-bg text-teal-600 dark:text-ds-file-media';
+    if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return 'bg-teal-50 dark:bg-ds-file-media-bg text-teal-600 dark:text-ds-file-media';
+    if (['mp3', 'wav', 'flac'].includes(ext)) return 'bg-rose-50 dark:bg-ds-file-audio-bg text-rose-600 dark:text-ds-file-audio';
+    if (['zip', 'rar', '7z', 'tar'].includes(ext)) return 'bg-amber-50 dark:bg-ds-file-archive-bg text-amber-600 dark:text-ds-file-archive';
+    if (['pdf'].includes(ext)) return 'bg-blue-50 dark:bg-ds-file-document-bg text-blue-600 dark:text-ds-file-document';
+    if (['xlsx', 'xls'].includes(ext)) return 'bg-emerald-50 dark:bg-ds-file-spreadsheet-bg text-emerald-600 dark:text-ds-file-spreadsheet';
+    if (['docx', 'doc'].includes(ext)) return 'bg-blue-50 dark:bg-ds-file-document-bg text-blue-600 dark:text-ds-file-document';
+    if (['pptx', 'ppt'].includes(ext)) return 'bg-purple-50 dark:bg-ds-file-presentation-bg text-purple-600 dark:text-ds-file-presentation';
+    return 'bg-slate-100 dark:bg-ds-bg-secondary text-slate-600 dark:text-ds-text-secondary';
   };
 
   const toggleFileSelection = (fileId) => {

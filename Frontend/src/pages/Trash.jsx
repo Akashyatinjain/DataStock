@@ -10,10 +10,8 @@ import {
   AlertCircle,
   HardDrive,
   FileText,
-  FileCode,
   Image as ImageIcon,
   Video,
-  FileDown
 } from 'lucide-react';
 import {
   fetchTrashFiles,

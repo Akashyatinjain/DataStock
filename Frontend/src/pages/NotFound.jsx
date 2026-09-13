@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import SeoHead from "../seo/SeoHead";
 import { getPageSeo } from "../seo/config";
-
 const NotFound = () => {
   const seo = getPageSeo("not-found");
   return (

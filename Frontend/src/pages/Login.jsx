@@ -1,17 +1,17 @@
 // LoginPage.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  Cloud, 
-  Mail, 
-  Lock, 
+import {
+  Cloud,
+  Mail,
+  Lock,
   ArrowRight,
   Shield,
-  Smartphone,
-  Key,
   Chrome,
   ArrowLeft,
+  Key,
+  Smartphone,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { useNavigate, Link } from "react-router-dom";
 import SeoHead from "../seo/SeoHead";
@@ -20,14 +20,13 @@ import { jsonLdForPublicRoute } from "../seo/structuredData";
 import { useDispatch, useSelector } from "react-redux";
 import {
   loginUser,
+  logoutUser,
   sendLoginOtp,
   verifyLoginOtp,
-  logoutUser,
 } from "../store/slices/authSlice";
 import { apiUrl, setupAutoLogout, getToken } from "../utils/auth";
 import { getErrorMessage } from "../utils/errorMessage";
 import ThemeToggle from "../components/ui/ThemeToggle";
-
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -62,16 +61,16 @@ const LoginPage = () => {
   }, []);
 
   // Handle OTP input
-const handleOtpRequest = async (e) => {
-  e.preventDefault();
+  const handleOtpRequest = async (e) => {
+    e.preventDefault();
 
-  const result = await dispatch(sendLoginOtp(email));
-  if (sendLoginOtp.fulfilled.match(result)) {
-    setStep("otp-verification");
-  } else {
-    setErrors({ email: getErrorMessage(result.payload, "OTP failed") });
-  }
-};
+    const result = await dispatch(sendLoginOtp(email));
+    if (sendLoginOtp.fulfilled.match(result)) {
+      setStep("otp-verification");
+    } else {
+      setErrors({ email: getErrorMessage(result.payload, "OTP failed") });
+    }
+  };
 
   const handleOtpKeyDown = (index, e) => {
     // Handle backspace
@@ -82,60 +81,60 @@ const handleOtpRequest = async (e) => {
   };
 
   // Handle email/password login
-const handlePasswordLogin = async (e) => {
-  e.preventDefault();
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
 
-  const result = await dispatch(loginUser({ email, password }));
-  if (loginUser.fulfilled.match(result)) {
-    const token = result.payload.token || getToken();
-    setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
-      window.location.href = "/login";
-    }));
-    setStep("success");
-    setTimeout(() => navigate("/dashboard"), 1500);
-  } else {
-    setErrors({ password: getErrorMessage(result.payload, "Login failed") });
-  }
-};
-const handleOtpChange = (index, value) => {
-  if (value.length > 1) return;
-
-  const newOtp = [...otp];
-  newOtp[index] = value;
-  setOtp(newOtp);
-
-  if (value && index < 5) {
-    const nextInput = document.getElementById(`otp-${index + 1}`);
-    if (nextInput) nextInput.focus();
-  }
-};
-  // Handle OTP request
-const handleOtpVerification = async (e) => {
-  e.preventDefault();
-
-  const otpValue = otp.join("");
-  const result = await dispatch(verifyLoginOtp({ email, otp: otpValue }));
-
-  if (verifyLoginOtp.fulfilled.match(result)) {
-    const token = result.payload.token || getToken();
-    if (token) {
+    const result = await dispatch(loginUser({ email, password }));
+    if (loginUser.fulfilled.match(result)) {
+      const token = result.payload.token || getToken();
       setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
         window.location.href = "/login";
       }));
+      setStep("success");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } else {
+      setErrors({ password: getErrorMessage(result.payload, "Login failed") });
     }
-    setStep("success");
-    setTimeout(() => navigate("/dashboard"), 1500);
-  } else {
-    setErrors({ otp: getErrorMessage(result.payload, "Invalid OTP") });
-  }
-};
+  };
+  const handleOtpChange = (index, value) => {
+    if (value.length > 1) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+  // Handle OTP request
+  const handleOtpVerification = async (e) => {
+    e.preventDefault();
+
+    const otpValue = otp.join("");
+    const result = await dispatch(verifyLoginOtp({ email, otp: otpValue }));
+
+    if (verifyLoginOtp.fulfilled.match(result)) {
+      const token = result.payload.token || getToken();
+      if (token) {
+        setupAutoLogout(token, () => dispatch(logoutUser()).then(() => {
+          window.location.href = "/login";
+        }));
+      }
+      setStep("success");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } else {
+      setErrors({ otp: getErrorMessage(result.payload, "Invalid OTP") });
+    }
+  };
   // Handle OTP verification
 
 
   // Handle Google login
- const handleGoogleLogin = () => {
-  window.location.href = apiUrl("/auth/google");
-};
+  const handleGoogleLogin = () => {
+    window.location.href = apiUrl("/auth/google");
+  };
 
   // Resend OTP
   const handleResendOtp = async () => {
@@ -166,8 +165,8 @@ const handleOtpVerification = async (e) => {
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Link 
-                to="/signup" 
+              <Link
+                to="/signup"
                 className="text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC] transition flex items-center space-x-1 text-sm"
               >
                 <span className="hidden sm:inline">Need an account?</span>
@@ -197,7 +196,7 @@ const handleOtpVerification = async (e) => {
               {/* Header */}
               <div className="text-center mb-8">
                 {step === 'otp-verification' && (
-                  <button 
+                  <button
                     onClick={() => setStep('login')}
                     className="absolute top-6 left-6 text-gray-400 hover:text-black dark:hover:text-[#F8FAFC] transition"
                   >
@@ -217,14 +216,14 @@ const handleOtpVerification = async (e) => {
                     : 'Choose your preferred login method'}
                 </p> */}
                 <h1 className="text-2xl font-bold text-black dark:text-[#F8FAFC] mb-2">
-  {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
-</h1>
+                  {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
+                </h1>
 
-<p className="text-gray-600 dark:text-[#94A3B8]">
-  {step === 'otp-verification'
-    ? `We've sent a 6-digit code to ${email}`
-    : 'Choose your preferred login method'}
-</p>
+                <p className="text-gray-600 dark:text-[#94A3B8]">
+                  {step === 'otp-verification'
+                    ? `We've sent a 6-digit code to ${email}`
+                    : 'Choose your preferred login method'}
+                </p>
               </div>
 
               {/* OTP Verification Step */}
@@ -299,40 +298,38 @@ const handleOtpVerification = async (e) => {
                   )}
 
                   <button
-  onClick={handleGoogleLogin}
-  className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-[#334155] rounded-xl py-3 px-4 mb-6 text-gray-900 dark:text-[#F8FAFC] hover:border-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition font-medium"
->
-  {/* Google Icon */}
-  <svg width="18" height="18" viewBox="0 0 48 48">
-    <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.6l6.9-6.9C35.9 2.7 30.3 0 24 0 14.6 0 6.5 5.5 2.6 13.5l8.1 6.3C12.5 13.5 17.7 9.5 24 9.5z"/>
-    <path fill="#4285F4" d="M46.1 24.5c0-1.7-.2-3.3-.5-4.9H24v9.3h12.4c-.5 2.8-2.1 5.1-4.5 6.7l7 5.4c4.1-3.8 6.4-9.4 6.4-16.5z"/>
-    <path fill="#FBBC05" d="M10.7 28.1c-.5-1.4-.8-2.9-.8-4.4s.3-3 .8-4.4l-8.1-6.3C.9 16.4 0 20 0 23.7s.9 7.3 2.6 10.7l8.1-6.3z"/>
-    <path fill="#34A853" d="M24 47c6.3 0 11.6-2.1 15.4-5.7l-7-5.4c-2 1.4-4.6 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-8.1 6.3C6.5 42.5 14.6 47 24 47z"/>
-  </svg>
+                    onClick={handleGoogleLogin}
+                    className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-[#334155] rounded-xl py-3 px-4 mb-6 text-gray-900 dark:text-[#F8FAFC] hover:border-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition font-medium"
+                  >
+                    {/* Google Icon */}
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.6l6.9-6.9C35.9 2.7 30.3 0 24 0 14.6 0 6.5 5.5 2.6 13.5l8.1 6.3C12.5 13.5 17.7 9.5 24 9.5z" />
+                      <path fill="#4285F4" d="M46.1 24.5c0-1.7-.2-3.3-.5-4.9H24v9.3h12.4c-.5 2.8-2.1 5.1-4.5 6.7l7 5.4c4.1-3.8 6.4-9.4 6.4-16.5z" />
+                      <path fill="#FBBC05" d="M10.7 28.1c-.5-1.4-.8-2.9-.8-4.4s.3-3 .8-4.4l-8.1-6.3C.9 16.4 0 20 0 23.7s.9 7.3 2.6 10.7l8.1-6.3z" />
+                      <path fill="#34A853" d="M24 47c6.3 0 11.6-2.1 15.4-5.7l-7-5.4c-2 1.4-4.6 2.3-8.4 2.3-6.3 0-11.6-4.2-13.5-9.9l-8.1 6.3C6.5 42.5 14.6 47 24 47z" />
+                    </svg>
 
-  Continue with Google
-</button>
+                    Continue with Google
+                  </button>
 
                   {/* Login Method Toggle */}
                   <div className="flex bg-gray-100 dark:bg-[#334155] p-1 rounded-xl mb-6">
                     <button
                       onClick={() => setLoginMethod('password')}
-                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${
-                        loginMethod === 'password' 
-                          ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow' 
-                          : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
-                      }`}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${loginMethod === 'password'
+                        ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow'
+                        : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
+                        }`}
                     >
                       <Key className="w-4 h-4" />
                       <span>Password</span>
                     </button>
                     <button
                       onClick={() => setLoginMethod('otp')}
-                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${
-                        loginMethod === 'otp' 
-                          ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow' 
-                          : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
-                      }`}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${loginMethod === 'otp'
+                        ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow'
+                        : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
+                        }`}
                     >
                       <Smartphone className="w-4 h-4" />
                       <span>OTP</span>

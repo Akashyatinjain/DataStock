@@ -1,10 +1,11 @@
 // src/pages/Profile.jsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Camera, Mail, Calendar, HardDrive, Pencil, Save, Loader2,
+  Camera, Mail, Calendar, HardDrive, Pencil, Loader2,
   User, CheckCircle, AlertCircle, Clock, Folder, Image as ImageIcon,
-  FileText, ArrowLeft, Copy, Trash2, BarChart3, UploadCloud,
-  Settings, Star, Gift, ShieldAlert, ShieldCheck, Lock, Unlock, Eye, EyeOff, Key
+  FileText, ArrowLeft, Copy, BarChart3,
+  ShieldAlert, ShieldCheck, Lock, Unlock, Eye, EyeOff, Key,
+  Star, Trash2, Settings, Save, UploadCloud, Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ui/ThemeToggle";
@@ -18,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile, updateUserProfile, uploadProfileImage, deleteProfileImage } from "../store/slices/authSlice";
 import { fetchAllFiles } from "../store/slices/filesSlice";
 import { fetchFolders } from "../store/slices/foldersSlice";
+import { SUBSCRIPTION_UPDATED_EVENT } from "../utils/subscription";
 
 const ProfileSkeleton = () => (
   <div className="h-full animate-pulse p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
@@ -353,86 +355,115 @@ export default function ProfilePage() {
         </div>
 
         {/*  MAIN PROFILE CARD  */}
-        <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-4 sm:p-8 transition-colors duration-200">
-          <div className="flex flex-col lg:flex-row gap-10">
+        <div className="bg-white/90 dark:bg-[#1E293B]/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-5 sm:p-8 transition-colors duration-200">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-center lg:items-start">
             {/* ---------- Avatar Section ---------- */}
-            <div className="relative w-fit mx-auto lg:mx-0">
-              {/* Avatar */}
-              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-[#3B82F6] shadow-lg bg-gray-100 dark:bg-[#334155] relative group/avatar">
-                {user?.imageUrl ? (
-                  <img
-                    src={user.imageUrl}
-                    alt={user?.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-green-400 to-green-600">
-                    <User className="text-white" size={48} />
+            <div className="flex flex-col items-center shrink-0">
+              <div className="relative group/avatar">
+                {/* Avatar Outer Ring & Frame */}
+                <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 shadow-xl">
+                  <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-[#1E293B] bg-slate-100 dark:bg-slate-800 relative">
+                    {user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl}
+                        alt={user?.username || "Avatar"}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover/avatar:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                        <User size={52} className="opacity-90" />
+                      </div>
+                    )}
+
+                    {/* Upload overlay on hover */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-200 cursor-pointer text-white"
+                      title="Upload new photo"
+                    >
+                      <UploadCloud size={26} className="mb-1 text-white animate-bounce" />
+                      <span className="text-xs font-semibold tracking-wide">Change</span>
+                    </button>
                   </div>
-                )}
+                </div>
 
-                {/* Upload overlay */}
+                {/* Camera upload button (Docked Bottom-Right) */}
                 <button
-                  onClick={() => fileInputRef.current.click()}
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity rounded-full"
-                >
-                  <UploadCloud className="text-white" size={24} />
-                </button>
-              </div>
-
-              {/* Bottom buttons */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  disabled={uploading}
-                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Upload new picture"
+                  className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 z-10 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-[#1E293B] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Upload new photo"
                 >
                   {uploading ? (
-                    <Loader2 className="animate-spin" size={16} />
+                    <Loader2 className="animate-spin" size={18} />
                   ) : (
-                    <Camera size={16} />
+                    <Camera size={18} />
                   )}
                 </button>
+
+                {/* Delete button (Docked Top-Right) */}
                 {user?.imageUrl && (
                   <button
+                    type="button"
                     onClick={handleDeleteImage}
                     disabled={deletingImage}
-                    className="bg-red-500 hover:bg-red-600 text-white p-2.5 rounded-full shadow-lg transition disabled:opacity-50"
+                    className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md ring-3 ring-white dark:ring-[#1E293B] transition-all duration-200 cursor-pointer disabled:opacity-50"
                     title="Remove picture"
                   >
                     {deletingImage ? (
-                      <Loader2 className="animate-spin" size={16} />
+                      <Loader2 className="animate-spin" size={14} />
                     ) : (
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     )}
                   </button>
                 )}
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
               </div>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                hidden
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
+              {/* Helper text & Remove link */}
+              <div className="mt-3 text-center">
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                  JPG, PNG or WEBP (Max 5MB)
+                </p>
+                {user?.imageUrl && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteImage}
+                    disabled={deletingImage}
+                    className="mt-1 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer"
+                  >
+                    <Trash2 size={12} />
+                    <span>Remove avatar</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* ---------- Profile Info ---------- */}
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               <div className="flex flex-wrap items-center gap-2 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC]">Profile Information</h2>
-                <span className="bg-blue-100 text-[#3B82F6] px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   Active
                 </span>
                 {user?.subscriptionPlan && user.subscriptionPlan !== 'BASIC' && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-xs ${
                     user.subscriptionPlan === 'PRO'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-purple-100 text-purple-700'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
+                      : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
                   }`}>
+                    <Star size={12} className="fill-current" />
                     {user.subscriptionPlan} Plan
                   </span>
                 )}
@@ -453,21 +484,21 @@ export default function ProfilePage() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-[#334155] pl-11 pr-4 outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition bg-white dark:bg-[#334155] dark:text-[#F8FAFC]"
+                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-[#334155] pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-[#334155] dark:text-[#F8FAFC]"
                       placeholder="Enter username"
                     />
                   </div>
                   <button
                     onClick={handleUpdateProfile}
                     disabled={updating}
-                    className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-6 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 sm:px-6 rounded-xl flex items-center gap-2 transition-all shadow-sm hover:shadow active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
                   >
                     {updating ? (
                       <Loader2 className="animate-spin" size={18} />
                     ) : (
                       <>
                         <Save size={18} />
-                        Save
+                        <span>Save</span>
                       </>
                     )}
                   </button>

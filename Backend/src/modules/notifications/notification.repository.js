@@ -21,13 +21,19 @@ export const getNotifications = async (userId) => {
 };
 
 export const markAsRead = async (notificationId, userId) => {
-  return await prisma.notification.update({
+  await prisma.notification.updateMany({
     where: {
       id: notificationId,
       userId,
     },
     data: {
       isRead: true,
+    },
+  });
+
+  return await prisma.notification.findUnique({
+    where: {
+      id: notificationId,
     },
   });
 };

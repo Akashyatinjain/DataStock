@@ -17,6 +17,7 @@ import {
   DesktopSidebarPanel,
 } from './MobileSidebar';
 import NewFolderModal from '../modals/NewFolderModal';
+import NewDocumentModal from '../modals/NewDocumentModal';
 import UploadModal from '../modals/UploadModal';
 import ProfileModal from '../modals/ProfileModal';
 import { DEFAULT_STORAGE } from '../../../utils/constants';
@@ -45,6 +46,7 @@ const Sidebar = ({
   onFolderDeleted,
   onMoveFile,
   onShareFolder,
+  onOpenWorkspace,
 }) => {
   const dispatch = useDispatch();
   const profile = useSelector((state) => state.auth.user);
@@ -65,6 +67,7 @@ const Sidebar = ({
   const showFoldersLoading = syncFolders ? foldersLoadingFromParent : reduxFoldersLoading;
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [showNewFolder, setShowNewFolder] = useState(false);
+  const [showNewDocument, setShowNewDocument] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [deletingFolderId, setDeletingFolderId] = useState(null);
@@ -144,6 +147,7 @@ const Sidebar = ({
           </button>
           {showNewMenu && (
             <NewMenu
+              onNewDocument={() => setShowNewDocument(true)}
               onNewFolder={() => setShowNewFolder(true)}
               onUpload={() => setShowUpload(true)}
               onClose={() => setShowNewMenu(false)}
@@ -199,6 +203,22 @@ const Sidebar = ({
 
   const modals = (
     <>
+      {showNewDocument && (
+        <NewDocumentModal
+          isOpen={showNewDocument}
+          onClose={() => setShowNewDocument(false)}
+          folderId={selectedFolderId}
+          onCreated={(f) => {
+            const file = normalizeFile(f);
+            if (onFileUploaded) {
+              onFileUploaded(file);
+              onFilesChanged?.();
+            }
+            onOpenWorkspace?.(file);
+          }}
+          toast={toast}
+        />
+      )}
       {showNewFolder && (
         <NewFolderModal
           onClose={() => setShowNewFolder(false)}

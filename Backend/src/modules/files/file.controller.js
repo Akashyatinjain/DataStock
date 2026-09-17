@@ -660,3 +660,44 @@ export const downloadFile = asyncHandler(async (req, res) => {
 
   response.data.pipe(res);
 });
+
+export const createDocument = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { name, folderId, content } = req.body;
+
+  const newDoc = await fileService.createDocumentService(
+    { name, folderId, content },
+    userId
+  );
+
+  return res.status(201).json({
+    success: true,
+    file: newDoc,
+    message: "Document created successfully",
+  });
+});
+
+export const getFileContent = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+
+  const result = await fileService.getFileContentService(id, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const saveFileContent = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const { content } = req.body;
+
+  const result = await fileService.saveFileContentService(id, content, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});

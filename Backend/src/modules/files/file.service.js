@@ -876,3 +876,223 @@ export const deleteVersionService = async (fileId, versionId, userId) => {
     message: `Version ${version.versionNumber} deleted successfully`,
   };
 };
+
+// ── Collaborative Document Services ──
+
+export const createDocumentService = async ({ name, folderId = null, content = "" }, userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, storageLimit: true, storageUsed: true },
+  });
+
+  if (!user) {
+    throw createError("User not found", 404, "USER_NOT_FOUND");
+  }
+
+  if (folderId) {
+    const parentAccess = await checkFolderAccess(folderId, userId);
+    if (!parentAccess || parentAccess.permission !== "EDIT") {
+      throw createError("Unauthorized: You do not have edit permission for this folder", 403, "UNAUTHORIZED");
+    }
+  }
+
+  let cleanName = (name || "Untitled Document").trim();
+  if (!cleanName.includes(".")) {
+    cleanName += ".md";
+  }
+
+  const os = await import("os");
+  const fs = await import("fs");
+  const path = await import("path");
+
+  const tempFileName = `collab_${Date.now()}_${Math.random().toString(36).substring(2, 8)}_${cleanName}`;
+  const tempFilePath = path.join(os.tmpdir(), tempFileName);
+
+  fs.writeFileSync(tempFilePath, content || "", "utf8");
+  const fileStats = fs.statSync(tempFilePath);
+
+  let uploadedFile;
+  try {
+    uploadedFile = await uploadOnCloudinary(tempFilePath);
+  } catch (cloudErr) {
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+    throw createError(cloudErr.message || "Failed to upload document", 502, "CLOUD_UPLOAD_FAILED");
+  }
+
+  const newDoc = await prisma.file.create({
+    data: {
+      fileName: cleanName,
+      originalName: cleanName,
+      url: uploadedFile.secure_url,
+      publicId: uploadedFile.public_id,
+      mimeType: cleanName.endsWith(".md") ? "text/markdown" : "text/plain",
+      size: uploadedFile.bytes || fileStats.size,
+      ownerId: userId,
+      folderId: folderId || null,
+      versions: {
+        create: {
+          versionNumber: 1,
+          url: uploadedFile.secure_url,
+          publicId: uploadedFile.public_id,
+          size: uploadedFile.bytes || fileStats.size,
+        },
+      },
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          imageUrl: true,
+        },
+      },
+      versions: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { storageUsed: { increment: uploadedFile.bytes || fileStats.size } },
+  });
+
+  await invalidateUserFilesCache(userId);
+  await invalidateUserStorageCache(userId);
+  await logActivity(userId, `Created new document "${cleanName}"`);
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${folderId || "root"}`).emit("file_uploaded", newDoc);
+  }
+
+  return newDoc;
+};
+
+export const getFileContentService = async (fileId, userId) => {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access) {
+    throw createError("Unauthorized: You do not have permission to view this file", 403, "UNAUTHORIZED");
+  }
+
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+
+  // Import collabService to check for live buffer
+  const { collabService } = await import("../../services/collab.service.js");
+  const activeDoc = collabService.getDocument(fileId);
+
+  let content = "";
+  if (activeDoc && typeof activeDoc.content === "string") {
+    content = activeDoc.content;
+  } else if (file.url) {
+    try {
+      const resp = await fetch(file.url);
+      if (resp.ok) {
+        content = await resp.text();
+      }
+    } catch (err) {
+      console.warn(`[getFileContentService] Error fetching file content from ${file.url}:`, err.message);
+    }
+  }
+
+  return {
+    file,
+    content,
+    permission: access.permission,
+    role: access.role,
+  };
+};
+
+export const saveFileContentService = async (fileId, content, userId) => {
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
+    throw createError("Unauthorized: You do not have permission to edit this file", 403, "UNAUTHORIZED");
+  }
+
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+
+  const os = await import("os");
+  const fs = await import("fs");
+  const path = await import("path");
+
+  const tempFileName = `collab_save_${Date.now()}_${file.originalName}`;
+  const tempFilePath = path.join(os.tmpdir(), tempFileName);
+
+  fs.writeFileSync(tempFilePath, content || "", "utf8");
+
+  let uploadedFile;
+  try {
+    uploadedFile = await uploadOnCloudinary(tempFilePath);
+  } catch (cloudErr) {
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+    throw createError(cloudErr.message || "Failed to save document to storage", 502, "CLOUD_UPLOAD_FAILED");
+  }
+
+  const versions = await fileRepo.getFileVersionsByFileId(fileId);
+  const nextVersionNumber = versions && versions.length > 0
+    ? Math.max(...versions.map((v) => v.versionNumber)) + 1
+    : 2;
+  const fileSize = uploadedFile.bytes || fileStats.size || Buffer.byteLength(content || "", "utf8");
+
+  // Snapshot into FileVersion
+  await prisma.fileVersion.create({
+    data: {
+      fileId: file.id,
+      versionNumber: nextVersionNumber,
+      url: uploadedFile.secure_url,
+      publicId: uploadedFile.public_id,
+      size: fileSize,
+      isEncrypted: file.isEncrypted || false,
+      encryptedKey: file.encryptedKey || null,
+      fileIv: file.fileIv || null,
+    },
+  });
+
+  // Update primary file
+  const updatedFile = await prisma.file.update({
+    where: { id: fileId },
+    data: {
+      url: uploadedFile.secure_url,
+      publicId: uploadedFile.public_id,
+      size: uploadedFile.bytes,
+      mimeType: file.mimeType || "text/markdown",
+    },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          imageUrl: true,
+        },
+      },
+      versions: true,
+    },
+  });
+
+  await invalidateUserFilesCache(file.ownerId);
+  await invalidateUserStorageCache(file.ownerId);
+  await logActivity(userId, `Updated document "${file.originalName}" (v${nextVersionNumber})`);
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || "root"}`).emit("file_uploaded", updatedFile);
+    io.to(`collab:doc:${fileId}`).emit("collab:document_saved", {
+      fileId,
+      version: nextVersionNumber,
+      savedAt: new Date(),
+      savedBy: userId,
+    });
+  }
+
+  return {
+    success: true,
+    file: updatedFile,
+    versionNumber: nextVersionNumber,
+  };
+};

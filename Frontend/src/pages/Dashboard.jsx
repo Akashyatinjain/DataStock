@@ -52,6 +52,8 @@ import {
 } from '../utils/cryptoHelper';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
+import CollaborativeWorkspaceModal from '../components/workspace/CollaborativeWorkspaceModal';
+import PdfEditorModal from '../components/pdf/PdfEditorModal';
 import ShareModal from '../components/dashboard/modals/ShareModal';
 import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
 import ActivityLogView from '../components/dashboard/ActivityLogView';
@@ -185,6 +187,8 @@ const Dashboard = () => {
   // Local UI States
   const [previewFile, setPreviewFile] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [collaborativeFile, setCollaborativeFile] = useState(null);
+  const [editingPdfFile, setEditingPdfFile] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('my-drive');
@@ -389,6 +393,16 @@ const Dashboard = () => {
   const handlePreview = (file) => {
     setPreviewFile(file);
     setIsPreviewOpen(true);
+  };
+
+  const handleOpenWorkspace = (file) => {
+    setIsPreviewOpen(false);
+    setCollaborativeFile(file);
+  };
+
+  const handleOpenPdfEditor = (file) => {
+    setIsPreviewOpen(false);
+    setEditingPdfFile(file);
   };
 
   const selectedFolderId = useMemo(
@@ -698,8 +712,13 @@ const Dashboard = () => {
 
   const suggestedFiles = useMemo(() => {
     if (!decryptedAllFiles || decryptedAllFiles.length === 0) return [];
+    const seen = new Set();
     return [...decryptedAllFiles]
-      .filter(f => !f.isArchived && !f.isTrash && !f.archived && !f.trash)
+      .filter(f => {
+        if (!f?.id || seen.has(f.id)) return false;
+        seen.add(f.id);
+        return !f.isArchived && !f.isTrash && !f.archived && !f.trash;
+      })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 3);
   }, [decryptedAllFiles]);
@@ -1528,6 +1547,7 @@ const Dashboard = () => {
         onFolderDeleted={handleSidebarFolderDeleted}
         onMoveFile={handleMoveFile}
         onShareFolder={handleShareFolder}
+        onOpenWorkspace={handleOpenWorkspace}
       />
 
       <main
@@ -1909,9 +1929,9 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
-                {suggestedFiles.map(file => (
+                {suggestedFiles.map((file, idx) => (
                   <SuggestedFileCard
-                    key={`suggested-${file.id}`}
+                    key={`suggested-${file.id}-${idx}`}
                     file={file}
                     searchQuery={searchQuery}
                     onDelete={handleDelete}
@@ -2230,7 +2250,39 @@ const Dashboard = () => {
         onClose={() => setIsPreviewOpen(false)}
         onToast={addToast}
         loadFiles={() => loadFiles(selectedFolderId)}
+        onOpenWorkspace={handleOpenWorkspace}
+        onOpenPdfEditor={handleOpenPdfEditor}
       />
+
+      {/* COLLABORATIVE WORKSPACE MODAL (Google Docs / Linear Tier) */}
+      {collaborativeFile && (
+        <CollaborativeWorkspaceModal
+          file={collaborativeFile}
+          isOpen={Boolean(collaborativeFile)}
+          onClose={() => setCollaborativeFile(null)}
+          onFileUpdated={refreshAllFiles}
+          toast={{
+            success: (msg) => addToast(msg, 'success'),
+            error: (msg) => addToast(msg, 'error'),
+            info: (msg) => addToast(msg, 'info'),
+          }}
+        />
+      )}
+
+      {/* PDF EDITOR MODAL (Adobe Acrobat / Smallpdf Tier) */}
+      {editingPdfFile && (
+        <PdfEditorModal
+          file={editingPdfFile}
+          isOpen={Boolean(editingPdfFile)}
+          onClose={() => setEditingPdfFile(null)}
+          onFileSaved={refreshAllFiles}
+          toast={{
+            success: (msg) => addToast(msg, 'success'),
+            error: (msg) => addToast(msg, 'error'),
+            info: (msg) => addToast(msg, 'info'),
+          }}
+        />
+      )}
 
       {/* SHARE MODAL */}
       <ShareModal

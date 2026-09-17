@@ -20,6 +20,9 @@ import {
   compressFiles,
   extractZip,
   downloadFile,
+  createDocument,
+  getFileContent,
+  saveFileContent,
 } from "./file.controller.js";
 
 import {
@@ -46,6 +49,7 @@ const handleUpload = (req, res, next) => {
 };
 
 router.post("/upload", authenticateUser, handleUpload, validateUploadedFileSize, uploadFile);
+router.post("/create-document", authenticateUser, createDocument);
 
 router.get("/", authenticateUser, getUserFiles);
 
@@ -71,6 +75,8 @@ router.post("/:id/versions/:versionId/restore", authenticateUser, restoreVersion
 router.delete("/:id/versions/:versionId", authenticateUser, deleteVersion);
 
 router.get("/:id/download", authenticateUser, downloadFile);
+router.get("/:id/content", authenticateUser, getFileContent);
+router.put("/:id/content", authenticateUser, saveFileContent);
 router.delete("/:id", authenticateUser, deleteFile);
 
 

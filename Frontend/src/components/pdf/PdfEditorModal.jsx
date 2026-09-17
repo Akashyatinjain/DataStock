@@ -36,6 +36,7 @@ import {
   Italic,
   Underline,
   Edit3,
+  FileText,
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../utils/auth';
 import { compilePdfDocument } from '../../utils/pdfCompiler';
@@ -71,13 +72,16 @@ export default function PdfEditorModal({
   const [activeTool, setActiveTool] = useState('select');
   const [selectedShape, setSelectedShape] = useState('rectangle'); // 'rectangle' | 'circle' | 'line' | 'arrow'
   const [activeColor, setActiveColor] = useState('#3B82F6');
+  const [activeRedactColor, setActiveRedactColor] = useState('#000000');
   const [activeBlockOpacity, setActiveBlockOpacity] = useState(1);
   const [activeBlockBorderWidth, setActiveBlockBorderWidth] = useState(0);
   const [activeBlockBorderColor, setActiveBlockBorderColor] = useState('#000000');
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(2);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [showStampsDropdown, setShowStampsDropdown] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState(true);
+  const [showThumbnails, setShowThumbnails] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
 
   // Multi-Text Formatting State
   const [activeFontSize, setActiveFontSize] = useState(18);
@@ -160,6 +164,13 @@ export default function PdfEditorModal({
 
     fetchPdfBuffer();
   }, [isOpen, fileId]);
+
+  // Auto-fit scale on mobile screens on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      setScale(0.55);
+    }
+  }, []);
 
   // Render active page canvas
   const renderPage = useCallback(async () => {
@@ -248,9 +259,6 @@ export default function PdfEditorModal({
       } else if (el.type === 'highlight') {
         ctx.fillStyle = el.color;
         ctx.globalAlpha = el.opacity || 0.35;
-        ctx.fillRect(el.x, el.y, el.width, el.height);
-      } else if (el.type === 'redact') {
-        ctx.fillStyle = el.color || '#000000';
         ctx.fillRect(el.x, el.y, el.width, el.height);
       } else if (el.type === 'shape') {
         ctx.strokeStyle = el.strokeColor;
@@ -375,6 +383,76 @@ export default function PdfEditorModal({
     setSelectedElementId(newEl.id);
   };
 
+  const selectedElement = (annotationsByPage[pageNum] || []).find(
+    (el) => el.id === selectedElementId
+  );
+
+  // Global Keyboard Shortcuts (Adobe Acrobat Pro Workflow)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      const activeTag = document.activeElement?.tagName?.toLowerCase();
+      const isInputActive = activeTag === 'input' || activeTag === 'textarea';
+
+      // Escape: deselect element or stop inline editing
+      if (e.key === 'Escape') {
+        if (editingTextId) setEditingTextId(null);
+        else if (selectedElementId) setSelectedElementId(null);
+        return;
+      }
+
+      // If user is actively typing in an input or textarea, don't trigger tool or delete shortcuts
+      if (isInputActive) return;
+
+      // Delete / Backspace: Delete selected element
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElementId) {
+        e.preventDefault();
+        deleteElement(selectedElementId);
+        return;
+      }
+
+      // Undo: Ctrl+Z or Cmd+Z (without shift)
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+
+      // Redo: Ctrl+Y or Ctrl+Shift+Z or Cmd+Shift+Z
+      if (
+        ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))
+      ) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+
+      // Duplicate: Ctrl+D or Cmd+D
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'D')) {
+        if (selectedElement) {
+          e.preventDefault();
+          duplicateElement(selectedElement);
+          return;
+        }
+      }
+
+      // Quick Tool Shortcuts (only when no modifier keys are pressed)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (e.key === 'v' || e.key === 'V') setActiveTool('select');
+        else if (e.key === 't' || e.key === 'T') setActiveTool('text');
+        else if (e.key === 'b' || e.key === 'B') setActiveTool('block');
+        else if (e.key === 'p' || e.key === 'P') setActiveTool('pen');
+        else if (e.key === 'h' || e.key === 'H') setActiveTool('highlighter');
+        else if (e.key === 'r' || e.key === 'R') setActiveTool('redact');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedElementId, editingTextId, selectedElement, historyIndex, history.length]);
+
   // Layer 3 Interactive Drag & Move for HTML elements
   const handleElementPointerDown = (e, el) => {
     if (e.target.closest('.no-drag')) return;
@@ -498,12 +576,40 @@ export default function PdfEditorModal({
       ctx.moveTo(pts[pts.length - 2].x, pts[pts.length - 2].y);
       ctx.lineTo(x, y);
       ctx.stroke();
+    } else if (activeTool === 'redact' || activeTool === 'block') {
+      redrawOverlay();
+      const ctx = overlayCanvasRef.current.getContext('2d');
+      const startX = interactionStartRef.current.x;
+      const startY = interactionStartRef.current.y;
+      const w = x - startX;
+      const h = y - startY;
+
+      ctx.save();
+      if (activeTool === 'redact') {
+        ctx.fillStyle = activeRedactColor || '#000000';
+        ctx.globalAlpha = 0.55;
+        ctx.fillRect(startX, startY, w, h);
+        ctx.strokeStyle = '#EF4444';
+        ctx.setLineDash([4, 2]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(startX, startY, w, h);
+      } else if (activeTool === 'block') {
+        ctx.fillStyle = activeColor;
+        ctx.globalAlpha = 0.45;
+        ctx.fillRect(startX, startY, w, h);
+        ctx.strokeStyle = '#6366F1';
+        ctx.setLineDash([4, 2]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(startX, startY, w, h);
+      }
+      ctx.restore();
     }
   };
 
   const handleOverlayMouseUp = (e) => {
     if (!isInteractingRef.current) return;
     isInteractingRef.current = false;
+    redrawOverlay();
     const rect = overlayCanvasRef.current.getBoundingClientRect();
     const endX = e.clientX - rect.left;
     const endY = e.clientY - rect.top;
@@ -535,15 +641,21 @@ export default function PdfEditorModal({
         color: '#FACC15', // Yellow
         opacity: 0.35,
       });
-    } else if (activeTool === 'redact' && (width > 5 || height > 5)) {
-      addElementToCurrentPage({
+    } else if (activeTool === 'redact') {
+      const finalW = width > 5 ? width : 130;
+      const finalH = height > 5 ? height : 24;
+      const finalX = width > 5 ? originX : Math.max(0, endX - 65);
+      const finalY = width > 5 ? originY : Math.max(0, endY - 12);
+
+      const newId = addElementToCurrentPage({
         type: 'redact',
-        x: originX,
-        y: originY,
-        width: Math.max(width, 20),
-        height: Math.max(height, 16),
-        color: '#000000',
+        x: finalX,
+        y: finalY,
+        width: finalW,
+        height: finalH,
+        color: activeRedactColor || '#000000',
       });
+      setSelectedElementId(newId);
     } else if (activeTool === 'block') {
       const finalW = width > 15 ? width : 160;
       const finalH = height > 15 ? height : 75;
@@ -702,110 +814,175 @@ export default function PdfEditorModal({
     }
   };
 
-  const selectedElement = (annotationsByPage[pageNum] || []).find(
-    (el) => el.id === selectedElementId
-  );
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[140] bg-slate-950/90 backdrop-blur-md flex flex-col overflow-hidden text-slate-900 dark:text-slate-100 select-none animate-fade-in">
       {/* ========================================================= */}
-      {/* TOP HEADER & TOOLBAR                                      */}
+      {/* TOP HEADER (TIER 1) - FULLY RESPONSIVE                    */}
       {/* ========================================================= */}
-      <header className="h-14 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-3 bg-white dark:bg-[#0F172A] shrink-0">
+      <header className="h-14 border-b border-slate-200 dark:border-slate-800 px-2 sm:px-4 flex items-center justify-between gap-2 bg-white dark:bg-[#0F172A] shrink-0">
         {/* Left: Document Info & Page Manager Toggle */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <button
             onClick={() => setShowThumbnails(!showThumbnails)}
-            className={`p-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               showThumbnails
-                ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
             }`}
             title="Toggle Page Thumbnails"
           >
             <Layers className="w-4 h-4" />
             <span className="hidden sm:inline">Pages</span>
+            <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-mono text-slate-700 dark:text-slate-300">
+              {numPages}
+            </span>
           </button>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden xs:block" />
 
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-xs">
-            {fileName}
-          </h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200/50 dark:border-rose-900/50">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <h3
+              className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate max-w-[95px] xs:max-w-[140px] sm:max-w-xs"
+              title={fileName}
+            >
+              {fileName}
+            </h3>
+          </div>
         </div>
 
-        {/* Center: Page Controls & Zoom */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPageNum((p) => Math.max(1, p - 1))}
-            disabled={pageNum <= 1}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-            {pageNum} / {numPages}
-          </span>
-          <button
-            onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
-            disabled={pageNum >= numPages}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        {/* Center: Page Controls, Zoom (Desktop), and Undo/Redo */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Page navigation */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+            <button
+              onClick={() => setPageNum((p) => Math.max(1, p - 1))}
+              disabled={pageNum <= 1}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+            <span className="text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 px-1.5 select-none">
+              {pageNum} <span className="text-slate-400 font-normal">/</span> {numPages}
+            </span>
+            <button
+              onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
+              disabled={pageNum >= numPages}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Next Page"
+            >
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+          </div>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+          {/* Desktop Zoom controls */}
+          <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+            <button
+              onClick={() => setScale((s) => Math.max(0.4, Number((s - 0.15).toFixed(2))))}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+            <button
+              onClick={() => setScale(1.15)}
+              className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 px-1.5 hover:text-indigo-600 transition cursor-pointer"
+              title="Reset Zoom to 100%"
+            >
+              {Math.round(scale * 100)}%
+            </button>
+            <button
+              onClick={() => setScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))))}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+          </div>
 
-          <button
-            onClick={() => setScale((s) => Math.max(0.6, s - 0.15))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-mono text-slate-500">{Math.round(scale * 100)}%</span>
-          <button
-            onClick={() => setScale((s) => Math.min(2.5, s + 0.15))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block mx-0.5" />
+
+          {/* Undo / Redo */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex <= 0}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Undo (Ctrl+Z)"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={historyIndex >= history.length - 1}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Redo (Ctrl+Y)"
+            >
+              <RedoIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Right: Save & Export Actions */}
-        <div className="flex items-center gap-2">
+        {/* Right: Export Actions & Close */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Rotate & Delete Page (Desktop) */}
+          <button
+            onClick={() => handleRotatePage(pageNum)}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
+            title="Rotate Current Page 90° Clockwise"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span>Rotate</span>
+          </button>
+
+          <button
+            onClick={() => handleDeletePage(pageNum)}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
+            title="Delete Current Page"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete</span>
+          </button>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden lg:block" />
+
+          {/* Download PDF Binary */}
           <button
             disabled={isCompiling}
             onClick={() => handleCompileAndExport('download')}
-            className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Download compiled PDF binary"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Download</span>
           </button>
 
+          {/* Save to Cloud */}
           <button
             disabled={isCompiling}
             onClick={() => handleCompileAndExport('cloud')}
-            className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-2.5 sm:px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isCompiling ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Compiling...
+                <span className="hidden xs:inline">Compiling...</span>
               </>
             ) : saveSuccess ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-                Saved!
+                <span className="hidden xs:inline">Saved!</span>
               </>
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                Save to Cloud
+                <span className="hidden xs:inline">Save</span>
+                <span className="hidden md:inline">to Cloud</span>
               </>
             )}
           </button>
@@ -813,121 +990,146 @@ export default function PdfEditorModal({
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            title="Close Editor"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </header>
 
       {/* ========================================================= */}
-      {/* SECONDARY TOOLBAR: EDITING & ANNOTATION TOOLS             */}
+      {/* SECONDARY TOOLBAR: TWO-SUB-ROW CONTEXTUAL ARCHITECTURE     */}
+      {/* SUB-ROW 1: Primary Tools Bar (Smooth Horizontal Scroll)   */}
+      {/* SUB-ROW 2: Contextual Property Inspector (Always Visible) */}
       {/* ========================================================= */}
-      <div className="h-12 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-3 bg-slate-50 dark:bg-[#0B1120] shrink-0 overflow-x-auto text-xs">
-        <div className="flex items-center gap-1.5">
-          {/* Select Tool */}
+      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1120] shrink-0 text-xs">
+        {/* SUB-ROW 1: Primary Tools */}
+        <div className="h-11 px-2 sm:px-4 flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-[#0B1120]">
+          {/* Select Tool (V) */}
           <button
             onClick={() => setActiveTool('select')}
-            className={`p-2 rounded-lg font-medium transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'select'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
-            title="Select & Move"
+            title="Select & Move (V)"
           >
-            <MousePointer className="w-4 h-4" />
+            <MousePointer className="w-3.5 h-3.5" />
+            <span>Select</span>
           </button>
 
-          {/* Add Text */}
+          {/* Add Text Tool (T) */}
           <button
-            onClick={() => setActiveTool('text')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
+            onClick={() => {
+              setActiveTool('text');
+              setSelectedElementId(null);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'text'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
-            title="Add Text to PDF"
+            title="Add Text to PDF (T)"
           >
-            <Type className="w-4 h-4" />
-            <span className="hidden sm:inline">Text</span>
+            <Type className="w-3.5 h-3.5" />
+            <span>Text</span>
           </button>
 
-          {/* Freehand Pen */}
+          {/* Color Block Tool (B) */}
           <button
-            onClick={() => setActiveTool('pen')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
-              activeTool === 'pen'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-            }`}
-            title="Draw Freehand Ink"
-          >
-            <PenTool className="w-4 h-4" />
-            <span className="hidden sm:inline">Draw</span>
-          </button>
-
-          {/* Text Highlighter */}
-          <button
-            onClick={() => setActiveTool('highlighter')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
-              activeTool === 'highlighter'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-            }`}
-            title="Highlight Text Lines"
-          >
-            <Highlighter className="w-4 h-4 text-amber-500" />
-            <span className="hidden sm:inline">Highlight</span>
-          </button>
-
-          {/* Redact Censorship Tool */}
-          <button
-            onClick={() => setActiveTool('redact')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
-              activeTool === 'redact'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-            }`}
-            title="Redact / Censor Sensitive Data"
-          >
-            <Square className="w-4 h-4 fill-black" />
-            <span className="hidden sm:inline">Redact</span>
-          </button>
-
-          {/* Color Block Tool (Any Color Box) */}
-          <button
-            onClick={() => setActiveTool('block')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
+            onClick={() => {
+              setActiveTool('block');
+              setSelectedElementId(null);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'block'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
-            title="Add Block of Any Color (Click or Drag to Draw)"
+            title="Add Block of Any Color (B)"
           >
             <div
               className="w-3.5 h-3.5 rounded-xs border border-slate-400 dark:border-slate-500 shadow-2xs"
               style={{ backgroundColor: activeColor }}
             />
-            <span className="hidden sm:inline">Color Block</span>
+            <span>Block</span>
+          </button>
+
+          {/* Redact Censorship Tool (R) */}
+          <button
+            onClick={() => {
+              setActiveTool('redact');
+              setSelectedElementId(null);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
+              activeTool === 'redact'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }`}
+            title="Redact / Censor Sensitive Data (R)"
+          >
+            <div
+              className={`w-3.5 h-3.5 rounded-xs border ${
+                activeRedactColor === '#FFFFFF' ? 'border-slate-400' : 'border-transparent'
+              }`}
+              style={{ backgroundColor: activeRedactColor || '#000000' }}
+            />
+            <span className="font-semibold">Redact</span>
+          </button>
+
+          {/* Freehand Pen Tool (P) */}
+          <button
+            onClick={() => {
+              setActiveTool('pen');
+              setSelectedElementId(null);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
+              activeTool === 'pen'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }`}
+            title="Draw Freehand Ink (P)"
+          >
+            <PenTool className="w-3.5 h-3.5" />
+            <span>Draw</span>
+          </button>
+
+          {/* Highlighter Tool (H) */}
+          <button
+            onClick={() => {
+              setActiveTool('highlighter');
+              setSelectedElementId(null);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
+              activeTool === 'highlighter'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }`}
+            title="Highlight Lines (H)"
+          >
+            <Highlighter className="w-3.5 h-3.5 text-amber-500" />
+            <span>Highlight</span>
           </button>
 
           {/* Digital Signature Modal Trigger */}
           <button
             onClick={() => setShowSignatureModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition cursor-pointer shrink-0"
             title="Insert Digital Signature"
           >
-            <PenTool className="w-4 h-4" />
+            <PenTool className="w-3.5 h-3.5" />
             <span>Sign</span>
           </button>
 
           {/* Stamps Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               onClick={() => setShowStampsDropdown(!showStampsDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer"
               title="Add Business Stamp"
             >
-              <Stamp className="w-4 h-4" />
+              <Stamp className="w-3.5 h-3.5" />
               <span>Stamp</span>
             </button>
 
@@ -936,7 +1138,10 @@ export default function PdfEditorModal({
                 {BUSINESS_STAMPS.map((s) => (
                   <button
                     key={s.id}
-                    onClick={() => handlePlaceStamp(s)}
+                    onClick={() => {
+                      handlePlaceStamp(s);
+                      setShowStampsDropdown(false);
+                    }}
                     className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     style={{ color: s.color }}
                   >
@@ -948,11 +1153,118 @@ export default function PdfEditorModal({
           </div>
         </div>
 
-        {/* Right: Any-Color Picker, Palette Swatches, Opacity & Controls */}
-        <div className="flex items-center gap-2">
-          {/* Contextual Text Formatting Toolbar */}
+        {/* SUB-ROW 2: Contextual Property Inspector Strip (Always Directly Visible on All Screens) */}
+        <div className="min-h-[42px] px-2 sm:px-4 py-1 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-[#0F172A]">
+          {/* --- CASE 1: REDACT PROPERTIES (Active Tool = Redact OR Selected Element = Redact) --- */}
+          {(activeTool === 'redact' || selectedElement?.type === 'redact') && (
+            <div className="flex items-center gap-2 flex-wrap shrink-0 animate-fade-in">
+              <div className="flex items-center gap-1.5 bg-rose-50/80 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 rounded-xl p-1 text-[11px]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 px-1 shrink-0">
+                  Redaction Color
+                </span>
+
+                {/* Preset Color Swatches: Blackout, Whiteout, Charcoal, Red */}
+                <div className="flex items-center gap-1">
+                  {[
+                    { color: '#000000', label: 'Blackout' },
+                    { color: '#FFFFFF', label: 'Whiteout' },
+                    { color: '#334155', label: 'Charcoal' },
+                    { color: '#DC2626', label: 'Confidential Red' },
+                  ].map((item) => {
+                    const currentC = selectedElement?.color || activeRedactColor;
+                    const isCurrent = currentC.toLowerCase() === item.color.toLowerCase();
+                    return (
+                      <button
+                        key={item.color}
+                        onClick={() => {
+                          setActiveRedactColor(item.color);
+                          if (selectedElement && selectedElement.type === 'redact') {
+                            updateElement(selectedElement.id, { color: item.color });
+                          }
+                        }}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition cursor-pointer ${
+                          isCurrent
+                            ? 'bg-white dark:bg-slate-900 border-indigo-500 shadow-xs ring-1.5 ring-indigo-500 text-slate-900 dark:text-white'
+                            : 'border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                        title={item.label}
+                      >
+                        <span
+                          className={`w-3 h-3 rounded-xs shrink-0 ${
+                            item.color === '#FFFFFF' ? 'border border-slate-300 dark:border-slate-600' : ''
+                          }`}
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="h-4 w-px bg-rose-200 dark:bg-rose-800 mx-0.5" />
+
+                {/* Custom Color Spectrum Picker */}
+                <label
+                  className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                  title="Pick Custom Redaction Color"
+                >
+                  <Palette className="w-3.5 h-3.5 text-slate-400" />
+                  <span
+                    className="w-3 h-3 rounded-xs border border-slate-400 shrink-0"
+                    style={{ backgroundColor: selectedElement?.color || activeRedactColor }}
+                  />
+                  <input
+                    type="color"
+                    value={selectedElement?.color || activeRedactColor}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setActiveRedactColor(val);
+                      if (selectedElement && selectedElement.type === 'redact') {
+                        updateElement(selectedElement.id, { color: val });
+                      }
+                    }}
+                    className="w-0 h-0 opacity-0 absolute pointer-events-none"
+                  />
+                  <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                    {selectedElement?.color || activeRedactColor}
+                  </span>
+                </label>
+
+                {/* Actions if a redact box is selected */}
+                {selectedElement && selectedElement.type === 'redact' && (
+                  <>
+                    <div className="h-4 w-px bg-rose-200 dark:bg-rose-800 mx-0.5" />
+                    <button
+                      onClick={() => duplicateElement(selectedElement)}
+                      className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                      title="Duplicate Redaction (Ctrl+D)"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteElement(selectedElement.id)}
+                      className="p-1 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                      title="Delete Redaction (Del)"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden xl:inline">
+                💡 Drag to censor or click anywhere to drop standard redact box
+              </span>
+            </div>
+          )}
+
+          {/* --- CASE 2: TEXT PROPERTIES (Active Tool = Text OR Selected Element = Text) --- */}
           {(activeTool === 'text' || selectedElement?.type === 'text') && (
-            <div className="flex items-center gap-1 bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 rounded-lg p-0.5 text-[11px] animate-fade-in">
+            <div className="flex items-center gap-1.5 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 px-1 hidden sm:inline">
+                Text
+              </span>
+
               {/* Font Family selector */}
               <select
                 value={selectedElement?.fontFamily || activeFontFamily}
@@ -961,7 +1273,7 @@ export default function PdfEditorModal({
                   setActiveFontFamily(val);
                   if (selectedElement) updateElement(selectedElement.id, { fontFamily: val });
                 }}
-                className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-medium rounded px-1.5 py-0.5 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none"
+                className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-medium rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none"
                 title="Font Family"
               >
                 <option value="helvetica">Sans (Helvetica)</option>
@@ -970,7 +1282,7 @@ export default function PdfEditorModal({
               </select>
 
               {/* Font Size stepper */}
-              <div className="flex items-center bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 px-1 py-0.5">
+              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-1.5 py-0.5">
                 <button
                   onClick={() => {
                     const currentSz = selectedElement?.fontSize || activeFontSize;
@@ -983,7 +1295,7 @@ export default function PdfEditorModal({
                 >
                   -
                 </button>
-                <span className="font-mono text-[10px] font-bold text-indigo-600 dark:text-indigo-400 px-1">
+                <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400 px-1.5 min-w-[20px] text-center">
                   {selectedElement?.fontSize || activeFontSize}
                 </span>
                 <button
@@ -1008,14 +1320,14 @@ export default function PdfEditorModal({
                   setActiveTextBold(nextBold);
                   if (selectedElement) updateElement(selectedElement.id, { bold: nextBold });
                 }}
-                className={`p-1 rounded transition cursor-pointer font-black ${
+                className={`p-1.5 rounded-lg transition cursor-pointer font-black ${
                   (selectedElement ? selectedElement.bold : activeTextBold)
                     ? 'bg-indigo-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
                 title="Bold"
               >
-                <Bold className="w-3 h-3" />
+                <Bold className="w-3.5 h-3.5" />
               </button>
 
               {/* Italic (I) */}
@@ -1026,14 +1338,14 @@ export default function PdfEditorModal({
                   setActiveTextItalic(nextItalic);
                   if (selectedElement) updateElement(selectedElement.id, { italic: nextItalic });
                 }}
-                className={`p-1 rounded transition cursor-pointer italic ${
+                className={`p-1.5 rounded-lg transition cursor-pointer italic ${
                   (selectedElement ? selectedElement.italic : activeTextItalic)
                     ? 'bg-indigo-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
                 title="Italic"
               >
-                <Italic className="w-3 h-3" />
+                <Italic className="w-3.5 h-3.5" />
               </button>
 
               {/* Underline (U) */}
@@ -1044,149 +1356,319 @@ export default function PdfEditorModal({
                   setActiveTextUnderline(nextUnderline);
                   if (selectedElement) updateElement(selectedElement.id, { underline: nextUnderline });
                 }}
-                className={`p-1 rounded transition cursor-pointer underline ${
+                className={`p-1.5 rounded-lg transition cursor-pointer underline ${
                   (selectedElement ? selectedElement.underline : activeTextUnderline)
                     ? 'bg-indigo-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
                 title="Underline"
               >
-                <Underline className="w-3 h-3" />
+                <Underline className="w-3.5 h-3.5" />
+              </button>
+
+              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+
+              {/* Text Color Picker */}
+              <label
+                className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                title="Text Color"
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 shadow-2xs"
+                  style={{ backgroundColor: selectedElement?.color || activeColor }}
+                />
+                <input
+                  type="color"
+                  value={selectedElement?.color || activeColor}
+                  onChange={(e) => {
+                    const c = e.target.value;
+                    setActiveColor(c);
+                    if (selectedElement) updateElement(selectedElement.id, { color: c });
+                  }}
+                  className="w-0 h-0 opacity-0 absolute pointer-events-none"
+                />
+                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                  {selectedElement?.color || activeColor}
+                </span>
+              </label>
+
+              {/* Quick Text Swatches */}
+              <div className="flex items-center gap-1 pl-1">
+                {['#000000', '#2563EB', '#DC2626', '#16A34A', '#9333EA'].map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => {
+                      setActiveColor(c);
+                      if (selectedElement) updateElement(selectedElement.id, { color: c });
+                    }}
+                    className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 hover:scale-110 transition cursor-pointer"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+
+              {selectedElement && (
+                <>
+                  <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+                  <button
+                    onClick={() => duplicateElement(selectedElement)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                    title="Duplicate Text (Ctrl+D)"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteElement(selectedElement.id)}
+                    className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                    title="Delete Text (Del)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* --- CASE 3: BLOCK PROPERTIES (Active Tool = Block OR Selected Element = Block) --- */}
+          {(activeTool === 'block' || selectedElement?.type === 'block') && (
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1 hidden sm:inline">
+                Block
+              </span>
+
+              {/* Color spectrum picker */}
+              <label
+                className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                title="Pick Block Color"
+              >
+                <Palette className="w-3.5 h-3.5 text-slate-400" />
+                <span
+                  className="w-3.5 h-3.5 rounded-xs border border-slate-400 shadow-2xs"
+                  style={{ backgroundColor: selectedElement?.color || activeColor }}
+                />
+                <input
+                  type="color"
+                  value={selectedElement?.color || activeColor}
+                  onChange={(e) => {
+                    const c = e.target.value;
+                    setActiveColor(c);
+                    if (selectedElement) updateElement(selectedElement.id, { color: c });
+                  }}
+                  className="w-0 h-0 opacity-0 absolute pointer-events-none"
+                />
+                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                  {selectedElement?.color || activeColor}
+                </span>
+              </label>
+
+              {/* Block Swatches */}
+              <div className="flex items-center gap-1">
+                {['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#000000', '#FFFFFF'].map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => {
+                      setActiveColor(c);
+                      if (selectedElement) updateElement(selectedElement.id, { color: c });
+                    }}
+                    className={`w-4 h-4 rounded border transition cursor-pointer ${
+                      (selectedElement?.color || activeColor) === c
+                        ? 'ring-2 ring-indigo-500 scale-110 shadow-xs'
+                        : 'border-slate-300 dark:border-slate-600 hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+
+              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+
+              {/* Opacity presets */}
+              <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-400 px-1 font-medium hidden md:inline text-[10px]">Opacity:</span>
+                {[1, 0.75, 0.5, 0.25].map((op) => {
+                  const currentOp = selectedElement?.opacity !== undefined ? selectedElement.opacity : activeBlockOpacity;
+                  return (
+                    <button
+                      key={op}
+                      onClick={() => {
+                        setActiveBlockOpacity(op);
+                        if (selectedElement) updateElement(selectedElement.id, { opacity: op });
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
+                        currentOp === op
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                      title={`Opacity ${Math.round(op * 100)}%`}
+                    >
+                      {Math.round(op * 100)}%
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedElement && (
+                <>
+                  <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                  <button
+                    onClick={() => duplicateElement(selectedElement)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                    title="Duplicate Block (Ctrl+D)"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteElement(selectedElement.id)}
+                    className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                    title="Delete Block (Del)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* --- CASE 4: PEN / DRAW PROPERTIES --- */}
+          {activeTool === 'pen' && (
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1 hidden sm:inline">
+                Pen
+              </span>
+
+              {/* Stroke Color Picker */}
+              <label
+                className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer"
+                title="Pick Pen Color"
+              >
+                <span className="w-3 h-3 rounded-full border border-slate-400 shadow-2xs" style={{ backgroundColor: activeColor }} />
+                <input
+                  type="color"
+                  value={activeColor}
+                  onChange={(e) => setActiveColor(e.target.value)}
+                  className="w-0 h-0 opacity-0 absolute pointer-events-none"
+                />
+                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                  {activeColor}
+                </span>
+              </label>
+
+              {/* Swatches */}
+              <div className="flex items-center gap-1">
+                {['#3B82F6', '#EF4444', '#10B981', '#000000', '#8B5CF6'].map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setActiveColor(c)}
+                    className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 hover:scale-110 transition cursor-pointer"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+
+              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+
+              {/* Stroke thickness */}
+              <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                {[
+                  { w: 2, label: 'Thin' },
+                  { w: 4, label: 'Med' },
+                  { w: 6, label: 'Thick' },
+                ].map((item) => (
+                  <button
+                    key={item.w}
+                    onClick={() => setActiveStrokeWidth(item.w)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
+                      activeStrokeWidth === item.w
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- CASE 5: HIGHLIGHTER PROPERTIES --- */}
+          {activeTool === 'highlighter' && (
+            <div className="flex items-center gap-2 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-1">
+                Highlighter
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:inline">
+                Drag over text to highlight
+              </span>
+              <div className="flex items-center gap-1">
+                {['#FACC15', '#4ADE80', '#38BDF8', '#F472B6', '#FB923C'].map((hc) => (
+                  <div
+                    key={hc}
+                    className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 shadow-2xs"
+                    style={{ backgroundColor: hc }}
+                    title="Highlight tint"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- CASE 6: ANY OTHER SELECTED ELEMENT (SIGNATURE / STAMP) --- */}
+          {selectedElement && !['text', 'block', 'redact'].includes(selectedElement.type) && (
+            <div className="flex items-center gap-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-3 py-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                {selectedElement.type} Selected
+              </span>
+              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800 mx-0.5" />
+              <button
+                onClick={() => duplicateElement(selectedElement)}
+                className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer flex items-center gap-1 text-[10px]"
+                title="Duplicate (Ctrl+D)"
+              >
+                <Copy className="w-3 h-3" />
+                <span>Duplicate</span>
+              </button>
+              <button
+                onClick={() => deleteElement(selectedElement.id)}
+                className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer flex items-center gap-1 text-[10px]"
+                title="Delete (Del)"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Delete</span>
               </button>
             </div>
           )}
 
-          {/* Custom ANY-COLOR Picker */}
-          <label
-            className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 rounded-lg px-2 py-1 shadow-2xs cursor-pointer group transition-colors"
-            title="Pick ANY custom color from color spectrum"
-          >
-            <Palette className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-            <input
-              type="color"
-              value={activeColor}
-              onChange={(e) => {
-                const c = e.target.value;
-                setActiveColor(c);
-                if (selectedElementId) {
-                  updateElement(selectedElementId, { color: c });
-                }
-              }}
-              className="w-4 h-4 rounded cursor-pointer border-0 p-0 bg-transparent"
-            />
-            <span className="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200 uppercase">
-              {activeColor}
-            </span>
-          </label>
-
-          {/* Quick Palette Swatches */}
-          <div className="flex items-center gap-1">
-            {[
-              '#3B82F6', // Blue
-              '#10B981', // Emerald
-              '#EF4444', // Red
-              '#F59E0B', // Amber
-              '#8B5CF6', // Purple
-              '#EC4899', // Pink
-              '#06B6D4', // Cyan
-              '#000000', // Black
-              '#FFFFFF', // White
-            ].map((c) => (
-              <button
-                key={c}
-                onClick={() => {
-                  setActiveColor(c);
-                  if (selectedElementId) {
-                    updateElement(selectedElementId, { color: c });
-                  }
-                }}
-                className={`w-4 h-4 rounded-full border transition cursor-pointer ${
-                  activeColor === c
-                    ? 'ring-2 ring-indigo-500 scale-110 shadow-xs'
-                    : 'border-slate-300 dark:border-slate-600 hover:scale-105'
-                }`}
-                style={{ backgroundColor: c }}
-                title={c}
-              />
-            ))}
-          </div>
-
-          {/* Block Opacity Controls */}
-          <div className="flex items-center gap-0.5 bg-slate-200/70 dark:bg-slate-800/90 p-0.5 rounded-lg text-[10px]">
-            <span className="text-slate-400 dark:text-slate-500 px-1 font-medium hidden lg:inline">Opacity:</span>
-            {[1, 0.75, 0.5, 0.25].map((op) => (
-              <button
-                key={op}
-                onClick={() => {
-                  setActiveBlockOpacity(op);
-                  if (selectedElementId) {
-                    updateElement(selectedElementId, { opacity: op });
-                  }
-                }}
-                className={`px-1.5 py-0.5 rounded transition cursor-pointer font-bold ${
-                  activeBlockOpacity === op
-                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title={`Block Opacity ${Math.round(op * 100)}%`}
-              >
-                {Math.round(op * 100)}%
-              </button>
-            ))}
-          </div>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
-
-          {/* Rotate Page Button */}
-          <button
-            onClick={() => handleRotatePage(pageNum)}
-            className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
-            title="Rotate Current Page 90°"
-          >
-            <RotateCw className="w-4 h-4" />
-          </button>
-
-          {/* Delete Page Button */}
-          <button
-            onClick={() => handleDeletePage(pageNum)}
-            className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-500 cursor-pointer"
-            title="Delete Current Page"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
-
-          {/* Undo / Redo */}
-          <button
-            onClick={handleUndo}
-            disabled={historyIndex <= 0}
-            className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-            title="Undo"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleRedo}
-            disabled={historyIndex >= history.length - 1}
-            className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-            title="Redo"
-          >
-            <RedoIcon className="w-4 h-4" />
-          </button>
+          {/* --- CASE 7: DEFAULT IDLE HINT --- */}
+          {activeTool === 'select' && !selectedElement && (
+            <div className="hidden md:flex items-center gap-2 text-slate-400 dark:text-slate-500 text-[11px]">
+              <span>💡 Click any element to edit or move • Shortcuts: V (Select), T (Text), B (Block), R (Redact), P (Pen), Del (Delete)</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* WORKSPACE: THUMBNAILS SIDEBAR + PDF CANVAS CANVAS         */}
+      {/* WORKSPACE: THUMBNAILS SIDEBAR/DRAWER + PDF CANVAS CANVAS  */}
       {/* ========================================================= */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Thumbnails Manager (Collapsible) */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Thumbnails Manager: Desktop Docked Sidebar */}
         {showThumbnails && (
-          <aside className="w-48 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-3 overflow-y-auto flex flex-col gap-3 shrink-0">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Pages ({numPages})
-            </span>
+          <aside className="hidden lg:flex w-48 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-3 overflow-y-auto flex-col gap-3 shrink-0">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Pages ({numPages})
+              </span>
+              <button
+                onClick={() => setShowThumbnails(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded cursor-pointer"
+                title="Hide Pages"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
             {Array.from({ length: numPages }).map((_, idx) => {
               const p = idx + 1;
               const isCurrent = pageNum === p;
@@ -1215,10 +1697,74 @@ export default function PdfEditorModal({
           </aside>
         )}
 
-        {/* Central PDF Canvas Workspace */}
+        {/* Mobile / Tablet Thumbnails Drawer Overlay (Never squashes canvas width) */}
+        {showThumbnails && (
+          <div className="lg:hidden fixed inset-0 z-[150] flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+              onClick={() => setShowThumbnails(false)}
+            />
+            {/* Slide-out Drawer */}
+            <aside className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-4 overflow-y-auto flex flex-col gap-3 z-10 shadow-2xl animate-fade-in">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    Pages ({numPages})
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowThumbnails(false)}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: numPages }).map((_, idx) => {
+                  const p = idx + 1;
+                  const isCurrent = pageNum === p;
+                  const isDeleted = pageModifications[p]?.isDeleted;
+                  return (
+                    <div
+                      key={p}
+                      onClick={() => {
+                        if (!isDeleted) {
+                          setPageNum(p);
+                          setShowThumbnails(false);
+                        }
+                      }}
+                      className={`p-2.5 rounded-xl border text-center transition cursor-pointer flex items-center gap-3 ${
+                        isDeleted
+                          ? 'opacity-30 line-through border-rose-500'
+                          : isCurrent
+                          ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20 font-bold text-indigo-600 dark:text-indigo-400'
+                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="w-12 h-16 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono font-bold shrink-0">
+                        {p}
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="text-sm font-semibold">Page {p}</span>
+                        <span className="text-[11px] text-slate-400">
+                          {isCurrent ? 'Current page' : 'Tap to switch'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* Central PDF Canvas Workspace (Mobile-Optimized Padding) */}
         <main
           ref={containerRef}
-          className="flex-1 overflow-auto bg-slate-200/50 dark:bg-[#060911] p-8 flex items-center justify-center relative"
+          className="flex-1 overflow-auto bg-slate-200/50 dark:bg-[#060911] p-2 sm:p-4 md:p-8 flex items-center justify-center relative"
         >
           {loading ? (
             <div className="flex flex-col items-center gap-3">
@@ -1230,18 +1776,18 @@ export default function PdfEditorModal({
               {/* Layer 1: PDF.js rendered page canvas */}
               <canvas ref={canvasRef} className="block select-none pointer-events-none" />
 
-              {/* Layer 2: Interactive annotation overlay canvas */}
+              {/* Layer 2: Interactive annotation overlay canvas (Pointer Events for Touch & Pen) */}
               <canvas
                 ref={overlayCanvasRef}
-                onMouseDown={handleOverlayMouseDown}
-                onMouseMove={handleOverlayMouseMove}
-                onMouseUp={handleOverlayMouseUp}
+                onPointerDown={handleOverlayMouseDown}
+                onPointerMove={handleOverlayMouseMove}
+                onPointerUp={handleOverlayMouseUp}
                 className="absolute inset-0 cursor-crosshair touch-none"
               />
 
-              {/* Layer 3: Rendered HTML Element Overlays (Text / Signatures / Stamps / Blocks) */}
+              {/* Layer 3: Rendered HTML Element Overlays (Text / Signatures / Stamps / Blocks / Redact) */}
               {(annotationsByPage[pageNum] || []).map((el) => {
-                if (el.type === 'drawing' || el.type === 'highlight' || el.type === 'redact' || el.type === 'shape') {
+                if (el.type === 'drawing' || el.type === 'highlight' || el.type === 'shape') {
                   return null; // rendered on overlay canvas
                 }
 
@@ -1263,6 +1809,16 @@ export default function PdfEditorModal({
                         : 'hover:ring-1 hover:ring-indigo-400/50 z-20'
                     }`}
                   >
+                    {/* Redaction Element (Solid Opaque Censorship Box) */}
+                    {el.type === 'redact' && (
+                      <div
+                        className="w-full h-full select-none"
+                        style={{
+                          backgroundColor: el.color || '#000000',
+                        }}
+                      />
+                    )}
+
                     {/* Block Element of Any Color */}
                     {el.type === 'block' && (
                       <div
@@ -1285,7 +1841,12 @@ export default function PdfEditorModal({
                           onChange={(e) => updateElement(el.id, { text: e.target.value })}
                           onBlur={() => setEditingTextId(null)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Escape') setEditingTextId(null);
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              setEditingTextId(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingTextId(null);
+                            }
                           }}
                           style={{
                             color: el.color || '#000000',
@@ -1340,9 +1901,50 @@ export default function PdfEditorModal({
                     {/* Floating mini-bar for selected element */}
                     {isSelected && (
                       <div
-                        className="no-drag absolute -top-8 left-0 flex items-center gap-1 bg-slate-900 text-white rounded-lg px-2 py-0.5 shadow-xl text-[10px] z-50 whitespace-nowrap animate-fade-in"
+                        className={`no-drag absolute ${el.y < 42 ? '-bottom-9' : '-top-9'} left-0 flex items-center gap-1 bg-slate-900 text-white rounded-lg px-2 py-0.5 shadow-xl text-[10px] z-50 whitespace-nowrap animate-fade-in`}
                         onPointerDown={(e) => e.stopPropagation()}
                       >
+                        {/* Redact Element Options */}
+                        {el.type === 'redact' && (
+                          <>
+                            <label className="flex items-center gap-1 cursor-pointer pr-1 border-r border-slate-700" title="Custom Redact Color">
+                              <span className="w-3 h-3 rounded-xs border border-white/50" style={{ backgroundColor: el.color || '#000000' }} />
+                              <input
+                                type="color"
+                                value={el.color || '#000000'}
+                                onChange={(e) => {
+                                  const c = e.target.value;
+                                  setActiveRedactColor(c);
+                                  updateElement(el.id, { color: c });
+                                }}
+                                className="w-0 h-0 opacity-0 absolute pointer-events-none"
+                              />
+                            </label>
+                            {[
+                              { c: '#000000', label: 'Blackout' },
+                              { c: '#FFFFFF', label: 'Whiteout' },
+                              { c: '#334155', label: 'Charcoal' },
+                              { c: '#DC2626', label: 'Red' },
+                            ].map((item) => (
+                              <button
+                                key={item.c}
+                                onClick={() => {
+                                  setActiveRedactColor(item.c);
+                                  updateElement(el.id, { color: item.c });
+                                }}
+                                className={`w-3.5 h-3.5 rounded-xs border transition cursor-pointer ${
+                                  (el.color || '#000000').toLowerCase() === item.c.toLowerCase()
+                                    ? 'ring-2 ring-indigo-400 scale-110'
+                                    : 'border-slate-500 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: item.c }}
+                                title={item.label}
+                              />
+                            ))}
+                            <div className="h-2.5 w-px bg-slate-700 mx-0.5" />
+                          </>
+                        )}
+
                         {/* Text Element Formatting Options */}
                         {el.type === 'text' && (
                           <>
@@ -1511,19 +2113,49 @@ export default function PdfEditorModal({
                       </div>
                     )}
 
-                    {/* Resize handle at bottom-right corner */}
+                    {/* 4 Corner Anchors & Resize Handle (Adobe Acrobat Style) */}
                     {isSelected && (
-                      <div
-                        onPointerDown={(e) => handleResizePointerDown(e, el)}
-                        className="no-drag absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-indigo-600 border-2 border-white rounded-full cursor-se-resize shadow-md z-50 hover:scale-125 transition-transform"
-                        title="Drag to resize"
-                      />
+                      <>
+                        <div className="no-drag absolute -top-1 -left-1 w-2.5 h-2.5 bg-white border border-indigo-600 rounded-xs shadow-xs pointer-events-none" />
+                        <div className="no-drag absolute -top-1 -right-1 w-2.5 h-2.5 bg-white border border-indigo-600 rounded-xs shadow-xs pointer-events-none" />
+                        <div className="no-drag absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white border border-indigo-600 rounded-xs shadow-xs pointer-events-none" />
+                        <div
+                          onPointerDown={(e) => handleResizePointerDown(e, el)}
+                          className="no-drag absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-indigo-600 rounded-xs cursor-se-resize shadow-md z-50 hover:scale-125 transition-transform"
+                          title="Drag to resize"
+                        />
+                      </>
                     )}
                   </div>
                 );
               })}
             </div>
           )}
+
+          {/* Floating Mobile / Tablet Zoom Pill at Bottom-Right */}
+          <div className="md:hidden absolute bottom-4 right-4 z-40 flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-lg border border-slate-200/80 dark:border-slate-700/80 p-1 text-xs">
+            <button
+              onClick={() => setScale((s) => Math.max(0.4, Number((s - 0.15).toFixed(2))))}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+              title="Zoom out"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setScale(0.75)}
+              className="px-2 font-mono font-semibold text-slate-700 dark:text-slate-300 text-[11px]"
+              title="Reset zoom"
+            >
+              {Math.round(scale * 100)}%
+            </button>
+            <button
+              onClick={() => setScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))))}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+              title="Zoom in"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </main>
       </div>
 

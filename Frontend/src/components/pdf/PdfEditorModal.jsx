@@ -78,6 +78,7 @@ export default function PdfEditorModal({
   const [pageNum, setPageNum] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [scale, setScale] = useState(1.15);
+  const [baseFitScale, setBaseFitScale] = useState(1.0);
   const [loading, setLoading] = useState(true);
   const [isCompiling, setIsCompiling] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -171,6 +172,31 @@ export default function PdfEditorModal({
         const doc = await loadingTask.promise;
         setPdfDoc(doc);
         setNumPages(doc.numPages);
+
+        // Auto-fit initial scale to container height & width
+        try {
+          const firstPage = await doc.getPage(1);
+          const unscaledVp = firstPage.getViewport({ scale: 1.0 });
+          const container = containerRef.current;
+          if (container && unscaledVp.width && unscaledVp.height) {
+            const padX = window.innerWidth < 640 ? 16 : 48;
+            const padY = window.innerWidth < 640 ? 16 : 48;
+            const availW = Math.max(200, container.clientWidth - padX);
+            const availH = Math.max(200, container.clientHeight - padY);
+            const fitScale = Math.min(availW / unscaledVp.width, availH / unscaledVp.height);
+            const clamped = Math.max(0.35, Math.min(2.0, Number(fitScale.toFixed(2))));
+            setScale(clamped);
+            setBaseFitScale(clamped);
+          } else {
+            const defScale = window.innerWidth < 640 ? 0.55 : 0.75;
+            setScale(defScale);
+            setBaseFitScale(defScale);
+          }
+        } catch (_) {
+          const defScale = window.innerWidth < 640 ? 0.55 : 0.75;
+          setScale(defScale);
+          setBaseFitScale(defScale);
+        }
       } catch (err) {
         console.error('[PdfEditor] Error loading PDF:', err);
         toast?.error?.('Failed to load PDF document');
@@ -182,12 +208,47 @@ export default function PdfEditorModal({
     fetchPdfBuffer();
   }, [isOpen, fileId]);
 
-  // Auto-fit scale on mobile screens on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
-      setScale(0.55);
-    }
-  }, []);
+  // Calculate automatic fit scale ('page' = fit whole page, 'width' = fit page width)
+  const calculateFitScale = useCallback(
+    async (targetFit = 'page', docInstance = null) => {
+      const doc = docInstance || pdfDoc;
+      if (!doc || !containerRef.current) return;
+
+      try {
+        const page = await doc.getPage(pageNum || 1);
+        const pageMod = pageModifications[pageNum] || {};
+        const userRot = pageMod.rotation || 0;
+        const unscaledViewport = page.getViewport({ scale: 1.0, rotation: userRot });
+
+        const container = containerRef.current;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        const paddingX = isMobile ? 16 : 48;
+        const paddingY = isMobile ? 16 : 48;
+
+        const availW = Math.max(200, container.clientWidth - paddingX);
+        const availH = Math.max(200, container.clientHeight - paddingY);
+
+        let targetScale;
+        if (targetFit === 'width') {
+          targetScale = availW / unscaledViewport.width;
+        } else {
+          const scaleW = availW / unscaledViewport.width;
+          const scaleH = availH / unscaledViewport.height;
+          targetScale = Math.min(scaleW, scaleH);
+        }
+
+        const clampedScale = Math.max(0.35, Math.min(2.5, Number(targetScale.toFixed(2))));
+        setScale(clampedScale);
+        if (targetFit === 'page') {
+          setBaseFitScale(clampedScale);
+        }
+        return clampedScale;
+      } catch (err) {
+        console.warn('[PdfEditor] calculateFitScale error:', err);
+      }
+    },
+    [pdfDoc, pageNum, pageModifications]
+  );
 
   // Render active page canvas
   const renderPage = useCallback(async () => {
@@ -1088,25 +1149,72 @@ export default function PdfEditorModal({
           {/* Desktop Zoom controls */}
           <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
             <button
-              onClick={() => setScale((s) => Math.max(0.4, Number((s - 0.15).toFixed(2))))}
+              onClick={() => {
+                const nextRatio = Math.max(0.3, (scale / (baseFitScale || 1)) - 0.15);
+                setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
+              }}
               className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
-            <button
-              onClick={() => setScale(1.15)}
-              className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 px-1.5 hover:text-indigo-600 transition cursor-pointer"
-              title="Reset Zoom to 100%"
+
+            {/* Quick Zoom Presets Dropdown */}
+            <select
+              value={
+                [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].some(v => Math.abs((scale / (baseFitScale || 1)) - v) < 0.06)
+                  ? String([0.5, 0.75, 1.0, 1.25, 1.5, 2.0].find(v => Math.abs((scale / (baseFitScale || 1)) - v) < 0.06))
+                  : 'custom'
+              }
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'fit-page') calculateFitScale('page');
+                else if (val === 'fit-width') calculateFitScale('width');
+                else {
+                  const mult = parseFloat(val);
+                  setScale(Number(((baseFitScale || 1) * mult).toFixed(2)));
+                }
+              }}
+              className="bg-transparent text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 px-1 hover:text-indigo-600 transition cursor-pointer border-0 focus:outline-none"
+              title="Zoom Level (Click to change or select Fit Page)"
             >
-              {Math.round(scale * 100)}%
-            </button>
+              <option value="custom" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                {Math.round((scale / (baseFitScale || 1)) * 100)}%
+              </option>
+              <option value="fit-page" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                Fit Page (100%)
+              </option>
+              <option value="fit-width" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                Fit Width
+              </option>
+              <option value="0.5" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">50%</option>
+              <option value="0.75" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">75%</option>
+              <option value="1.0" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">100% (Fit)</option>
+              <option value="1.25" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">125%</option>
+              <option value="1.5" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">150%</option>
+              <option value="2.0" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">200%</option>
+            </select>
+
             <button
-              onClick={() => setScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))))}
+              onClick={() => {
+                const nextRatio = Math.min(3.0, (scale / (baseFitScale || 1)) + 0.15);
+                setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
+              }}
               className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+
+            <div className="h-3 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+
+            {/* One-click Fit Page */}
+            <button
+              onClick={() => calculateFitScale('page')}
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              title="Fit Full Page to Screen (100%)"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -2048,18 +2156,21 @@ export default function PdfEditorModal({
           </div>
         )}
 
-        {/* Central PDF Canvas Workspace (Mobile-Optimized Padding) */}
+        {/* Central PDF Canvas Workspace (Smooth Centering & Non-clipping Scroll) */}
         <main
           ref={containerRef}
-          className="flex-1 overflow-auto bg-slate-200/50 dark:bg-[#060911] p-2 sm:p-4 md:p-8 flex items-center justify-center relative"
+          className="flex-1 overflow-auto bg-slate-200/50 dark:bg-[#060911] relative"
         >
           {loading ? (
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-              <p className="text-xs font-semibold text-slate-400">Loading high-resolution PDF canvas...</p>
+            <div className="min-w-full min-h-full flex items-center justify-center p-8">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                <p className="text-xs font-semibold text-slate-400">Loading high-resolution PDF canvas...</p>
+              </div>
             </div>
           ) : (
-            <div className="relative shadow-2xl rounded-sm overflow-hidden bg-white">
+            <div className="min-w-full min-h-full flex p-3 sm:p-6 md:p-8">
+              <div className="relative shadow-2xl rounded-sm overflow-hidden bg-white my-auto mx-auto shrink-0 transition-all duration-150">
               {/* Layer 1: PDF.js rendered page canvas */}
               <canvas ref={canvasRef} className="block select-none pointer-events-none" />
 
@@ -2481,27 +2592,34 @@ export default function PdfEditorModal({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
 
           {/* Floating Mobile / Tablet Zoom Pill at Bottom-Right */}
           <div className="md:hidden absolute bottom-4 right-4 z-40 flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-lg border border-slate-200/80 dark:border-slate-700/80 p-1 text-xs">
             <button
-              onClick={() => setScale((s) => Math.max(0.4, Number((s - 0.15).toFixed(2))))}
+              onClick={() => {
+                const nextRatio = Math.max(0.3, (scale / (baseFitScale || 1)) - 0.15);
+                setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
+              }}
               className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
               title="Zoom out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => setScale(0.75)}
-              className="px-2 font-mono font-semibold text-slate-700 dark:text-slate-300 text-[11px]"
-              title="Reset zoom"
+              onClick={() => calculateFitScale('page')}
+              className="px-2 font-mono font-semibold text-slate-700 dark:text-slate-300 text-[11px] cursor-pointer hover:text-indigo-600 transition"
+              title="Fit to page (100%)"
             >
-              {Math.round(scale * 100)}%
+              {Math.round((scale / (baseFitScale || 1)) * 100)}%
             </button>
             <button
-              onClick={() => setScale((s) => Math.min(2.5, Number((s + 0.15).toFixed(2))))}
+              onClick={() => {
+                const nextRatio = Math.min(3.0, (scale / (baseFitScale || 1)) + 0.15);
+                setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
+              }}
               className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
               title="Zoom in"
             >

@@ -40,7 +40,7 @@ export default function PdfViewer({
   const [pdfDoc, setPdfDoc] = useState(null);
   const [pageNum, setPageNum] = useState(1);
   const [numPages, setNumPages] = useState(0);
-  const [scale, setScale] = useState(1.1);
+  const [zoomLevel, setZoomLevel] = useState(1.0); // 1.0 = 100% (Full Page Fit)
   const [rotation, setRotation] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -132,15 +132,23 @@ export default function PdfViewer({
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
 
-      // Calculate mobile-friendly responsive scale
-      const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
-      const unscaledViewport = page.getViewport({ scale: 1, rotation });
-      
-      let computedScale = scale;
-      // On mobile viewports (<640px), ensure PDF fits screen width nicely by default
-      if (containerWidth < 640 && scale === 1.1) {
-        computedScale = Math.max(0.6, (containerWidth - 32) / unscaledViewport.width);
-      }
+      // Calculate container dimensions & fit scale
+      const container = containerRef.current;
+      const containerWidth = container?.clientWidth || window.innerWidth;
+      const containerHeight = container?.clientHeight || window.innerHeight;
+      const unscaledViewport = page.getViewport({ scale: 1.0, rotation });
+
+      // Padding inside preview modal viewport
+      const padX = window.innerWidth < 640 ? 16 : 48;
+      const padY = window.innerWidth < 640 ? 56 : 72;
+      const availW = Math.max(200, containerWidth - padX);
+      const availH = Math.max(200, containerHeight - padY);
+
+      // fitScale ensures the whole page cleanly fits available width and height
+      const fitScale = Math.min(availW / unscaledViewport.width, availH / unscaledViewport.height);
+
+      // zoomLevel: 1.0 = 100% (Full Page Fit)
+      const computedScale = Math.max(0.2, fitScale * zoomLevel);
 
       const pixelRatio = window.devicePixelRatio || 1;
       const viewport = page.getViewport({ scale: computedScale, rotation });
@@ -167,13 +175,32 @@ export default function PdfViewer({
       }
       setRenderingPage(false);
     }
-  }, [pdfDoc, pageNum, scale, rotation]);
+  }, [pdfDoc, pageNum, zoomLevel, rotation]);
 
   useEffect(() => {
     if (pdfDoc && renderMode === 'single') {
       renderPage();
     }
-  }, [pdfDoc, pageNum, scale, rotation, renderMode, renderPage]);
+  }, [pdfDoc, pageNum, zoomLevel, rotation, renderMode, renderPage]);
+
+  // Window resize re-render to keep perfect responsive fit
+  useEffect(() => {
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (pdfDoc && renderMode === 'single') {
+          renderPage();
+        }
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, [pdfDoc, renderMode, renderPage]);
 
   // Annotation canvas rendering
   useEffect(() => {
@@ -216,26 +243,19 @@ export default function PdfViewer({
   };
 
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.25, 3.0));
+    setZoomLevel((prev) => Math.min(Number((prev + 0.15).toFixed(2)), 3.0));
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.25, 0.5));
+    setZoomLevel((prev) => Math.max(Number((prev - 0.15).toFixed(2)), 0.3));
   };
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
   };
 
-  const handleFitWidth = () => {
-    if (pdfDoc && containerRef.current) {
-      pdfDoc.getPage(pageNum).then((page) => {
-        const vp = page.getViewport({ scale: 1, rotation });
-        const cWidth = containerRef.current.clientWidth - 40;
-        const newScale = cWidth / vp.width;
-        setScale(Math.max(0.5, Math.min(newScale, 2.5)));
-      });
-    }
+  const handleFitPage = () => {
+    setZoomLevel(1.0); // Reset to 100% Fit Page
   };
 
   if (loading) {
@@ -312,17 +332,17 @@ export default function PdfViewer({
           <div className="flex items-center bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-0.5">
             <button
               onClick={handleZoomOut}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition"
+              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <span className="px-1.5 font-mono text-[10px] sm:text-[11px] text-gray-700 dark:text-gray-300 min-w-[2.8rem] text-center font-bold">
-              {Math.round(scale * 100)}%
+              {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={handleZoomIn}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition"
+              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -330,17 +350,21 @@ export default function PdfViewer({
           </div>
 
           <button
-            onClick={handleFitWidth}
-            className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 transition hidden sm:flex items-center gap-1 text-[11px]"
-            title="Fit to Width"
+            onClick={handleFitPage}
+            className={`p-1.5 rounded-lg border transition flex items-center gap-1 text-[11px] cursor-pointer ${
+              Math.abs(zoomLevel - 1.0) < 0.01
+                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-semibold'
+                : 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300'
+            }`}
+            title="Fit to Page (100%)"
           >
             <Maximize2 className="w-3.5 h-3.5" />
-            <span>Fit</span>
+            <span>Fit (100%)</span>
           </button>
 
           <button
             onClick={handleRotate}
-            className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 transition flex items-center gap-1 text-[11px]"
+            className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 transition flex items-center gap-1 text-[11px] cursor-pointer"
             title="Rotate 90°"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -362,24 +386,26 @@ export default function PdfViewer({
       </div>
 
       {/* PDF Canvas Viewport Area */}
-      <div className="flex-1 overflow-auto p-2 sm:p-4 md:p-6 flex items-center justify-center relative touch-pan-x touch-pan-y">
-        <div className="relative shadow-2xl rounded-lg bg-white overflow-hidden border border-gray-300 dark:border-slate-700">
-          <canvas ref={canvasRef} className="block max-w-none" />
+      <div className="flex-1 overflow-auto bg-gray-100 dark:bg-[#0F172A] relative touch-pan-x touch-pan-y">
+        <div className="min-w-full min-h-full p-2 sm:p-4 md:p-6 flex items-start justify-center">
+          <div className="relative shadow-2xl rounded-lg bg-white overflow-hidden border border-gray-300 dark:border-slate-700 my-auto mx-auto shrink-0 transition-all duration-150">
+            <canvas ref={canvasRef} className="block max-w-none" />
 
-          {/* Annotation Overlay Canvas */}
-          {annotationMode && (
-            <canvas
-              ref={annotationCanvasRef}
-              onMouseDown={onStartDrawing}
-              onMouseMove={onDraw}
-              onMouseUp={onStopDrawing}
-              onMouseLeave={onStopDrawing}
-              onTouchStart={onStartDrawing}
-              onTouchMove={onDraw}
-              onTouchEnd={onStopDrawing}
-              className="absolute inset-0 cursor-crosshair touch-none z-20"
-            />
-          )}
+            {/* Annotation Overlay Canvas */}
+            {annotationMode && (
+              <canvas
+                ref={annotationCanvasRef}
+                onMouseDown={onStartDrawing}
+                onMouseMove={onDraw}
+                onMouseUp={onStopDrawing}
+                onMouseLeave={onStopDrawing}
+                onTouchStart={onStartDrawing}
+                onTouchMove={onDraw}
+                onTouchEnd={onStopDrawing}
+                className="absolute inset-0 cursor-crosshair touch-none z-20"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

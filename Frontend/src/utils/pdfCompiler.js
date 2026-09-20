@@ -73,19 +73,33 @@ export async function compilePdfDocument(sourcePdfBuffer, annotationsByPage = {}
 
   const resolveFont = (family = 'helvetica', bold = false, italic = false) => {
     const f = String(family || '').toLowerCase();
-    if (f.includes('times')) {
+    if (
+      f.includes('times') ||
+      f.includes('serif') ||
+      f.includes('georgia') ||
+      f.includes('garamond') ||
+      f.includes('merriweather') ||
+      f.includes('playfair') ||
+      f.includes('cinzel')
+    ) {
       if (bold && italic) return fontTimesRomanBoldItalic;
       if (bold) return fontTimesRomanBold;
       if (italic) return fontTimesRomanItalic;
       return fontTimesRoman;
     }
-    if (f.includes('courier')) {
+    if (
+      f.includes('courier') ||
+      f.includes('mono') ||
+      f.includes('fira') ||
+      f.includes('consolas') ||
+      f.includes('code')
+    ) {
       if (bold && italic) return fontCourierBoldOblique;
       if (bold) return fontCourierBold;
       if (italic) return fontCourierOblique;
       return fontCourier;
     }
-    // Default: Helvetica
+    // Default: Helvetica / Sans / Display
     if (bold && italic) return fontHelveticaBoldOblique;
     if (bold) return fontHelveticaBold;
     if (italic) return fontHelveticaOblique;
@@ -120,15 +134,106 @@ export async function compilePdfDocument(sourcePdfBuffer, annotationsByPage = {}
       const scaleX = pdfWidth / canvasWidth;
       const scaleY = pdfHeight / canvasHeight;
 
-      // ── TEXT ELEMENT (Bold, Italic, Underline, Multi-line, Font Family, Color, Background) ──
+      // ── TEXT ELEMENT (Bold, Italic, Underline, Strikethrough, Alignment, Font Families, Color) ──
       if (el.type === 'text' && el.text) {
+        const isScript = ['great-vibes', 'dancing-script', 'pacifico', 'caveat'].includes(el.fontFamily);
+        let renderedAsScript = false;
+
+        // For script & cursive fonts, render via offscreen high-DPI canvas to preserve calligraphy beauty in PDF
+        if (isScript && typeof document !== 'undefined') {
+          try {
+            const dpr = 2;
+            const canvas = document.createElement('canvas');
+            const fontFamilies = {
+              'great-vibes': "'Great Vibes', cursive",
+              'dancing-script': "'Dancing Script', cursive",
+              'pacifico': "'Pacifico', cursive",
+              'caveat': "'Caveat', cursive",
+            };
+            const cssFont = fontFamilies[el.fontFamily] || 'cursive';
+            const pxFontSize = Math.max(12, Math.round(el.fontSize || 18));
+            const fontDesc = `${el.italic ? 'italic ' : ''}${el.bold ? 'bold ' : ''}${pxFontSize * dpr}px ${cssFont}`;
+
+            const ctx = canvas.getContext('2d');
+            ctx.font = fontDesc;
+            const lines = String(el.text).split('\n');
+            let maxW = 0;
+            lines.forEach((l) => {
+              const w = ctx.measureText(l).width;
+              if (w > maxW) maxW = w;
+            });
+            const lineH = pxFontSize * 1.35 * dpr;
+            canvas.width = Math.max(10, Math.ceil(maxW + 20 * dpr));
+            canvas.height = Math.max(10, Math.ceil(lines.length * lineH + 10 * dpr));
+
+            ctx.font = fontDesc;
+            ctx.fillStyle = el.color || '#000000';
+            ctx.textBaseline = 'top';
+
+            lines.forEach((l, idx) => {
+              let xOffset = 4 * dpr;
+              const lw = ctx.measureText(l).width;
+              if (el.textAlign === 'center') {
+                xOffset = (canvas.width - lw) / 2;
+              } else if (el.textAlign === 'right') {
+                xOffset = canvas.width - lw - 4 * dpr;
+              }
+              const yOffset = idx * lineH + 4 * dpr;
+              ctx.fillText(l, xOffset, yOffset);
+
+              // Underline for script
+              if (el.underline) {
+                ctx.strokeStyle = el.color || '#000000';
+                ctx.lineWidth = Math.max(1, 1.5 * dpr);
+                ctx.beginPath();
+                ctx.moveTo(xOffset, yOffset + pxFontSize * dpr);
+                ctx.lineTo(xOffset + lw, yOffset + pxFontSize * dpr);
+                ctx.stroke();
+              }
+
+              // Strikethrough for script
+              if (el.strikethrough) {
+                ctx.strokeStyle = el.color || '#000000';
+                ctx.lineWidth = Math.max(1, 1.5 * dpr);
+                ctx.beginPath();
+                ctx.moveTo(xOffset, yOffset + (pxFontSize * dpr) / 2);
+                ctx.lineTo(xOffset + lw, yOffset + (pxFontSize * dpr) / 2);
+                ctx.stroke();
+              }
+            });
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const embeddedImg = await pdfDoc.embedPng(dataUrl);
+            const renderW = (canvas.width / dpr) * scaleX;
+            const renderH = (canvas.height / dpr) * scaleY;
+
+            page.drawImage(embeddedImg, {
+              x: el.x * scaleX,
+              y: pdfHeight - el.y * scaleY - renderH,
+              width: renderW,
+              height: renderH,
+              opacity: 1,
+            });
+            renderedAsScript = true;
+          } catch (scriptErr) {
+            console.warn('[pdfCompiler] Script font canvas fallback to standard font:', scriptErr);
+          }
+        }
+
+        if (renderedAsScript) continue;
+
+        // Standard vector font rendering
         const fontSize = (el.fontSize || 16) * scaleY;
         const font = resolveFont(el.fontFamily, el.bold, el.italic);
         const color = hexToPdfRgb(el.color || '#000000');
         const pdfX = el.x * scaleX;
         const lineHeight = fontSize * 1.25;
 
-        const lines = String(el.text).split('\n');
+        let textToRender = String(el.text);
+        if (el.textTransform === 'uppercase') textToRender = textToRender.toUpperCase();
+        else if (el.textTransform === 'lowercase') textToRender = textToRender.toLowerCase();
+
+        const lines = textToRender.split('\n');
         const startPdfY = pdfHeight - el.y * scaleY - fontSize;
 
         // Draw background highlight / callout box if specified
@@ -153,9 +258,23 @@ export async function compilePdfDocument(sourcePdfBuffer, annotationsByPage = {}
 
         // Draw each line of text
         lines.forEach((lineText, idx) => {
+          let linePdfX = pdfX;
+          let textWidth = 0;
+          try {
+            textWidth = font.widthOfTextAtSize(lineText, fontSize);
+            const boxWidth = (el.width || 0) * scaleX;
+            if (boxWidth > textWidth) {
+              if (el.textAlign === 'center') {
+                linePdfX = pdfX + (boxWidth - textWidth) / 2;
+              } else if (el.textAlign === 'right') {
+                linePdfX = pdfX + (boxWidth - textWidth);
+              }
+            }
+          } catch (_) {}
+
           const lineY = startPdfY - idx * lineHeight;
           page.drawText(lineText, {
-            x: pdfX,
+            x: linePdfX,
             y: lineY,
             size: fontSize,
             font,
@@ -165,10 +284,21 @@ export async function compilePdfDocument(sourcePdfBuffer, annotationsByPage = {}
           // Underline formatting
           if (el.underline) {
             try {
-              const textWidth = font.widthOfTextAtSize(lineText, fontSize);
               page.drawLine({
-                start: { x: pdfX, y: lineY - 2 },
-                end: { x: pdfX + textWidth, y: lineY - 2 },
+                start: { x: linePdfX, y: lineY - 2 },
+                end: { x: linePdfX + textWidth, y: lineY - 2 },
+                thickness: Math.max(1, fontSize * 0.07),
+                color,
+              });
+            } catch (_) {}
+          }
+
+          // Strikethrough formatting
+          if (el.strikethrough) {
+            try {
+              page.drawLine({
+                start: { x: linePdfX, y: lineY + fontSize * 0.35 },
+                end: { x: linePdfX + textWidth, y: lineY + fontSize * 0.35 },
                 thickness: Math.max(1, fontSize * 0.07),
                 color,
               });

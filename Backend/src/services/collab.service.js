@@ -19,16 +19,11 @@ const PRESENCE_COLORS = [
 const activeDocuments = new Map();
 
 class CollabService {
-  /**
-   * Assigns a distinct color to a collaborator based on current room size
-   */
   getColorForIndex(index) {
     return PRESENCE_COLORS[index % PRESENCE_COLORS.length];
   }
 
-  /**
-   * Gets or initializes document state in memory
-   */
+  
   async getOrCreateDocument(fileId, initialContentLoader) {
     let doc = activeDocuments.get(fileId);
     if (!doc) {
@@ -56,9 +51,7 @@ class CollabService {
     return doc;
   }
 
-  /**
-   * Adds a user to the document room
-   */
+  
   async joinDocument(fileId, socket, user, initialContentLoader) {
     const doc = await this.getOrCreateDocument(fileId, initialContentLoader);
 

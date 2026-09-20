@@ -35,12 +35,26 @@ import {
   Bold,
   Italic,
   Underline,
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Sparkles,
+  Wand2,
   Edit3,
   FileText,
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../utils/auth';
 import { compilePdfDocument } from '../../utils/pdfCompiler';
 import SignatureModal from './SignatureModal';
+import {
+  FONT_CATEGORIES,
+  FONT_MAP,
+  getCssFontFamily,
+  classifyPdfFont,
+  isFontNameBold,
+  isFontNameItalic,
+} from './fontConstants';
 
 // Predefined Quick Business Stamps
 const BUSINESS_STAMPS = [
@@ -85,11 +99,14 @@ export default function PdfEditorModal({
 
   // Multi-Text Formatting State
   const [activeFontSize, setActiveFontSize] = useState(18);
-  const [activeFontFamily, setActiveFontFamily] = useState('helvetica'); // 'helvetica' | 'times' | 'courier'
+  const [activeFontFamily, setActiveFontFamily] = useState('helvetica');
   const [activeTextBold, setActiveTextBold] = useState(false);
   const [activeTextItalic, setActiveTextItalic] = useState(false);
   const [activeTextUnderline, setActiveTextUnderline] = useState(false);
+  const [activeTextStrikethrough, setActiveTextStrikethrough] = useState(false);
+  const [activeTextAlign, setActiveTextAlign] = useState('left'); // 'left' | 'center' | 'right'
   const [editingTextId, setEditingTextId] = useState(null);
+  const [isDetectingStyle, setIsDetectingStyle] = useState(false);
 
   // Annotations State: { [pageNum: number]: Array<Element> }
   const [annotationsByPage, setAnnotationsByPage] = useState({});
@@ -387,6 +404,188 @@ export default function PdfEditorModal({
     (el) => el.id === selectedElementId
   );
 
+  // Automatic Text Style Detection from underlying PDF & canvas pixels
+  const detectTextStyleAtPosition = async (targetEl) => {
+    if (!pdfDoc) {
+      toast?.error?.('PDF document is still loading');
+      return null;
+    }
+    if (!targetEl) return null;
+
+    setIsDetectingStyle(true);
+    try {
+      const page = await pdfDoc.getPage(pageNum);
+      const pageMod = pageModifications[pageNum] || {};
+      const userRot = pageMod.rotation || 0;
+      const viewport = page.getViewport({ scale, rotation: userRot });
+
+      // 1. Get text content stream from PDF.js
+      const textContent = await page.getTextContent({ normalizeWhitespace: true });
+      const items = textContent?.items || [];
+
+      // Target element bounding box
+      const elLeft = targetEl.x;
+      const elTop = targetEl.y;
+      const elWidth = targetEl.width || Math.max(60, (String(targetEl.text || '').length || 5) * 10);
+      const elHeight = targetEl.height || (targetEl.fontSize || 18) * 1.5;
+      const elRight = elLeft + elWidth;
+      const elBottom = elTop + elHeight;
+      const elCenterX = elLeft + elWidth / 2;
+      const elCenterY = elTop + elHeight / 2;
+
+      let bestMatch = null;
+      let maxOverlap = 0;
+      let minDistance = Infinity;
+
+      for (const item of items) {
+        if (!item.str || !item.str.trim()) continue;
+
+        // Convert item baseline position to viewport canvas coordinates
+        const [vx, vy] = viewport.convertToViewportPoint(item.transform[4], item.transform[5]);
+        const itemFontHeight = Math.hypot(item.transform[2], item.transform[3]) * scale || (item.height * scale) || 16;
+        const itemFontWidth = (item.width || item.str.length * 8) * scale;
+
+        // In PDF viewport coords, vy is the baseline. Glyph top is ~vy - itemFontHeight * 0.85
+        const itemLeft = vx;
+        const itemTop = vy - itemFontHeight * 0.85;
+        const itemRight = vx + itemFontWidth;
+        const itemBottom = vy + itemFontHeight * 0.25;
+
+        // Check box overlap
+        const overlapX = Math.max(0, Math.min(elRight, itemRight) - Math.max(elLeft, itemLeft));
+        const overlapY = Math.max(0, Math.min(elBottom, itemBottom) - Math.max(elTop, itemTop));
+        const overlapArea = overlapX * overlapY;
+
+        const itemCenterX = (itemLeft + itemRight) / 2;
+        const itemCenterY = (itemTop + itemBottom) / 2;
+        const dist = Math.hypot(elCenterX - itemCenterX, elCenterY - itemCenterY);
+
+        if (overlapArea > maxOverlap) {
+          maxOverlap = overlapArea;
+          bestMatch = { item, fontHeight: itemFontHeight, itemLeft, itemTop, itemFontWidth };
+        } else if (maxOverlap === 0 && dist < minDistance && dist < 120) {
+          minDistance = dist;
+          bestMatch = { item, fontHeight: itemFontHeight, itemLeft, itemTop, itemFontWidth };
+        }
+      }
+
+      let detectedFontId = 'helvetica';
+      let detectedFontSize = targetEl.fontSize || 18;
+      let detectedBold = false;
+      let detectedItalic = false;
+      let detectedColor = '#000000';
+      let detectedText = '';
+
+      if (bestMatch) {
+        const { item, fontHeight } = bestMatch;
+        detectedText = item.str.trim();
+
+        // 1. Classify Font Family
+        const styleObj = textContent.styles?.[item.fontName] || {};
+        detectedFontId = classifyPdfFont(item.fontName, styleObj.fontFamily || '');
+
+        // 2. Detect Bold & Italic
+        detectedBold = isFontNameBold(item.fontName) || Boolean(styleObj.bold);
+        detectedItalic = isFontNameItalic(item.fontName) || Boolean(styleObj.italic);
+
+        // 3. Exact Font Size (matched to canvas pixels)
+        detectedFontSize = Math.max(8, Math.min(72, Math.round(fontHeight)));
+      }
+
+      // 4. Sample true ink color from rendered canvas
+      try {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const pixelRatio = window.devicePixelRatio || 1;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+          const sX = Math.max(0, Math.floor((bestMatch ? bestMatch.itemLeft : elLeft) * pixelRatio));
+          const sY = Math.max(0, Math.floor((bestMatch ? bestMatch.itemTop : elTop) * pixelRatio));
+          const sW = Math.min(canvas.width - sX, Math.max(10, Math.floor((bestMatch ? bestMatch.itemFontWidth : elWidth) * pixelRatio)));
+          const sH = Math.min(canvas.height - sY, Math.max(10, Math.floor((bestMatch ? bestMatch.fontHeight : elHeight) * pixelRatio)));
+
+          if (sW > 0 && sH > 0) {
+            const imgData = ctx.getImageData(sX, sY, sW, sH);
+            const data = imgData.data;
+
+            let rSum = 0, gSum = 0, bSum = 0, inkCount = 0;
+            let minBrightness = 255;
+            let darkestR = 0, darkestG = 0, darkestB = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              const a = data[i + 3];
+              if (a < 100) continue;
+
+              const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+              if (brightness < minBrightness) {
+                minBrightness = brightness;
+                darkestR = r;
+                darkestG = g;
+                darkestB = b;
+              }
+
+              if (brightness < 200) {
+                rSum += r;
+                gSum += g;
+                bSum += b;
+                inkCount++;
+              }
+            }
+
+            if (inkCount > 4) {
+              const avgR = Math.round(rSum / inkCount);
+              const avgG = Math.round(gSum / inkCount);
+              const avgB = Math.round(bSum / inkCount);
+              detectedColor = `#${((1 << 24) + (avgR << 16) + (avgG << 8) + avgB).toString(16).slice(1)}`;
+            } else if (minBrightness < 220) {
+              detectedColor = `#${((1 << 24) + (darkestR << 16) + (darkestG << 8) + darkestB).toString(16).slice(1)}`;
+            }
+          }
+        }
+      } catch (colErr) {
+        console.warn('[AutoDetect] Canvas pixel color sampling fallback:', colErr);
+      }
+
+      // Apply detected styles
+      const updates = {
+        fontFamily: detectedFontId,
+        fontSize: detectedFontSize,
+        bold: detectedBold,
+        italic: detectedItalic,
+        color: detectedColor,
+      };
+
+      if (detectedText && (!targetEl.text || targetEl.text === 'Sample Text')) {
+        updates.text = detectedText;
+      }
+
+      updateElement(targetEl.id, updates);
+
+      // Synchronize active toolbar states
+      setActiveFontFamily(detectedFontId);
+      setActiveFontSize(detectedFontSize);
+      setActiveTextBold(detectedBold);
+      setActiveTextItalic(detectedItalic);
+      setActiveColor(detectedColor);
+
+      const fontLabel = FONT_MAP[detectedFontId]?.name || detectedFontId;
+      toast?.success?.(
+        `✨ Auto-detected: ${fontLabel}, ${detectedFontSize}px, ${detectedBold ? 'Bold' : 'Regular'}${detectedItalic ? ' Italic' : ''}, ${detectedColor}`
+      );
+
+      return updates;
+    } catch (err) {
+      console.error('[PdfEditor] Auto-detect text style error:', err);
+      toast?.error?.('Could not auto-detect text style at position');
+      return null;
+    } finally {
+      setIsDetectingStyle(false);
+    }
+  };
+
   // Global Keyboard Shortcuts (Adobe Acrobat Pro Workflow)
   useEffect(() => {
     if (!isOpen) return;
@@ -540,7 +739,7 @@ export default function PdfEditorModal({
     if (activeTool === 'pen') {
       currentDrawingPointsRef.current = [{ x, y }];
     } else if (activeTool === 'text') {
-      const id = addElementToCurrentPage({
+      const newEl = {
         type: 'text',
         x,
         y,
@@ -551,11 +750,17 @@ export default function PdfEditorModal({
         bold: activeTextBold,
         italic: activeTextItalic,
         underline: activeTextUnderline,
+        strikethrough: activeTextStrikethrough,
+        textAlign: activeTextAlign || 'left',
         backgroundColor: 'transparent',
-      });
+      };
+      const id = addElementToCurrentPage(newEl);
       setSelectedElementId(id);
       setEditingTextId(id);
       isInteractingRef.current = false;
+
+      // Auto-detect style from underlying document text if available
+      detectTextStyleAtPosition({ id, ...newEl });
     }
   };
 
@@ -1260,29 +1465,63 @@ export default function PdfEditorModal({
 
           {/* --- CASE 2: TEXT PROPERTIES (Active Tool = Text OR Selected Element = Text) --- */}
           {(activeTool === 'text' || selectedElement?.type === 'text') && (
-            <div className="flex items-center gap-1.5 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+            <div className="flex items-center gap-1.5 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in flex-wrap">
               <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 px-1 hidden sm:inline">
                 Text
               </span>
 
-              {/* Font Family selector */}
+              {/* Auto-Detect Text Style Button */}
+              <button
+                onClick={() => {
+                  if (selectedElement?.type === 'text') {
+                    detectTextStyleAtPosition(selectedElement);
+                  } else {
+                    toast?.info?.('Click on text in the document or select a text box to auto-detect its style');
+                  }
+                }}
+                disabled={isDetectingStyle}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg font-bold transition cursor-pointer text-[10px] shadow-2xs ${
+                  isDetectingStyle
+                    ? 'bg-amber-500 text-slate-900 animate-pulse'
+                    : 'bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white'
+                }`}
+                title="Auto-Detect Font, Size, Weight, and Ink Color from underlying document"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                <span>{isDetectingStyle ? 'Detecting...' : 'Auto-Detect Style'}</span>
+              </button>
+
+              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+
+              {/* Font Family selector (Categorized) */}
               <select
                 value={selectedElement?.fontFamily || activeFontFamily}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setActiveFontFamily(val);
-                  if (selectedElement) updateElement(selectedElement.id, { fontFamily: val });
+                  if (val === 'auto') {
+                    if (selectedElement) detectTextStyleAtPosition(selectedElement);
+                  } else {
+                    setActiveFontFamily(val);
+                    if (selectedElement) updateElement(selectedElement.id, { fontFamily: val });
+                  }
                 }}
-                className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-medium rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none"
+                className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-medium rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none max-w-[130px] sm:max-w-[150px]"
                 title="Font Family"
               >
-                <option value="helvetica">Sans (Helvetica)</option>
-                <option value="times">Serif (Times)</option>
-                <option value="courier">Mono (Courier)</option>
+                <option value="auto">✨ Auto-Detect Font</option>
+                {FONT_CATEGORIES.map((cat) => (
+                  <optgroup key={cat.name} label={cat.name}>
+                    {cat.fonts.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
 
               {/* Font Size stepper */}
-              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-1.5 py-0.5">
+              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-1 py-0.5">
                 <button
                   onClick={() => {
                     const currentSz = selectedElement?.fontSize || activeFontSize;
@@ -1295,7 +1534,7 @@ export default function PdfEditorModal({
                 >
                   -
                 </button>
-                <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400 px-1.5 min-w-[20px] text-center">
+                <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400 px-1 min-w-[20px] text-center">
                   {selectedElement?.fontSize || activeFontSize}
                 </span>
                 <button
@@ -1365,6 +1604,54 @@ export default function PdfEditorModal({
               >
                 <Underline className="w-3.5 h-3.5" />
               </button>
+
+              {/* Strikethrough (S) */}
+              <button
+                onClick={() => {
+                  const currentStrikethrough = selectedElement ? selectedElement.strikethrough : activeTextStrikethrough;
+                  const nextStrikethrough = !currentStrikethrough;
+                  setActiveTextStrikethrough(nextStrikethrough);
+                  if (selectedElement) updateElement(selectedElement.id, { strikethrough: nextStrikethrough });
+                }}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  (selectedElement ? selectedElement.strikethrough : activeTextStrikethrough)
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+                title="Strikethrough"
+              >
+                <Strikethrough className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Text Alignment */}
+              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+                {[
+                  { id: 'left', icon: AlignLeft, title: 'Align Left' },
+                  { id: 'center', icon: AlignCenter, title: 'Align Center' },
+                  { id: 'right', icon: AlignRight, title: 'Align Right' },
+                ].map((item) => {
+                  const currAlign = selectedElement?.textAlign || activeTextAlign || 'left';
+                  const isActive = currAlign === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTextAlign(item.id);
+                        if (selectedElement) updateElement(selectedElement.id, { textAlign: item.id });
+                      }}
+                      className={`p-1 rounded transition cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                      title={item.title}
+                    >
+                      <Icon className="w-3 h-3" />
+                    </button>
+                  );
+                })}
+              </div>
 
               <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
 
@@ -1851,15 +2138,15 @@ export default function PdfEditorModal({
                           style={{
                             color: el.color || '#000000',
                             fontSize: `${el.fontSize || 16}px`,
-                            fontFamily:
-                              el.fontFamily === 'times'
-                                ? 'Times New Roman, serif'
-                                : el.fontFamily === 'courier'
-                                ? 'Courier New, monospace'
-                                : 'Inter, system-ui, sans-serif',
+                            fontFamily: getCssFontFamily(el.fontFamily),
                             fontWeight: el.bold ? 'bold' : 'normal',
                             fontStyle: el.italic ? 'italic' : 'normal',
-                            textDecoration: el.underline ? 'underline' : 'none',
+                            textDecoration: [
+                              el.underline ? 'underline' : '',
+                              el.strikethrough ? 'line-through' : '',
+                            ].filter(Boolean).join(' ') || 'none',
+                            textAlign: el.textAlign || 'left',
+                            textTransform: el.textTransform || 'none',
                             backgroundColor: el.backgroundColor && el.backgroundColor !== 'transparent' ? el.backgroundColor : 'white',
                           }}
                           className="no-drag min-w-[140px] resize-none border-2 border-indigo-500 rounded p-1 shadow-lg focus:outline-none bg-white text-slate-900"
@@ -1874,15 +2161,15 @@ export default function PdfEditorModal({
                           style={{
                             color: el.color || '#000000',
                             fontSize: `${el.fontSize || 16}px`,
-                            fontFamily:
-                              el.fontFamily === 'times'
-                                ? 'Times New Roman, serif'
-                                : el.fontFamily === 'courier'
-                                ? 'Courier New, monospace'
-                                : 'Inter, system-ui, sans-serif',
+                            fontFamily: getCssFontFamily(el.fontFamily),
                             fontWeight: el.bold ? 'bold' : 'normal',
                             fontStyle: el.italic ? 'italic' : 'normal',
-                            textDecoration: el.underline ? 'underline' : 'none',
+                            textDecoration: [
+                              el.underline ? 'underline' : '',
+                              el.strikethrough ? 'line-through' : '',
+                            ].filter(Boolean).join(' ') || 'none',
+                            textAlign: el.textAlign || 'left',
+                            textTransform: el.textTransform || 'none',
                             backgroundColor: el.backgroundColor && el.backgroundColor !== 'transparent' ? el.backgroundColor : 'transparent',
                           }}
                           className="px-1.5 py-0.5 whitespace-pre-wrap select-none cursor-pointer rounded"
@@ -1961,16 +2248,47 @@ export default function PdfEditorModal({
 
                             <div className="h-3 w-px bg-slate-700 mx-0.5" />
 
-                            {/* Font Family selector */}
+                            {/* Auto-Detect Text Style from Document */}
+                            <button
+                              onClick={() => detectTextStyleAtPosition(el)}
+                              disabled={isDetectingStyle}
+                              className={`px-1.5 py-0.5 rounded transition cursor-pointer flex items-center gap-1 font-semibold ${
+                                isDetectingStyle
+                                  ? 'bg-amber-500/30 text-amber-300 animate-pulse'
+                                  : 'bg-indigo-600/40 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40'
+                              }`}
+                              title="Auto-Detect Text Style from Document (Font, Size, Weight, Color)"
+                            >
+                              <Sparkles className="w-3 h-3 text-amber-300" />
+                              <span className="text-[9px]">Auto</span>
+                            </button>
+
+                            <div className="h-3 w-px bg-slate-700 mx-0.5" />
+
+                            {/* Font Family selector (Categorized) */}
                             <select
                               value={el.fontFamily || 'helvetica'}
-                              onChange={(e) => updateElement(el.id, { fontFamily: e.target.value })}
-                              className="bg-slate-800 text-slate-200 text-[10px] rounded px-1 py-0.5 border border-slate-700 focus:outline-none cursor-pointer"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === 'auto') {
+                                  detectTextStyleAtPosition(el);
+                                } else {
+                                  updateElement(el.id, { fontFamily: val });
+                                }
+                              }}
+                              className="bg-slate-800 text-slate-200 text-[10px] rounded px-1.5 py-0.5 border border-slate-700 focus:outline-none cursor-pointer max-w-[105px]"
                               title="Font Family"
                             >
-                              <option value="helvetica">Sans</option>
-                              <option value="times">Serif</option>
-                              <option value="courier">Mono</option>
+                              <option value="auto">✨ Auto-Detect</option>
+                              {FONT_CATEGORIES.map((cat) => (
+                                <optgroup key={cat.name} label={cat.name}>
+                                  {cat.fonts.map((f) => (
+                                    <option key={f.id} value={f.id}>
+                                      {f.name}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
                             </select>
 
                             <div className="h-3 w-px bg-slate-700 mx-0.5" />
@@ -2029,6 +2347,40 @@ export default function PdfEditorModal({
                               title="Underline"
                             >
                               <Underline className="w-3 h-3" />
+                            </button>
+
+                            {/* Strikethrough (S) */}
+                            <button
+                              onClick={() => updateElement(el.id, { strikethrough: !el.strikethrough })}
+                              className={`p-1 rounded transition cursor-pointer ${
+                                el.strikethrough ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-300'
+                              }`}
+                              title="Strikethrough"
+                            >
+                              <Strikethrough className="w-3 h-3" />
+                            </button>
+
+                            {/* Text Alignment */}
+                            <button
+                              onClick={() => {
+                                const nextAlign =
+                                  el.textAlign === 'left' || !el.textAlign
+                                    ? 'center'
+                                    : el.textAlign === 'center'
+                                    ? 'right'
+                                    : 'left';
+                                updateElement(el.id, { textAlign: nextAlign });
+                              }}
+                              className="p-1 rounded hover:bg-slate-800 text-slate-300 transition cursor-pointer"
+                              title={`Align: ${el.textAlign || 'left'} (Click to cycle)`}
+                            >
+                              {el.textAlign === 'center' ? (
+                                <AlignCenter className="w-3 h-3" />
+                              ) : el.textAlign === 'right' ? (
+                                <AlignRight className="w-3 h-3" />
+                              ) : (
+                                <AlignLeft className="w-3 h-3" />
+                              )}
                             </button>
 
                             <div className="h-3 w-px bg-slate-700 mx-0.5" />

@@ -22,7 +22,9 @@ import {
   Search,
   FolderArchive,
   Maximize2,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  PenTool
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { socket, connectSocket } from '../../socket';
@@ -46,7 +48,9 @@ const FilePreviewModal = ({
   isOpen,
   onClose,
   onToast,
-  loadFiles
+  loadFiles,
+  onOpenWorkspace,
+  onOpenPdfEditor,
 }) => {
   const user = useSelector((state) => state.auth.user);
   const [activeFile, setActiveFile] = useState(file);
@@ -1052,6 +1056,22 @@ const FilePreviewModal = ({
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              {/* PDF Editor Trigger Button */}
+              {isPdf && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenPdfEditor?.(activeFile);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
+                  title="Open Adobe Acrobat / Smallpdf tier PDF Editor"
+                >
+                  <PenTool className="w-3.5 h-3.5" />
+                  <span>Edit PDF</span>
+                </button>
+              )}
+
               {/* Mobile Toggle Button to view comments */}
               <button
                 type="button"
@@ -1457,6 +1477,17 @@ const FilePreviewModal = ({
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${viewMode === "editor" ? "bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white"}`}
                         >
                           ✏️ Edit Code
+                        </button>
+                        <button
+                          onClick={() => {
+                            onClose();
+                            onOpenWorkspace?.(activeFile);
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                          title="Open in real-time collaborative workspace"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>Collaborate Live</span>
                         </button>
                       </div>
                       {viewMode === "editor" && (

@@ -9,6 +9,16 @@ export default defineConfig({
     tailwindcss(),
     seoPrerenderPlugin(),
   ],
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@reduxjs/toolkit",
+      "react-redux",
+      "lucide-react",
+    ],
+  },
   build: {
     target: "es2020",
     cssCodeSplit: true,

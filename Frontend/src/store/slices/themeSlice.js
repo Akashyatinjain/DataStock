@@ -3,45 +3,36 @@ import { createSlice } from '@reduxjs/toolkit';
 export const THEME_KEY = 'datastock-theme';
 
 export function getStoredTheme() {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = localStorage.getItem(THEME_KEY);
-  if (stored === 'dark' || stored === 'light') return stored;
-
-  const isMobile = window.innerWidth < 768;
-  return isMobile ? 'light' : 'dark';
+  return 'light';
 }
 
-export function applyTheme(theme) {
-  const root = document.documentElement;
-  if (theme === 'dark') {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
+export function applyTheme() {
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.remove('dark');
   }
   try {
-    localStorage.setItem(THEME_KEY, theme);
+    localStorage.setItem(THEME_KEY, 'light');
   } catch (e) {}
 }
 
-// Apply initial theme immediately
+// Apply light theme immediately
 if (typeof window !== 'undefined') {
-  applyTheme(getStoredTheme());
+  applyTheme();
 }
 
 const themeSlice = createSlice({
   name: 'theme',
   initialState: {
-    theme: getStoredTheme(),
+    theme: 'light',
   },
   reducers: {
     toggleTheme: (state) => {
-      const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
-      state.theme = nextTheme;
-      applyTheme(nextTheme);
+      state.theme = 'light';
+      applyTheme();
     },
-    setTheme: (state, action) => {
-      state.theme = action.payload;
-      applyTheme(action.payload);
+    setTheme: (state) => {
+      state.theme = 'light';
+      applyTheme();
     },
   },
 });

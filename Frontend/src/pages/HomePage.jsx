@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Cloud,
@@ -40,21 +40,15 @@ import { useNavigate, Link } from "react-router-dom";
 import SeoHead from "../seo/SeoHead";
 import { getPageSeo } from "../seo/config";
 import { homeJsonLdGraph } from "../seo/structuredData";
-import ThemeToggle from "../components/ui/ThemeToggle";
 import useSubscription from "../hooks/useSubscription";
 import { fetchProfile } from "../store/slices/authSlice";
-import { fetchAllFiles } from "../store/slices/filesSlice";
-import { fetchFolders } from "../store/slices/foldersSlice";
+import { startCheckout } from "../store/slices/paymentSlice";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.auth.user);
-  const rawAllFiles = useSelector((state) => state.files.allFiles);
-  const rawFolders = useSelector((state) => state.folders.folders);
-  const allFiles = rawAllFiles || [];
-  const folders = rawFolders || [];
 
   const checkoutLoading = useSelector((state) => state.payment.checkoutLoading);
   const checkoutPlan = useSelector((state) => state.payment.checkoutPlan);
@@ -71,6 +65,8 @@ const HomePage = () => {
   const [demoStep, setDemoStep] = useState(0);
   const [isPlayingDemo, setIsPlayingDemo] = useState(true);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [contactSubmitting, setContactSubmitting] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   const token = localStorage.getItem("token");
@@ -80,8 +76,6 @@ const HomePage = () => {
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(fetchProfile());
-      dispatch(fetchAllFiles());
-      dispatch(fetchFolders());
     }
   }, [dispatch, isLoggedIn]);
 
@@ -95,6 +89,44 @@ const HomePage = () => {
     }
     return () => clearInterval(timer);
   }, [showDemoModal, isPlayingDemo]);
+
+  // Keyboard Escape listener to dismiss any open modal or drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowDemoModal(false);
+        setShowContactModal(false);
+        setShowSecurityModal(false);
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Lock body scroll when any modal or the mobile menu drawer is open
+  const isAnyModalOpen = showDemoModal || showContactModal || showSecurityModal;
+  useEffect(() => {
+    if (isAnyModalOpen || isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAnyModalOpen, isMenuOpen]);
+
+  // Auto-close mobile drawer if viewport resized to desktop breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const formatStorage = (bytes) => {
     if (!bytes) return "0 GB";
@@ -125,15 +157,22 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const storageUsed = isLoggedIn && user ? user.storageUsed : 4.5 * 1024 * 1024 * 1024;
-  const storageLimit = isLoggedIn && user ? Number(user.storageLimit) : 10 * 1024 * 1024 * 1024;
+  const storageUsed = isLoggedIn && user && user.storageUsed != null ? Number(user.storageUsed) || 0 : 4.5 * 1024 * 1024 * 1024;
+  const storageLimit = isLoggedIn && user && user.storageLimit ? Number(user.storageLimit) || 10 * 1024 * 1024 * 1024 : 10 * 1024 * 1024 * 1024;
   const storagePercentage = Math.min((storageUsed / (storageLimit || 1)) * 100, 100);
 
   const handleLogin = () => {
@@ -161,57 +200,52 @@ const HomePage = () => {
     }
 
     if (!isLoggedIn) {
-      navigate('/login');
-      return;
-    }
-
-    if (currentPlanKey === normalizedKey) {
-      navigate('/dashboard');
+      navigate(`/login?plan=${encodeURIComponent(normalizedKey)}`);
       return;
     }
 
     try {
       setCheckoutError("");
-      const result = await dispatch(startCheckout(normalizedKey));
-      if (startCheckout.fulfilled.match(result) && result.payload.success && result.payload.checkoutUrl) {
-        window.location.assign(result.payload.checkoutUrl);
-        return;
+      const data = await dispatch(startCheckout(normalizedKey)).unwrap();
+      if (data?.checkoutUrl) {
+        window.location.assign(data.checkoutUrl);
       }
-      setCheckoutError(result.payload || "Failed to start checkout. Please try again.");
     } catch (err) {
-      console.error('Checkout error:', err);
-      setCheckoutError('Failed to start checkout. Please try again.');
+      console.error("Plan upgrade error:", err);
+      setCheckoutError(typeof err === "string" ? err : err?.message || "Failed to initiate payment. Please try again.");
     }
   };
 
+  // Demo Tour Steps
   const demoSteps = [
     {
-      title: "1. Drag & Drop Instant Upload",
-      desc: "Drop files anywhere in your browser. Automatic background hashing, compression, and AES-256 encryption guarantee maximum speed and security.",
-      badge: "Fast & Encrypted",
-      color: "from-ds-brand to-blue-700"
+      badge: "1. Upload Anything",
+      title: "Fast, Resilient Uploads",
+      desc: "Drag and drop 4K media, dense code archives, or confidential documents. Files are encrypted with zero latency.",
+      color: "from-blue-600 to-indigo-700"
     },
     {
-      title: "2. AI Semantic Search & Smart Tagging",
-      desc: "Find files using natural language. Query 'find my Q3 revenue presentation' or 'contracts signed last month' and get instant AI results.",
-      badge: "AI Powered",
-      color: "from-ds-file-presentation to-purple-700"
+      badge: "2. Real-Time Collaboration",
+      title: "Shared Team Workspaces",
+      desc: "Create shared team vaults with customized editor, viewer, or contributor rights that mirror enterprise orgs.",
+      color: "from-indigo-600 to-purple-700"
     },
     {
-      title: "3. Intelligent Folder Organization",
-      desc: "Create dynamic nested folder hierarchies, label files with color tags, and maintain complete control over team workspace permissions.",
-      badge: "Clean Workspaces",
-      color: "from-ds-success to-emerald-700"
+      badge: "3. Semantic AI Discovery",
+      title: "Find Any Thought Instantly",
+      desc: "Our on-device semantic vector engine lets you locate receipts, code snippets, or scanned PDFs through plain English.",
+      color: "from-purple-600 to-pink-700"
     },
     {
-      title: "4. One-Click Instant Public & Private Share",
+      badge: "4. Military-Grade Safety",
+      title: "Granular Expiring Links",
       desc: "Share single files or whole folders with expiration dates, password protection, and granular access controls.",
-      badge: "Instant Links",
-      color: "from-ds-warning to-amber-700"
+      color: "from-amber-600 to-amber-700"
     }
   ];
 
-  const homeSeo = getPageSeo("home");
+  const homeSeo = useMemo(() => getPageSeo("home"), []);
+  const homeJsonLd = useMemo(() => homeJsonLdGraph(), []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-['Inter'] selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-[#3B82F6] dark:selection:text-[#F8FAFC] overflow-x-hidden transition-colors duration-200">
@@ -220,123 +254,183 @@ const HomePage = () => {
         description={homeSeo.description}
         path={homeSeo.path}
         keywords={homeSeo.keywords}
-        jsonLd={homeJsonLdGraph()}
+        jsonLd={homeJsonLd}
       />
 
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-xl border-b border-gray-200/80 dark:border-[#334155] shadow-sm' : 'bg-transparent'}`} aria-label="Primary">
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-[#334155] shadow-xs' : 'bg-transparent'}`} aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex items-center justify-between gap-4 h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <Link
+              to="/"
+              className="shrink-0 flex items-center space-x-2.5 sm:space-x-3 group select-none"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
               <img
                 src="/datastock-logo.svg"
-                alt="DataStock"
+                alt="DataStock logo"
                 width={40}
                 height={40}
-                className="w-10 h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20"
+                fetchPriority="high"
+                decoding="async"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl transform group-hover:scale-105 transition-transform duration-300 shadow-md shadow-blue-500/20"
               />
-              <span className="font-extrabold text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
+              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-gray-900 dark:text-[#F8FAFC] whitespace-nowrap">
+                Data<span className="text-[#3B82F6]">Stock</span>
+              </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-7">
-              <button
-                onClick={handleDashboardClick}
-                className="text-gray-700 dark:text-[#94A3B8] hover:text-[#3B82F6] font-semibold transition-colors flex items-center gap-1.5"
-              >
-                <span>Dashboard</span>
-                {isLoggedIn && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
-              </button>
-              <a href="#features" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Features</a>
-              <a href="#security" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-blue-500" />
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-5 xl:space-x-7 shrink-0 text-sm font-semibold">
+              <a href="#features" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] transition-colors">Features</a>
+              <a href="#security" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] transition-colors flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0" />
                 <span>Security</span>
               </a>
-              <Link to="/help" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Help Center</Link>
-              <a href="#pricing" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Pricing</a>
-              <button onClick={() => setShowContactModal(true)} className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] font-medium transition-colors">Contact</button>
-
-              <div className="flex items-center space-x-3 ml-2 pl-4 border-l border-gray-200 dark:border-[#334155]">
-                <ThemeToggle />
-                {isLoggedIn ? (
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="px-5 py-2.5 rounded-xl bg-[#3B82F6] text-white font-semibold hover:bg-[#2563EB] transform hover:-translate-y-0.5 transition-all duration-200 shadow-md shadow-[#3B82F6]/25 flex items-center space-x-2"
-                  >
-                    <span>Go to Dashboard</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleLogin}
-                      className="px-4 py-2.5 text-gray-700 dark:text-[#94A3B8] font-semibold hover:text-[#3B82F6] transition-colors"
-                    >
-                      Log in
-                    </button>
-                    <button
-                      onClick={handleSignup}
-                      className="px-5 py-2.5 rounded-xl bg-[#3B82F6] text-white font-semibold hover:bg-[#2563EB] transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-[#3B82F6]/30"
-                    >
-                      Get Started Free
-                    </button>
-                  </>
-                )}
-              </div>
+              <a href="#pricing" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] transition-colors">Pricing</a>
+              <Link to="/help" className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] transition-colors">Help Center</Link>
+              <button
+                type="button"
+                onClick={() => setShowContactModal(true)}
+                className="text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] dark:hover:text-[#F8FAFC] transition-colors cursor-pointer"
+              >
+                Contact
+              </button>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-              aria-expanded={isMenuOpen}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors"
-            >
-              {isMenuOpen ? <X className="w-6 h-6 text-gray-900 dark:text-[#F8FAFC]" /> : <Menu className="w-6 h-6 text-gray-900 dark:text-[#F8FAFC]" />}
-            </button>
+            {/* Desktop Actions (CTA) */}
+            <div className="hidden lg:flex items-center space-x-3 shrink-0 pl-2">
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard')}
+                  className="px-4 xl:px-5 py-2.5 rounded-xl bg-[#3B82F6] text-white font-semibold hover:bg-[#2563EB] transform hover:-translate-y-0.5 transition-all duration-200 shadow-md shadow-[#3B82F6]/25 flex items-center space-x-2 text-sm shrink-0 cursor-pointer"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={handleLogin}
+                    className="px-3.5 py-2 text-gray-700 dark:text-[#94A3B8] font-semibold hover:text-[#3B82F6] dark:hover:text-white transition-colors text-sm cursor-pointer"
+                  >
+                    Log in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSignup}
+                    className="px-4 xl:px-5 py-2.5 rounded-xl bg-[#3B82F6] text-white font-semibold hover:bg-[#2563EB] transform hover:-translate-y-0.5 transition-all duration-200 shadow-md shadow-[#3B82F6]/30 text-sm whitespace-nowrap cursor-pointer"
+                  >
+                    Get Started Free
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile / Tablet Actions (< lg) */}
+            <div className="flex lg:hidden items-center space-x-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMenuOpen}
+                className="p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] transition-colors cursor-pointer"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        <div className={`md:hidden absolute w-full bg-white dark:bg-[#0F172A] border-b border-gray-200 dark:border-[#334155] shadow-xl transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-120 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-          <div className="px-4 py-6 space-y-3 flex flex-col">
-            <button onClick={() => { setIsMenuOpen(false); handleDashboardClick(); }} className="px-4 py-2 text-left text-gray-800 dark:text-[#F8FAFC] font-semibold hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg">Dashboard</button>
-            <a href="#features" className="px-4 py-2 text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Features</a>
-            <a href="#security" className="px-4 py-2 text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
-              <ShieldCheck className="w-4 h-4 text-blue-500" />
-              <span>Security</span>
+        {/* Mobile / Tablet Drawer */}
+        <div
+          className={`lg:hidden fixed inset-x-0 top-20 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-2xl border-b border-gray-200/80 dark:border-[#334155] shadow-2xl transition-all duration-300 ease-in-out ${
+            isMenuOpen ? 'max-h-[85vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+          }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col">
+            {isLoggedIn && (
+              <button
+                type="button"
+                onClick={() => { setIsMenuOpen(false); navigate('/dashboard'); }}
+                className="w-full px-4 py-3 bg-blue-50 dark:bg-blue-950/40 text-[#3B82F6] dark:text-blue-400 rounded-xl font-bold flex items-center justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Dashboard</span>
+                </div>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+            <a
+              href="#features"
+              className="px-4 py-2.5 text-gray-700 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Features
             </a>
-            <Link to="/help" onClick={() => setIsMenuOpen(false)} className="px-4 py-2 text-left text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium">Help Center</Link>
-            <a href="#pricing" className="px-4 py-2 text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium" onClick={() => setIsMenuOpen(false)}>Pricing</a>
-            <button onClick={() => { setIsMenuOpen(false); setShowContactModal(true); }} className="px-4 py-2 text-left text-gray-600 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg font-medium">Contact</button>
+            <a
+              href="#security"
+              className="px-4 py-2.5 text-gray-700 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl font-medium flex items-center gap-2 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0" />
+              <span>Security Architecture</span>
+            </a>
+            <a
+              href="#pricing"
+              className="px-4 py-2.5 text-gray-700 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Pricing Plans
+            </a>
+            <Link
+              to="/help"
+              onClick={() => setIsMenuOpen(false)}
+              className="px-4 py-2.5 text-gray-700 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl font-medium transition-colors"
+            >
+              Help Center
+            </Link>
+            <button
+              type="button"
+              onClick={() => { setIsMenuOpen(false); setShowContactModal(true); }}
+              className="px-4 py-2.5 text-left text-gray-700 dark:text-[#94A3B8] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl font-medium transition-colors cursor-pointer"
+            >
+              Contact Support
+            </button>
 
-            <div className="h-px bg-gray-100 dark:bg-[#334155] my-2"></div>
+            <div className="h-px bg-gray-200 dark:bg-[#334155] my-2"></div>
 
             {isLoggedIn ? (
               <button
+                type="button"
                 onClick={() => { setIsMenuOpen(false); navigate('/dashboard'); }}
-                className="w-full px-4 py-3 bg-[#3B82F6] text-white rounded-xl font-semibold hover:bg-[#2563EB] shadow-md flex items-center justify-center space-x-2"
+                className="w-full px-4 py-3 bg-[#3B82F6] text-white rounded-xl font-semibold hover:bg-[#2563EB] shadow-md flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
-              <>
+              <div className="space-y-2 pt-1">
                 <button
+                  type="button"
                   onClick={() => { setIsMenuOpen(false); handleLogin(); }}
-                  className="w-full text-left px-4 py-3 text-gray-900 dark:text-[#F8FAFC] font-semibold hover:bg-gray-50 dark:hover:bg-[#334155] rounded-lg"
+                  className="w-full text-center px-4 py-2.5 text-gray-800 dark:text-[#F8FAFC] font-semibold border border-gray-200 dark:border-[#334155] hover:bg-gray-50 dark:hover:bg-[#334155] rounded-xl transition-colors cursor-pointer"
                 >
                   Log in
                 </button>
                 <button
+                  type="button"
                   onClick={() => { setIsMenuOpen(false); handleSignup(); }}
-                  className="w-full px-4 py-3 bg-[#3B82F6] text-white rounded-xl font-semibold hover:bg-[#2563EB] shadow-md"
+                  className="w-full px-4 py-3 bg-[#3B82F6] text-white rounded-xl font-semibold hover:bg-[#2563EB] shadow-md text-center cursor-pointer"
                 >
                   Get Started Free
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -364,7 +458,7 @@ const HomePage = () => {
               {/* Main Practical Headline */}
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 dark:text-[#F8FAFC] tracking-tight mb-8 leading-[1.15]">
                 Store, organize and share <br className="hidden sm:block" />
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-[#3B82F6] via-blue-500 to-indigo-600 dark:from-[#60A5FA] dark:to-indigo-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3B82F6] via-blue-500 to-indigo-600 dark:from-[#60A5FA] dark:to-indigo-400">
                   your files securely.
                 </span>
               </h1>
@@ -406,7 +500,7 @@ const HomePage = () => {
             <div className="mt-16 relative max-w-6xl mx-auto px-1 sm:px-0">
               {/* Multi-Tab Switcher Controls Bar */}
               <div className="flex justify-center mb-6 overflow-x-auto py-2 px-2 no-scrollbar">
-                <div className="inline-flex p-1.5 rounded-2xl bg-gray-200/70 dark:bg-[#1E293B]/90 backdrop-blur-lg border border-gray-300/60 dark:border-[#334155] shadow-inner gap-1">
+                <div role="tablist" aria-label="Feature showcase views" className="inline-flex p-1.5 rounded-2xl bg-gray-200/70 dark:bg-[#1E293B]/90 backdrop-blur-lg border border-gray-300/60 dark:border-[#334155] shadow-inner gap-1">
                   {[
                     { id: 'dashboard', label: '🖥️ Dashboard View', icon: HardDrive },
                     { id: 'upload', label: '📤 Drag & Drop Upload', icon: Upload },
@@ -415,8 +509,12 @@ const HomePage = () => {
                   ].map((tab) => (
                     <button
                       key={tab.id}
+                      role="tab"
+                      id={`showcase-tab-${tab.id}`}
+                      aria-selected={activeShowcaseTab === tab.id}
+                      aria-controls={`showcase-panel-${tab.id}`}
                       onClick={() => setActiveShowcaseTab(tab.id)}
-                      className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${activeShowcaseTab === tab.id
+                      className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer ${activeShowcaseTab === tab.id
                           ? 'bg-white dark:bg-[#3B82F6] text-blue-600 dark:text-white shadow-md'
                           : 'text-gray-600 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white'
                         }`}
@@ -430,14 +528,14 @@ const HomePage = () => {
               {/* Glass effect main container */}
               <div className="relative group">
                 {/* Outer Glow Halo */}
-                <div className="absolute -inset-1 bg-linear-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                 {/* Main Glass Shell */}
                 <div className="relative bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-2xl rounded-3xl border border-gray-200/90 dark:border-[#334155] shadow-2xl overflow-hidden transition-all duration-300">
 
                   {/* Window Bar Header */}
                   <div className="bg-gray-100/90 dark:bg-[#0F172A]/90 px-4 py-3 flex items-center justify-between border-b border-gray-200/80 dark:border-[#334155] select-none">
-                    <div className="flex space-x-2 shrink-0">
+                    <div className="flex space-x-2 shrink-0" aria-hidden="true">
                       <div className="w-3.5 h-3.5 rounded-full bg-red-400/90 hover:bg-red-500 transition-colors"></div>
                       <div className="w-3.5 h-3.5 rounded-full bg-yellow-400/90 hover:bg-yellow-500 transition-colors"></div>
                       <div className="w-3.5 h-3.5 rounded-full bg-green-400/90 hover:bg-green-500 transition-colors"></div>
@@ -456,7 +554,7 @@ const HomePage = () => {
 
                   {/* TAB 1: DASHBOARD VIEW */}
                   {activeShowcaseTab === 'dashboard' && (
-                    <div className="p-4 sm:p-6 bg-slate-50/50 dark:bg-[#0F172A]/60 flex flex-col md:flex-row gap-6">
+                    <div role="tabpanel" id="showcase-panel-dashboard" aria-labelledby="showcase-tab-dashboard" className="p-4 sm:p-6 bg-slate-50/50 dark:bg-[#0F172A]/60 flex flex-col md:flex-row gap-6">
                       {/* Mock Sidebar */}
                       <div className="hidden md:block w-60 bg-white dark:bg-[#1E293B] rounded-2xl p-4 border border-gray-200/70 dark:border-[#334155] shadow-sm">
                         <div className="flex items-center space-x-3 mb-6 pb-3 border-b border-gray-100 dark:border-[#334155]">
@@ -494,7 +592,7 @@ const HomePage = () => {
                             </span>
                           </div>
                           <div className="w-full h-2 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden">
-                            <div className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${storagePercentage}%` }}></div>
+                            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${storagePercentage}%` }}></div>
                           </div>
                           <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-2 flex items-center gap-1">
                             <Check className="w-3 h-3" /> Free tier active
@@ -576,7 +674,7 @@ const HomePage = () => {
 
                   {/* TAB 2: DRAG & DROP UPLOAD INTERFACE */}
                   {activeShowcaseTab === 'upload' && (
-                    <div className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
+                    <div role="tabpanel" id="showcase-panel-upload" aria-labelledby="showcase-tab-upload" className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
                       <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 sm:p-8 border-2 border-dashed border-blue-400/70 dark:border-blue-500/50 shadow-sm text-center relative overflow-hidden">
                         <div className="w-16 h-16 bg-blue-50 dark:bg-blue-950/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200 dark:border-blue-800">
                           <Upload className="w-8 h-8 text-[#3B82F6] animate-bounce" />
@@ -614,14 +712,14 @@ const HomePage = () => {
 
                   {/* TAB 3: FOLDER MANAGEMENT */}
                   {activeShowcaseTab === 'folders' && (
-                    <div className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
+                    <div role="tabpanel" id="showcase-panel-folders" aria-labelledby="showcase-tab-folders" className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
                       <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 border border-gray-200/70 dark:border-[#334155]">
                         <div className="flex justify-between items-center mb-6">
                           <div>
                             <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Workspace Folders</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Organize files by team, client, or personal projects</p>
                           </div>
-                          <button className="bg-blue-50 dark:bg-blue-900/30 text-[#3B82F6] dark:text-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                          <button className="bg-blue-50 dark:bg-blue-900/30 text-[#3B82F6] dark:text-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                             <Folder className="w-4 h-4" /> + New Folder
                           </button>
                         </div>
@@ -653,7 +751,7 @@ const HomePage = () => {
 
                   {/* TAB 4: AI FILE PREVIEW */}
                   {activeShowcaseTab === 'preview' && (
-                    <div className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
+                    <div role="tabpanel" id="showcase-panel-preview" aria-labelledby="showcase-tab-preview" className="p-6 bg-slate-50/50 dark:bg-[#0F172A]/60">
                       <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 border border-gray-200/70 dark:border-[#334155] flex flex-col md:flex-row gap-6">
                         <div className="flex-1 bg-gray-100 dark:bg-[#0F172A] rounded-xl p-6 border border-gray-200 dark:border-[#334155] flex flex-col items-center justify-center min-h-60 text-center">
                           <FileText className="w-16 h-16 text-emerald-500 mb-3" />
@@ -709,19 +807,19 @@ const HomePage = () => {
         </section>
 
         {/* DEDICATED SECURITY & TRUST SECTION */}
-        <section id="security" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <section id="security" className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-b border-gray-200 relative overflow-hidden">
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center space-x-2 bg-blue-900/50 border border-blue-700/50 px-3.5 py-1.5 rounded-full text-blue-400 text-xs font-bold uppercase tracking-wider mb-4">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full text-blue-700 text-xs font-bold uppercase tracking-wider mb-4">
+                <ShieldCheck className="w-4 h-4 text-[#3B82F6]" />
                 <span>Enterprise Grade Security</span>
               </div>
-              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-6">
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-6">
                 Your files are guarded with bank-grade encryption.
               </h2>
-              <p className="text-lg text-slate-400">
+              <p className="text-lg text-gray-600">
                 We put security and privacy at the core of DataStock. Your data is encrypted before it ever leaves your device.
               </p>
             </div>
@@ -749,20 +847,21 @@ const HomePage = () => {
                   desc: "Files are mirrored across multi-region server clusters guaranteeing 99.99% uptime and zero data loss."
                 }
               ].map((item, idx) => (
-                <div key={idx} className="bg-slate-800/80 border border-slate-700/70 p-6 rounded-2xl hover:border-blue-500 transition-colors">
-                  <div className="w-12 h-12 bg-blue-600/20 text-[#3B82F6] rounded-xl flex items-center justify-center mb-5">
+                <div key={idx} className="bg-slate-50 border border-gray-200 p-6 rounded-2xl hover:border-blue-400 hover:shadow-md transition-all">
+                  <div className="w-12 h-12 bg-blue-100 text-[#3B82F6] rounded-xl flex items-center justify-center mb-5">
                     <item.icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
 
             <div className="text-center">
               <button
+                type="button"
                 onClick={() => setShowSecurityModal(true)}
-                className="inline-flex items-center space-x-2 text-blue-400 font-bold hover:text-blue-300 transition-colors text-sm"
+                className="inline-flex items-center space-x-2 text-[#3B82F6] font-bold hover:text-blue-700 transition-colors text-sm cursor-pointer"
               >
                 <span>Explore complete security architecture whitepaper</span>
                 <ExternalLink className="w-4 h-4" />
@@ -808,13 +907,14 @@ const HomePage = () => {
               <div className="relative">
                 <div className="absolute inset-0 bg-[#3B82F6] rounded-3xl transform rotate-3 scale-105 opacity-10"></div>
                 <img
-                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
+                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=75&w=800"
                   alt="Analytics dashboard on a laptop used to manage cloud files"
-                  width={1000}
-                  height={650}
+                  width={800}
+                  height={520}
                   loading="lazy"
                   decoding="async"
-                  className="rounded-3xl shadow-2xl relative z-10 object-cover h-130 w-full border border-gray-200 dark:border-[#334155]"
+                  fetchPriority="low"
+                  className="rounded-3xl shadow-2xl relative z-10 object-cover h-130 w-full border border-gray-200"
                 />
 
                 <div className="absolute -bottom-6 -left-6 bg-white dark:bg-[#1E293B] p-5 rounded-2xl shadow-xl z-20 border border-gray-200 dark:border-[#334155] flex items-center space-x-4">
@@ -865,19 +965,19 @@ const HomePage = () => {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-24 bg-slate-900 dark:bg-[#0F172A] px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-gray-800 dark:border-[#334155]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-125 bg-[#3B82F6]/20 rounded-full blur-[120px] pointer-events-none"></div>
+        <section id="pricing" className="py-24 bg-slate-50 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-gray-200">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-125 bg-blue-100/60 rounded-full blur-[120px] pointer-events-none"></div>
 
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-6">
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-gray-900 mb-6">
                 Simple, transparent pricing.
               </h2>
-              <p className="text-xl text-gray-400">
+              <p className="text-xl text-gray-600">
                 Start for free today. Upgrade anytime as your storage needs grow.
               </p>
               {checkoutError && (
-                <p className="mt-4 text-sm text-red-400 font-semibold">{checkoutError}</p>
+                <p className="mt-4 text-sm text-red-600 font-semibold">{checkoutError}</p>
               )}
             </div>
 
@@ -885,27 +985,27 @@ const HomePage = () => {
               {[
                 {
                   name: 'Basic',
-                  price: '$0',
+                  price: '₹0',
                   period: 'forever',
                   storage: '10 GB',
-                  description: 'Perfect for personal file backup.',
-                  features: ['10 GB Secure Cloud Storage', 'Basic Link Sharing', 'Access on all web devices', 'Standard encryption']
+                  description: 'Essential encrypted cloud storage for individuals.',
+                  features: ['10 GB Secure Cloud Storage', 'Basic Link Sharing', 'Access on all web devices', 'Standard AES-256 encryption']
                 },
                 {
                   name: 'Pro',
-                  price: '$9',
+                  price: '₹149',
                   period: '/month',
                   storage: '2 TB',
-                  description: 'For power users and creators.',
+                  description: 'For power users, professionals, and creators.',
                   features: ['2 TB Ultra-Fast Storage', 'AI Semantic Search & Summaries', 'Password-Protected Links', '30-day version history', 'Priority 24/7 Support'],
                   popular: true
                 },
                 {
                   name: 'Family',
-                  price: '$19',
+                  price: '₹399',
                   period: '/month',
                   storage: '5 TB',
-                  description: 'For teams and family members.',
+                  description: 'For teams, collaborators, and family members.',
                   features: ['5 TB Total Shared Storage', 'Private accounts for 6 users', 'Team shared workspace', 'Centralized storage billing']
                 }
               ].map((plan, i) => {
@@ -913,44 +1013,44 @@ const HomePage = () => {
                 const isCurrentPlan = isLoggedIn && currentPlanKey === planKey;
 
                 return (
-                  <div key={i} className={`relative bg-slate-800 dark:bg-[#1E293B] rounded-3xl p-8 border hover:scale-[1.02] transition-transform duration-300 ${isCurrentPlan
-                    ? 'border-[#3B82F6] shadow-xl shadow-[#3B82F6]/20'
+                  <div key={i} className={`relative bg-white rounded-3xl p-8 border hover:scale-[1.02] transition-transform duration-300 ${isCurrentPlan
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-xl shadow-emerald-500/10'
                     : plan.popular
-                      ? 'border-[#3B82F6] shadow-2xl shadow-[#3B82F6]/20 transform md:-translate-y-4'
-                      : 'border-slate-700 dark:border-[#334155]'
+                      ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20 shadow-2xl shadow-blue-500/15 transform md:-translate-y-4'
+                      : 'border-gray-200 shadow-md hover:shadow-xl'
                     }`}>
                     {plan.popular && !isCurrentPlan && (
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <span className="bg-[#3B82F6] text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                        <span className="bg-[#3B82F6] text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                           Most Popular
                         </span>
                       </div>
                     )}
                     {isCurrentPlan && (
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <span className="bg-white text-gray-900 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                        <span className="bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                           Current Plan
                         </span>
                       </div>
                     )}
 
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-gray-400 text-sm mb-6">{plan.description}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                    <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
 
                     <div className="flex items-end mb-6">
-                      <span className="text-5xl font-extrabold text-white">{plan.price}</span>
-                      <span className="text-gray-400 ml-2 mb-1 text-sm">{plan.period}</span>
+                      <span className="text-5xl font-extrabold text-gray-900">{plan.price}</span>
+                      <span className="text-gray-500 ml-2 mb-1 text-sm">{plan.period}</span>
                     </div>
 
-                    <div className="bg-slate-900/50 dark:bg-[#0F172A]/50 rounded-xl p-4 mb-8 border border-slate-700/50 dark:border-[#334155]/50">
+                    <div className="bg-blue-50/70 rounded-xl p-4 mb-8 border border-blue-100">
                       <span className="text-[#3B82F6] font-bold text-xl">{plan.storage}</span>
-                      <span className="text-gray-400 ml-2 text-sm">cloud storage</span>
+                      <span className="text-gray-700 ml-2 text-sm font-medium">cloud storage</span>
                     </div>
 
                     <ul className="space-y-3.5 mb-10">
                       {plan.features.map((feature, j) => (
-                        <li key={j} className="flex items-start text-gray-300 text-sm">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2.5 shrink-0 mt-0.5" />
+                        <li key={j} className="flex items-start text-gray-700 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0 mt-0.5" />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -959,11 +1059,11 @@ const HomePage = () => {
                     <button
                       onClick={() => handlePlanSelect(plan.name)}
                       disabled={(checkoutLoading && checkoutPlan === plan.name.toLowerCase()) || isCurrentPlan}
-                      className={`w-full py-3.5 rounded-xl font-bold transition-all duration-200 text-base flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${isCurrentPlan
-                        ? 'bg-slate-700 text-slate-300 cursor-default'
+                      className={`w-full py-3.5 rounded-xl font-bold transition-all duration-200 text-base flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed ${isCurrentPlan
+                        ? 'bg-gray-100 text-gray-500 cursor-default border border-gray-200'
                         : plan.popular
-                          ? 'bg-[#3B82F6] text-white hover:bg-[#2563EB] shadow-lg shadow-[#3B82F6]/30'
-                          : 'bg-white text-gray-900 hover:bg-gray-100'
+                          ? 'bg-[#3B82F6] text-white hover:bg-[#2563EB] shadow-lg shadow-[#3B82F6]/25'
+                          : 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
                         }`}>
                       {(checkoutLoading && checkoutPlan === plan.name.toLowerCase()) ? (
                         <><RefreshCw className="animate-spin h-5 w-5" /> Redirecting...</>
@@ -983,8 +1083,8 @@ const HomePage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-24 bg-white dark:bg-[#1E293B] relative overflow-hidden transition-colors">
-          <div className="absolute inset-0 bg-linear-to-b from-[#3B82F6]/5 to-transparent pointer-events-none"></div>
+        <section className="py-24 bg-white relative overflow-hidden transition-colors">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#3B82F6]/5 to-transparent pointer-events-none"></div>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h2 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-[#F8FAFC] mb-8 tracking-tight">
               Ready to take control of <br /> your digital life?
@@ -1070,7 +1170,13 @@ const HomePage = () => {
       {/* INTERACTIVE DEMO / PRODUCT TOUR MODAL */}
       {/* ======================================================== */}
       {showDemoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="demo-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDemoModal(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in"
+        >
           <div className="bg-white dark:bg-[#1E293B] rounded-3xl max-w-4xl w-full border border-gray-200 dark:border-[#334155] shadow-2xl overflow-hidden relative">
 
             {/* Modal Header */}
@@ -1080,13 +1186,15 @@ const HomePage = () => {
                   <Play className="w-4 h-4 fill-current ml-0.5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-gray-900 dark:text-white text-sm">DataStock Interactive Product Tour</h3>
+                  <h3 id="demo-modal-title" className="font-extrabold text-gray-900 dark:text-white text-sm">DataStock Interactive Product Tour</h3>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">Step {demoStep + 1} of 4</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowDemoModal(false)}
-                className="p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-[#334155] text-gray-500 dark:text-gray-400 transition-colors"
+                aria-label="Close product tour"
+                className="p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-[#334155] text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1097,8 +1205,9 @@ const HomePage = () => {
               {demoSteps.map((step, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => { setDemoStep(idx); setIsPlayingDemo(false); }}
-                  className={`p-3 text-center border-b-2 font-bold text-xs transition-all ${demoStep === idx
+                  className={`p-3 text-center border-b-2 font-bold text-xs transition-all cursor-pointer ${demoStep === idx
                       ? 'border-[#3B82F6] text-[#3B82F6] bg-white dark:bg-[#1E293B]'
                       : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                     }`}
@@ -1125,12 +1234,13 @@ const HomePage = () => {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center space-x-2">
                   <button
+                    type="button"
                     onClick={() => setIsPlayingDemo(!isPlayingDemo)}
-                    className="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-[#0F172A] text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#334155] transition"
+                    className="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-[#0F172A] text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-[#334155] hover:bg-gray-200 dark:hover:bg-[#334155] transition cursor-pointer"
                   >
                     {isPlayingDemo ? 'Pause Autoplay' : 'Play Autoplay'}
                   </button>
-                  <div className="flex space-x-1.5">
+                  <div className="flex space-x-1.5" aria-hidden="true">
                     {demoSteps.map((_, i) => (
                       <div
                         key={i}
@@ -1143,14 +1253,16 @@ const HomePage = () => {
 
                 <div className="flex items-center space-x-3">
                   <button
+                    type="button"
                     onClick={() => setDemoStep((prev) => (prev - 1 + 4) % 4)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold border border-gray-300 dark:border-[#334155] text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155]"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold border border-gray-300 dark:border-[#334155] text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#334155] cursor-pointer"
                   >
                     Previous
                   </button>
                   <button
+                    type="button"
                     onClick={() => setDemoStep((prev) => (prev + 1) % 4)}
-                    className="px-5 py-2 rounded-xl text-xs font-bold bg-[#3B82F6] text-white hover:bg-blue-600 shadow-md"
+                    className="px-5 py-2 rounded-xl text-xs font-bold bg-[#3B82F6] text-white hover:bg-blue-600 shadow-md cursor-pointer"
                   >
                     Next Step
                   </button>
@@ -1165,37 +1277,108 @@ const HomePage = () => {
       {/* CONTACT SUPPORT MODAL */}
       {/* ======================================================== */}
       {showContactModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contact-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowContactModal(false); setContactSubmitted(false); } }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in"
+        >
           <div className="bg-white dark:bg-[#1E293B] rounded-3xl max-w-md w-full p-6 sm:p-8 border border-gray-200 dark:border-[#334155] shadow-2xl relative">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 text-[#3B82F6] rounded-xl flex items-center justify-center font-bold">
                   <MessageSquare className="w-5 h-5" />
                 </div>
-                <h3 className="font-extrabold text-gray-900 dark:text-white text-lg">Contact DataStock</h3>
+                <h3 id="contact-modal-title" className="font-extrabold text-gray-900 dark:text-white text-lg">Contact DataStock</h3>
               </div>
-              <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <button
+                type="button"
+                onClick={() => { setShowContactModal(false); setContactSubmitted(false); }}
+                aria-label="Close contact dialog"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer p-1 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-gray-600 dark:text-[#94A3B8] mb-6">
-              Have questions about security, enterprise plans, or features? Send us a message and our team will reply within 2 hours.
-            </p>
+            {contactSubmitted ? (
+              <div className="text-center py-6 animate-fade-in">
+                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Message Sent!</h4>
+                <p className="text-xs text-gray-600 dark:text-[#94A3B8] leading-relaxed mb-6">
+                  Thank you for reaching out. Our support engineering team will reply to your email within 2 hours.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setShowContactModal(false); setContactSubmitted(false); }}
+                  className="w-full py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-bold text-sm shadow-md transition cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-gray-600 dark:text-[#94A3B8] mb-6">
+                  Have questions about security, enterprise plans, or features? Send us a message and our team will reply within 2 hours.
+                </p>
 
-            <form onSubmit={(e) => { e.preventDefault(); alert('Message sent successfully! Our team will reach out to you shortly.'); setShowContactModal(false); }} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Your Email</label>
-                <input required type="email" placeholder="name@company.com" className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Message</label>
-                <textarea required rows={4} placeholder="How can we help you?" className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"></textarea>
-              </div>
-              <button type="submit" className="w-full py-3 bg-[#3B82F6] hover:bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md transition">
-                Send Message
-              </button>
-            </form>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setContactSubmitting(true);
+                    setTimeout(() => {
+                      setContactSubmitting(false);
+                      setContactSubmitted(true);
+                    }, 500);
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label htmlFor="contact-email-input" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                      Your Email
+                    </label>
+                    <input
+                      id="contact-email-input"
+                      name="email"
+                      required
+                      type="email"
+                      placeholder="name@company.com"
+                      className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-message-input" className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                      Message
+                    </label>
+                    <textarea
+                      id="contact-message-input"
+                      name="message"
+                      required
+                      rows={4}
+                      placeholder="How can we help you?"
+                      className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-300 dark:border-[#334155] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    ></textarea>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={contactSubmitting}
+                    className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-bold text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {contactSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Sending message...</span>
+                      </>
+                    ) : (
+                      'Send Message'
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1204,16 +1387,27 @@ const HomePage = () => {
       {/* SECURITY WHITEPAPER MODAL */}
       {/* ======================================================== */}
       {showSecurityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="security-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSecurityModal(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in"
+        >
           <div className="bg-white dark:bg-[#1E293B] rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-gray-200 dark:border-[#334155] shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
-                <h3 className="font-extrabold text-gray-900 dark:text-white text-lg">Security Architecture</h3>
+                <h3 id="security-modal-title" className="font-extrabold text-gray-900 dark:text-white text-lg">Security Architecture</h3>
               </div>
-              <button onClick={() => setShowSecurityModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <button
+                type="button"
+                onClick={() => setShowSecurityModal(false)}
+                aria-label="Close security whitepaper"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer p-1 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1236,7 +1430,11 @@ const HomePage = () => {
             </div>
 
             <div className="mt-6 text-right">
-              <button onClick={() => setShowSecurityModal(false)} className="px-5 py-2.5 bg-[#3B82F6] text-white font-bold text-xs rounded-xl hover:bg-blue-600 transition">
+              <button
+                type="button"
+                onClick={() => setShowSecurityModal(false)}
+                className="px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs rounded-xl transition cursor-pointer"
+              >
                 Close Architecture Breakdown
               </button>
             </div>

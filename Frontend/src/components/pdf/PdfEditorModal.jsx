@@ -54,6 +54,7 @@ import {
   classifyPdfFont,
   isFontNameBold,
   isFontNameItalic,
+  loadPdfEditorFonts,
 } from './fontConstants';
 
 // Predefined Quick Business Stamps
@@ -138,6 +139,7 @@ export default function PdfEditorModal({
   useEffect(() => {
     if (!isOpen || !fileId) return;
 
+    loadPdfEditorFonts();
     setLoading(true);
     setPdfDoc(null);
     setPageNum(1);

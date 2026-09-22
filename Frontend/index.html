@@ -5,16 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       (function () {
-        var stored = localStorage.getItem('datastock-theme');
-        if (stored === 'dark' || stored === 'light') {
-          if (stored === 'dark') document.documentElement.classList.add('dark');
-          else document.documentElement.classList.remove('dark');
-        } else {
-          var isMobile = window.innerWidth < 768;
-          var defaultTheme = isMobile ? 'light' : 'dark';
-          if (defaultTheme === 'dark') document.documentElement.classList.add('dark');
-          else document.documentElement.classList.remove('dark');
-        }
+        document.documentElement.classList.remove('dark');
+        try {
+          localStorage.setItem('datastock-theme', 'light');
+        } catch (e) {}
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/datastock-logo.svg" />
@@ -41,15 +35,11 @@
     <meta name="twitter:description" content="DataStock is encrypted cloud storage for files and folders. Upload, organize, and share securely with 10 GB free forever. No credit card required." />
     <meta name="twitter:image" content="https://data-stock.vercel.app/og-image.png" />
     <!--/seo-head-->
-    <meta name="theme-color" content="#0F172A" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comic+Neue:wght@400;700&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@400;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comic+Neue:wght@400;700&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@400;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'" />
-    <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comic+Neue:wght@400;700&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@400;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap" />
-    </noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!--seo-jsonld-->
     <script type="application/ld+json" data-seo-jsonld="0">
       {"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"DataStock","url":"https://data-stock.vercel.app","logo":"https://data-stock.vercel.app/datastock-logo.svg","email":"support@datastock.app","description":"DataStock is a secure, end-to-end encrypted cloud storage platform with 10 GB free forever.","sameAs":["https://github.com","https://twitter.com"]},{"@type":"WebSite","name":"DataStock","url":"https://data-stock.vercel.app","description":"Encrypted cloud storage to upload, organize, and share files with 10 GB free.","publisher":{"@type":"Organization","name":"DataStock","url":"https://data-stock.vercel.app","logo":"https://data-stock.vercel.app/datastock-logo.svg"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://data-stock.vercel.app/help?q={search_term_string}"},"query-input":"required name=search_term_string"}},{"@type":["SoftwareApplication","WebApplication"],"name":"DataStock","url":"https://data-stock.vercel.app","applicationCategory":"CloudStorageApplication","operatingSystem":"Web, Windows, macOS, Linux, iOS, Android","description":"Web-based encrypted cloud storage for uploading, organizing, and sharing files and folders with zero-knowledge encryption.","image":"https://data-stock.vercel.app/og-image.png","featureList":["10 GB Free Encrypted Storage","Client-side End-to-End Encryption (AES-GCM + RSA)","Instant In-browser Document & Media Previews","Secure File & Folder Sharing with View/Edit Permissions","30-day Trash Retention & One-Click Recovery","Cross-device Responsiveness with 60 FPS Smooth UI"],"offers":[{"@type":"Offer","name":"Basic Plan","price":"0","priceCurrency":"INR","description":"10 GB free encrypted cloud storage forever"},{"@type":"Offer","name":"Pro Plan","price":"149","priceCurrency":"INR","description":"2 TB high-speed encrypted cloud storage"},{"@type":"Offer","name":"Family Plan","price":"399","priceCurrency":"INR","description":"5 TB shared encrypted cloud storage for up to 6 members"}]}]}

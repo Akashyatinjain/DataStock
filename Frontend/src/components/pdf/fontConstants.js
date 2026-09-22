@@ -201,3 +201,17 @@ export function isFontNameItalic(fontName = '') {
     fn.includes('-it')
   );
 }
+
+/**
+ * Lazy load full Google Fonts suite for PDF editor on demand
+ */
+export function loadPdfEditorFonts() {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('datastock-pdf-editor-fonts')) return;
+  const link = document.createElement('link');
+  link.id = 'datastock-pdf-editor-fonts';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@400;700&family=Comic+Neue:wght@400;700&family=Dancing+Script:wght@400;700&family=Fira+Code:wght@400;600&family=Great+Vibes&family=Merriweather:wght@400;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap';
+  document.head.appendChild(link);
+}
+

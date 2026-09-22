@@ -2,7 +2,9 @@ import {
   createNotification,
   getNotifications,
   markAsRead,
-  markAllAsRead
+  markAllAsRead,
+  deleteNotification,
+  clearAllNotifications,
 } from "./notification.repository.js";
 import { getIO } from "../../socket.js";
 
@@ -28,4 +30,12 @@ export const markAsReadService = async (notificationId, userId) => {
 
 export const markAllAsReadService = async (userId) => {
   return await markAllAsRead(userId);
+};
+
+export const deleteNotificationService = async (notificationId, userId) => {
+  return await deleteNotification(notificationId, userId);
+};
+
+export const clearAllNotificationsService = async (userId) => {
+  return await clearAllNotifications(userId);
 };

@@ -49,6 +49,8 @@ import {
   encryptString,
   encryptSymmetricKeyWithRsa,
   importRsaPublicKeyFromJwk,
+  decryptSymmetricKeyWithRsa,
+  decryptBuffer,
 } from '../utils/cryptoHelper';
 import Sidebar from '../components/dashboard/layout/Sidebar';
 import FilePreviewModal from '../components/ui/FilePreviewModal';
@@ -64,7 +66,6 @@ import {
   getActiveFolderId,
   getFolderId,
   FILE_TYPES,
-  getFileType,
   formatFileSize,
   downloadSingleFile,
   ANALYTICS_CATEGORIES,
@@ -93,12 +94,15 @@ import {
   emptyAllTrash,
   fetchStorageActivity,
   moveFileToFolder,
+  renameExistingFile,
 } from '../store/slices/filesSlice';
-import { fetchFolders, deleteExistingFolder } from '../store/slices/foldersSlice';
+import { fetchFolders, deleteExistingFolder, renameExistingFolder } from '../store/slices/foldersSlice';
 import FolderCard from '../components/dashboard/folders/FolderCard';
 import {
   fetchNotifications,
   addNotification,
+  readNotification,
+  readAllNotifications,
 } from '../store/slices/notificationsSlice';
 import { fetchSharedWithMe } from '../store/slices/shareSlice';
 import { useDecryptedFiles } from '../hooks/useDecryptedFiles';
@@ -117,6 +121,7 @@ import UploadButton from '../components/dashboard/files/UploadButton';
 import CommandPaletteModal from '../components/dashboard/modals/CommandPaletteModal';
 import MoveItemsModal from '../components/dashboard/modals/MoveItemsModal';
 import SystemStatusModal from '../components/dashboard/modals/SystemStatusModal';
+import RenameModal from '../components/dashboard/modals/RenameModal';
 
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-[#3B82F6] shrink-0" />;
@@ -463,6 +468,39 @@ const Dashboard = () => {
       addToast('Failed to delete folder', 'error');
     }
   }, [dispatch, addToast, refreshAllFiles, selectedFolderId]);
+
+  // Rename modal state & handler
+  const [renameModalState, setRenameModalState] = useState({
+    isOpen: false,
+    item: null,
+    type: 'file',
+  });
+
+  const handleOpenRename = useCallback((item, type = 'file') => {
+    setRenameModalState({
+      isOpen: true,
+      item,
+      type,
+    });
+  }, []);
+
+  const handleConfirmRename = useCallback(async (newName) => {
+    if (!renameModalState.item) return;
+    try {
+      if (renameModalState.type === 'file') {
+        await dispatch(renameExistingFile({ fileId: renameModalState.item.id, name: newName })).unwrap();
+        addToast('File renamed successfully!', 'success');
+      } else {
+        await dispatch(renameExistingFolder({ folderId: renameModalState.item.id, name: newName })).unwrap();
+        addToast('Folder renamed successfully!', 'success');
+      }
+      setRenameModalState({ isOpen: false, item: null, type: 'file' });
+      refreshAllFiles();
+    } catch (err) {
+      console.error('Rename failed:', err);
+      addToast(getErrorMessage(err, 'Failed to rename item'), 'error');
+    }
+  }, [renameModalState, dispatch, addToast, refreshAllFiles]);
 
   useEffect(() => {
     dispatch(fetchFolders());
@@ -1948,6 +1986,7 @@ const Dashboard = () => {
                     selectedFileIds={selectedFileIds}
                     setSelectedFileIds={setSelectedFileIds}
                     onToggleSelect={handleToggleSelectFile}
+                    onRename={(f) => handleOpenRename(f, 'file')}
                     onExtract={handleExtractZip}
                   />
                 ))}
@@ -1970,6 +2009,7 @@ const Dashboard = () => {
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                     onShare={handleShareFolder}
+                    onRename={(f) => handleOpenRename(f, 'folder')}
                     onDelete={handleDeleteFolder}
                     currentUserId={user?.id}
                   />
@@ -2103,6 +2143,7 @@ const Dashboard = () => {
               onToggleStar={handleToggleStar}
               onToggleArchive={handleToggleArchive}
               onShare={handleShare}
+              onRename={(f) => handleOpenRename(f, 'file')}
               deletingId={deletingId}
               starringId={starringId}
               archivingId={archivingId}
@@ -2126,6 +2167,7 @@ const Dashboard = () => {
               onToggleStar={handleToggleStar}
               onToggleArchive={handleToggleArchive}
               onShare={handleShare}
+              onRename={(f) => handleOpenRename(f, 'file')}
               deletingId={deletingId}
               starringId={starringId}
               archivingId={archivingId}
@@ -2557,6 +2599,15 @@ const Dashboard = () => {
         isE2eeUnlocked={isE2eeUnlocked}
         totalFiles={totalFileCount}
         user={user}
+      />
+
+      {/* RENAME MODAL */}
+      <RenameModal
+        isOpen={renameModalState.isOpen}
+        onClose={() => setRenameModalState({ isOpen: false, item: null, type: 'file' })}
+        currentName={renameModalState.item ? (renameModalState.item.name || renameModalState.item.originalName || '') : ''}
+        itemType={renameModalState.type}
+        onRename={handleConfirmRename}
       />
     </div>
   );

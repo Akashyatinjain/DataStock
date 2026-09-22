@@ -292,11 +292,10 @@ export const deleteFileService = async (
     throw createError("File not found", 404, "FILE_NOT_FOUND");
   }
 
-  // ownership/permission check
-  const access = await checkFileAccess(fileId, userId);
-  if (!access || access.permission !== "EDIT") {
+  // Only the file owner can permanently delete a file
+  if (file.ownerId !== userId) {
     throw createError(
-      "Unauthorized to delete this file",
+      "Only the file owner can permanently delete this file",
       403,
       "UNAUTHORIZED"
     );
@@ -1094,5 +1093,51 @@ export const saveFileContentService = async (fileId, content, userId) => {
     success: true,
     file: updatedFile,
     versionNumber: nextVersionNumber,
+  };
+};
+
+export const renameFileService = async (fileId, newName, userId) => {
+  if (!newName || typeof newName !== "string" || !newName.trim()) {
+    throw createError("A valid file name is required", 400, "INVALID_FILENAME");
+  }
+  const trimmed = newName.trim();
+  if (trimmed.length > 255) {
+    throw createError("File name cannot exceed 255 characters", 400, "NAME_TOO_LONG");
+  }
+  if (/[/\\?%*:|"<>]/g.test(trimmed)) {
+    throw createError("File name contains invalid characters", 400, "INVALID_CHARACTERS");
+  }
+
+  const file = await fileRepo.findFileById(fileId);
+  if (!file) {
+    throw createError("File not found", 404, "FILE_NOT_FOUND");
+  }
+
+  const access = await checkFileAccess(fileId, userId);
+  if (!access || access.permission !== "EDIT") {
+    throw createError("Unauthorized to rename this file", 403, "UNAUTHORIZED");
+  }
+
+  const updated = await prisma.file.update({
+    where: { id: fileId },
+    data: { originalName: trimmed },
+    include: { versions: true }
+  });
+
+  await Promise.allSettled([
+    invalidateUserFilesCache(file.ownerId),
+    invalidateUserFilesCache(userId),
+  ]);
+
+  await logActivity(userId, `You renamed file "${file.originalName}" to "${trimmed}"`);
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${file.folderId || 'root'}`).emit("file_renamed", updated);
+  }
+
+  return {
+    file: updated,
+    message: "File renamed successfully"
   };
 };

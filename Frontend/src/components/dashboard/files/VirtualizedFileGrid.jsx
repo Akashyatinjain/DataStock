@@ -23,6 +23,7 @@ const VirtualizedFileGrid = ({
   onToggleStar,
   onToggleArchive,
   onShare,
+  onRename,
   deletingId,
   starringId,
   archivingId,
@@ -256,6 +257,7 @@ const VirtualizedFileGrid = ({
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
             onToggleSelect={handleEnhancedToggle}
+            onRename={onRename}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />
@@ -296,6 +298,7 @@ const VirtualizedFileGrid = ({
             restoringId={restoringId}
             isSelected={selectedFileIds ? selectedFileIds.has(file.id) : false}
             onToggleSelect={handleEnhancedToggle}
+            onRename={onRename}
             onExtract={onExtract}
             selectedFileIds={selectedFileIds}
           />

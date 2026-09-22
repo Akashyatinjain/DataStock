@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Folder, Share2, Trash2, Users, MoreVertical, Download, Loader2 } from 'lucide-react';
+import { Folder, Share2, Trash2, Users, MoreVertical, Download, Loader2, Pencil } from 'lucide-react';
 import { getFolderId } from '../../../utils/fileHelpers';
 import { authFetch, apiUrl } from '../../../utils/auth';
 
@@ -17,6 +17,7 @@ function FolderCard({
   activeTab,
   setActiveTab,
   onShare,
+  onRename,
   onDelete,
   currentUserId,
 }) {
@@ -164,6 +165,19 @@ function FolderCard({
                 >
                   <Share2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   Share Folder
+                </button>
+              )}
+              {(isOwner || permission === 'EDIT') && onRename && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onRename(folder);
+                  }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  Rename Folder
                 </button>
               )}
               <button

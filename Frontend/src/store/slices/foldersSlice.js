@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getFolders, createFolder, deleteFolder } from '../../api/folder.api';
+import { getFolders, createFolder, deleteFolder, renameFolder } from '../../api/folder.api';
 import { normalizeList } from '../../utils/fileHelpers';
 
 export const fetchFolders = createAsyncThunk('folders/fetchFolders', async (_, thunkAPI) => {
@@ -26,6 +26,15 @@ export const deleteExistingFolder = createAsyncThunk('folders/deleteExistingFold
     return folderId;
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to delete folder');
+  }
+});
+
+export const renameExistingFolder = createAsyncThunk('folders/renameExistingFolder', async ({ folderId, name }, thunkAPI) => {
+  try {
+    const data = await renameFolder(folderId, name);
+    return data.folder || data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to rename folder');
   }
 });
 
@@ -81,6 +90,12 @@ const foldersSlice = createSlice({
       .addCase(deleteExistingFolder.rejected, (state, action) => {
         state.deletingId = null;
         state.error = action.payload;
+      })
+      // renameExistingFolder
+      .addCase(renameExistingFolder.fulfilled, (state, action) => {
+        const updated = action.payload;
+        if (!updated || !updated.id) return;
+        state.folders = state.folders.map(f => f.id === updated.id ? { ...f, name: updated.name } : f);
       });
   },
 });

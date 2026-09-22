@@ -16,8 +16,9 @@ import SeoHead from "../seo/SeoHead";
 import { getPageSeo } from "../seo/config";
 import { jsonLdForPublicRoute } from "../seo/structuredData";
 import { useDispatch, useSelector } from "react-redux";
-import { signupUser } from "../store/slices/authSlice";
+import { signupUser, logoutUser } from "../store/slices/authSlice";
 import { getErrorMessage } from "../utils/errorMessage";
+import { apiUrl, getToken, setupAutoLogout } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const SignupPage = () => {

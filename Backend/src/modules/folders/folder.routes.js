@@ -4,7 +4,8 @@ import {
   createFolder,
   getFolders,
   deleteFolder,
-  downloadFolder
+  downloadFolder,
+  renameFolder,
 } from "./folder.controller.js";
 
 import {
@@ -33,6 +34,12 @@ router.delete(
   authenticateUser,
 
   deleteFolder
+);
+
+router.patch(
+  "/:id/rename",
+  authenticateUser,
+  renameFolder
 );
 
 router.get(

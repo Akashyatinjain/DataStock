@@ -82,6 +82,36 @@ export const errorHandler = (err, req, res, next) => {
     message = err.message || "Invalid request data.";
   }
 
+  // ── Prisma Database Errors ──
+  else if (err.name === "PrismaClientKnownRequestError" || (typeof err.code === "string" && err.code.startsWith("P"))) {
+    switch (err.code) {
+      case "P2002":
+        status = 409;
+        code = "RECORD_ALREADY_EXISTS";
+        message = "An item with this name or identifier already exists.";
+        suggestion = "Please choose a different name or check your existing items.";
+        break;
+      case "P2025":
+        status = 404;
+        code = "RECORD_NOT_FOUND";
+        message = "The requested item was not found.";
+        break;
+      case "P2003":
+        status = 400;
+        code = "FOREIGN_KEY_VIOLATION";
+        message = "Operation failed because related items depend on this record.";
+        break;
+      default:
+        status = 500;
+        code = "DATABASE_ERROR";
+        message = "A database operation failed. Please try again.";
+    }
+  } else if (err.name === "PrismaClientValidationError") {
+    status = 400;
+    code = "INVALID_QUERY_PARAMS";
+    message = "Invalid data provided for database operation.";
+  }
+
   // ── Generic application errors with statusCode ──
   else if (err.statusCode) {
     status = err.statusCode;

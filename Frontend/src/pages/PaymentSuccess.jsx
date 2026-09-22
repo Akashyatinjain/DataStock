@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Loader2,
   Sparkles,
+  Crown,
 } from "lucide-react";
 import {
   fetchSubscriptionStatus,

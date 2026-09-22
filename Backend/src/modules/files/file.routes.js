@@ -23,6 +23,7 @@ import {
   createDocument,
   getFileContent,
   saveFileContent,
+  renameFile,
 } from "./file.controller.js";
 
 import {
@@ -69,6 +70,7 @@ router.patch("/:id/restore", authenticateUser, restoreFromTrash);
 router.patch("/:id/star", authenticateUser, toggleStarFile);
 router.patch("/:id/archive", authenticateUser, toggleArchiveFile);
 router.patch("/:id/move", authenticateUser, moveFile);
+router.patch("/:id/rename", authenticateUser, renameFile);
 
 router.get("/:id/versions", authenticateUser, getFileVersions);
 router.post("/:id/versions/:versionId/restore", authenticateUser, restoreVersion);

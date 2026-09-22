@@ -22,6 +22,7 @@ import {
 import { fetchProfile } from '../store/slices/authSlice';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import { formatFileSize, getFileType } from '../utils/fileHelpers';
+import { getErrorMessage } from '../utils/errorMessage';
 import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
 import SeoHead from '../seo/SeoHead';
 import { getPageSeo } from '../seo/config';
@@ -32,7 +33,6 @@ export default function TrashPage() {
   const trashFiles = useSelector((state) => state.files.trashFiles);
   const trashLoading = useSelector((state) => state.files.trashLoading);
   const emptyingTrash = useSelector((state) => state.files.emptyingTrash);
-  const user = useSelector((state) => state.auth.user);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState([]);

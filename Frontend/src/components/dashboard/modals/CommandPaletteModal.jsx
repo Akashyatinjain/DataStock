@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { formatFileSize } from '../../../utils/fileHelpers';
 
 const CommandPaletteModal = ({
@@ -14,9 +14,10 @@ const CommandPaletteModal = ({
 }) => {
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) setSearch('');
-  }, [isOpen]);
+  const handleClose = () => {
+    setSearch('');
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -30,12 +31,12 @@ const CommandPaletteModal = ({
           .slice(0, 5);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-[#0F172A]/70 backdrop-blur-xs pt-24 px-4 select-none">
-      <div className="fixed inset-0" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-xs pt-24 px-4 select-none">
+      <div className="fixed inset-0" onClick={handleClose} />
 
-      <div className="bg-white dark:bg-[#1E293B] border border-gray-150 dark:border-[#334155] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden z-10 animate-fade-up">
+      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden z-10 animate-fade-up">
         {/* Search Input bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-[#334155]">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100">
           <span className="text-gray-400">🔍</span>
           <input
             type="text"

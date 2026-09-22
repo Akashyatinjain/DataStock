@@ -248,7 +248,7 @@ const HomePage = () => {
   const homeJsonLd = useMemo(() => homeJsonLdGraph(), []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-['Inter'] selection:bg-blue-200 selection:text-blue-900 dark:selection:bg-[#3B82F6] dark:selection:text-[#F8FAFC] overflow-x-hidden transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 font-['Inter'] selection:bg-blue-200 selection:text-blue-900 overflow-x-hidden transition-colors duration-200">
       <SeoHead
         title={homeSeo.title}
         description={homeSeo.description}
@@ -258,7 +258,7 @@ const HomePage = () => {
       />
 
       {/* Navigation */}
-      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-xl border-b border-gray-200/80 dark:border-[#334155] shadow-xs' : 'bg-transparent'}`} aria-label="Primary">
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-xs' : 'bg-transparent'}`} aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4 h-20">
             {/* Logo */}
@@ -299,7 +299,6 @@ const HomePage = () => {
               </button>
             </div>
 
-            {/* Desktop Actions (CTA) */}
             <div className="hidden lg:flex items-center space-x-3 shrink-0 pl-2">
               {isLoggedIn ? (
                 <button
@@ -348,9 +347,8 @@ const HomePage = () => {
 
         {/* Mobile / Tablet Drawer */}
         <div
-          className={`lg:hidden fixed inset-x-0 top-20 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-2xl border-b border-gray-200/80 dark:border-[#334155] shadow-2xl transition-all duration-300 ease-in-out ${
-            isMenuOpen ? 'max-h-[85vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-          }`}
+          className={`lg:hidden fixed inset-x-0 top-20 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-2xl border-b border-gray-200/80 dark:border-[#334155] shadow-2xl transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-[85vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
+            }`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-3 flex flex-col">
             {isLoggedIn && (
@@ -515,8 +513,8 @@ const HomePage = () => {
                       aria-controls={`showcase-panel-${tab.id}`}
                       onClick={() => setActiveShowcaseTab(tab.id)}
                       className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer ${activeShowcaseTab === tab.id
-                          ? 'bg-white dark:bg-[#3B82F6] text-blue-600 dark:text-white shadow-md'
-                          : 'text-gray-600 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-[#3B82F6] text-blue-600 dark:text-white shadow-md'
+                        : 'text-gray-600 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white'
                         }`}
                     >
                       <span>{tab.label}</span>
@@ -1208,8 +1206,8 @@ const HomePage = () => {
                   type="button"
                   onClick={() => { setDemoStep(idx); setIsPlayingDemo(false); }}
                   className={`p-3 text-center border-b-2 font-bold text-xs transition-all cursor-pointer ${demoStep === idx
-                      ? 'border-[#3B82F6] text-[#3B82F6] bg-white dark:bg-[#1E293B]'
-                      : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                    ? 'border-[#3B82F6] text-[#3B82F6] bg-white dark:bg-[#1E293B]'
+                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                     }`}
                 >
                   <span className="hidden sm:inline">{step.badge}</span>

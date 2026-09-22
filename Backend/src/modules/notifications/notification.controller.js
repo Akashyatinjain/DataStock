@@ -2,7 +2,9 @@ import {
   getNotificationsService,
   createNotificationService,
   markAsReadService,
-  markAllAsReadService
+  markAllAsReadService,
+  deleteNotificationService,
+  clearAllNotificationsService,
 } from "./notification.service.js";
 
 export const getNotificationsController = async (req, res) => {
@@ -53,6 +55,33 @@ export const markAllAsReadController = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "All notifications marked as read",
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteNotificationController = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    await deleteNotificationService(id, userId);
+    res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const clearAllNotificationsController = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    await clearAllNotificationsService(userId);
+    res.status(200).json({
+      success: true,
+      message: "All notifications cleared",
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

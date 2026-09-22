@@ -163,3 +163,16 @@ export const downloadFolder = asyncHandler(async (req, res) => {
     }
   }
 });
+
+export const renameFolder = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const result = await folderService.renameFolderService(id, name, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});

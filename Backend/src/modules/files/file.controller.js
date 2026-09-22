@@ -472,10 +472,15 @@ export const compressFiles = asyncHandler(async (req, res) => {
 
   } catch (err) {
     console.error("ZIP Compression failed:", err);
-    if (fs.existsSync(tempZipPath)) {
-      fs.unlinkSync(tempZipPath);
-    }
     return res.status(500).json({ success: false, message: "Failed to compress items to ZIP" });
+  } finally {
+    if (fs.existsSync(tempZipPath)) {
+      try {
+        fs.unlinkSync(tempZipPath);
+      } catch (cleanupErr) {
+        console.warn("Failed to cleanup temp zip file:", cleanupErr.message);
+      }
+    }
   }
 });
 
@@ -695,6 +700,19 @@ export const saveFileContent = asyncHandler(async (req, res) => {
   const { content } = req.body;
 
   const result = await fileService.saveFileContentService(id, content, userId);
+
+  return res.status(200).json({
+    success: true,
+    ...result,
+  });
+});
+
+export const renameFile = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const result = await fileService.renameFileService(id, name, userId);
 
   return res.status(200).json({
     success: true,

@@ -24,6 +24,10 @@ import {
   Cloud,
   Star,
   LifeBuoy,
+  Trash2,
+  FolderKanban,
+  Share2,
+  HardDrive,
 } from 'lucide-react';
 
 import ThemeToggle from '../components/ui/ThemeToggle';

@@ -299,3 +299,90 @@ export const deleteFolderService = async (folderId, userId) => {
     deletedFoldersCount: allFolderIds.length,
   };
 };
+
+export const renameFolderService = async (folderId, newName, userId) => {
+  if (!newName || typeof newName !== "string" || !newName.trim()) {
+    const err = new Error("A valid folder name is required");
+    err.statusCode = 400;
+    err.code = "INVALID_FOLDER_NAME";
+    throw err;
+  }
+  const trimmed = newName.trim();
+  if (trimmed.length > 100) {
+    const err = new Error("Folder name cannot exceed 100 characters");
+    err.statusCode = 400;
+    err.code = "NAME_TOO_LONG";
+    throw err;
+  }
+  if (/[/\\?%*:|"<>]/g.test(trimmed)) {
+    const err = new Error("Folder name contains invalid characters");
+    err.statusCode = 400;
+    err.code = "INVALID_CHARACTERS";
+    throw err;
+  }
+
+  const folder = await folderRepo.findFolderById(folderId);
+  if (!folder) {
+    const err = new Error("Folder not found");
+    err.statusCode = 404;
+    err.code = "FOLDER_NOT_FOUND";
+    throw err;
+  }
+
+  let canEdit = folder.ownerId === userId;
+  if (!canEdit) {
+    const access = await checkFolderAccess(folderId, userId);
+    if (access && access.permission === "EDIT") {
+      canEdit = true;
+    }
+  }
+
+  if (!canEdit) {
+    const err = new Error("Unauthorized: You do not have permission to rename this folder");
+    err.statusCode = 403;
+    err.code = "UNAUTHORIZED";
+    throw err;
+  }
+
+  // Check sibling collision
+  const existingSibling = await prisma.folder.findFirst({
+    where: {
+      parentId: folder.parentId,
+      ownerId: folder.ownerId,
+      name: trimmed,
+      id: { not: folderId }
+    }
+  });
+
+  if (existingSibling) {
+    const err = new Error("A folder with this name already exists in this location");
+    err.statusCode = 409;
+    err.code = "FOLDER_ALREADY_EXISTS";
+    throw err;
+  }
+
+  const updated = await prisma.folder.update({
+    where: { id: folderId },
+    data: { name: trimmed },
+    include: {
+      owner: { select: { id: true, username: true, email: true, imageUrl: true } }
+    }
+  });
+
+  await invalidateUserFoldersCache(folder.ownerId);
+  if (folder.ownerId !== userId) {
+    await invalidateUserFoldersCache(userId);
+  }
+
+  await logActivity(userId, `You renamed folder "${folder.name}" to "${trimmed}"`);
+
+  const io = getIO();
+  if (io) {
+    io.to(`folder:${folder.parentId || 'root'}`).emit("folder_renamed", updated);
+  }
+
+  return {
+    folder: updated,
+    message: "Folder renamed successfully"
+  };
+};

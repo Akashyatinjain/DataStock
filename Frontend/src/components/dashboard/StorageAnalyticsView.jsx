@@ -252,8 +252,6 @@ const StorageAnalyticsView = ({
   // Calculate SVG circular donut coordinates for categories
   const donutData = useMemo(() => {
     const total = analyticsActiveSize || 1;
-    let accumulatedPercent = 0;
-    
     const colors = {
       images: '#2563EB',
       documents: '#10B981',
@@ -262,17 +260,20 @@ const StorageAnalyticsView = ({
       others: '#94A3B8'
     };
 
-    return analyticsCategories.map((cat) => {
+    const result = [];
+    let runningPercent = 0;
+    for (const cat of analyticsCategories) {
       const percent = getPercent(cat.size, total);
-      const offset = accumulatedPercent;
-      accumulatedPercent += percent;
-      return {
+      const offset = runningPercent;
+      runningPercent += percent;
+      result.push({
         ...cat,
         percent,
         offset,
         colorCode: colors[cat.key] || '#64748B'
-      };
-    });
+      });
+    }
+    return result;
   }, [analyticsCategories, analyticsActiveSize]);
 
   if (analyticsLoading || activityLoading) {

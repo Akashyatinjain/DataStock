@@ -16,8 +16,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
-// Spring interpolation helper — lerps value toward target with damping
-const lerp = (current, target, factor) => current + (target - factor) * 0;
 const smoothStep = (current, target, smoothing = 0.35) =>
   current + (target - current) * smoothing;
 
@@ -73,6 +71,7 @@ export const useMarqueeSelection = ({
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  Quadratic-eased edge auto-scroll
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const runAutoScrollRef = useRef();
   const runAutoScroll = useCallback(() => {
     if (!isDraggingRef.current || !currentPointRef.current) return;
 
@@ -99,12 +98,15 @@ export const useMarqueeSelection = ({
       refreshRectCache();
     }
 
-    autoScrollRafRef.current = requestAnimationFrame(runAutoScroll);
+    autoScrollRafRef.current = requestAnimationFrame(() => {
+      if (runAutoScrollRef.current) runAutoScrollRef.current();
+    });
   }, [refreshRectCache]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  Spring-interpolated smooth box rendering (120fps)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const runSmoothBoxLoopRef = useRef();
   const runSmoothBoxLoop = useCallback(() => {
     if (!isDraggingRef.current) return;
 
@@ -124,8 +126,15 @@ export const useMarqueeSelection = ({
       height: Math.round(smooth.height),
     });
 
-    smoothRafRef.current = requestAnimationFrame(runSmoothBoxLoop);
+    smoothRafRef.current = requestAnimationFrame(() => {
+      if (runSmoothBoxLoopRef.current) runSmoothBoxLoopRef.current();
+    });
   }, []);
+
+  useEffect(() => {
+    runAutoScrollRef.current = runAutoScroll;
+    runSmoothBoxLoopRef.current = runSmoothBoxLoop;
+  }, [runAutoScroll, runSmoothBoxLoop]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  Main mousedown handler — initializes marquee drag

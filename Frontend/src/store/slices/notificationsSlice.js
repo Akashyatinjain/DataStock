@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getNotifications, markAsRead, markAllAsRead } from '../../api/notification.api';
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  clearAllNotifications,
+} from '../../api/notification.api';
 
 export const fetchNotifications = createAsyncThunk('notifications/fetchNotifications', async (_, thunkAPI) => {
   try {
@@ -25,6 +31,24 @@ export const readAllNotifications = createAsyncThunk('notifications/readAllNotif
     return;
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to read all notifications');
+  }
+});
+
+export const removeNotification = createAsyncThunk('notifications/removeNotification', async (id, thunkAPI) => {
+  try {
+    await deleteNotification(id);
+    return id;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to delete notification');
+  }
+});
+
+export const clearNotifications = createAsyncThunk('notifications/clearNotifications', async (_, thunkAPI) => {
+  try {
+    await clearAllNotifications();
+    return;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to clear notifications');
   }
 });
 
@@ -65,6 +89,15 @@ const notificationsSlice = createSlice({
       // readAllNotifications
       .addCase(readAllNotifications.fulfilled, (state) => {
         state.notifications = state.notifications.map((n) => ({ ...n, read: true, isRead: true }));
+      })
+      // removeNotification
+      .addCase(removeNotification.fulfilled, (state, action) => {
+        const id = action.payload;
+        state.notifications = state.notifications.filter((n) => n.id !== id && n._id !== id);
+      })
+      // clearNotifications
+      .addCase(clearNotifications.fulfilled, (state) => {
+        state.notifications = [];
       });
   },
 });

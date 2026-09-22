@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Trash2,
   MoreVertical,
+  Pencil,
 } from 'lucide-react';
 import { useCrypto } from '../../../context/CryptoContext';
 import { getFileType, formatFileSize } from '../../../utils/fileHelpers';
@@ -33,6 +34,7 @@ const FileCard = ({
   onToggleSelect,
   onExtract,
   selectedFileIds,
+  onRename,
 }) => {
   const { isE2eeUnlocked } = useCrypto();
   const type = getFileType(file.mimeType, file.originalName);
@@ -415,6 +417,18 @@ const FileCard = ({
                     >
                       <Share2 className="w-3.5 h-3.5 text-emerald-600" /> Share
                     </button>
+                    {onRename && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          onRename(file);
+                        }}
+                        className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-indigo-600" /> Rename
+                      </button>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

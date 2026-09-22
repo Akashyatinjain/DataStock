@@ -12,6 +12,7 @@ import {
   emptyTrash,
   toggleArchiveFile,
   moveFile,
+  renameFile as renameFileApi,
 } from '../../api/file.api';
 import { normalizeFile } from '../../utils/fileHelpers';
 
@@ -123,6 +124,15 @@ export const moveFileToFolder = createAsyncThunk('files/moveFileToFolder', async
     return { fileId, folderId, file: normalizeFile(data.file || data) };
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to move file');
+  }
+});
+
+export const renameExistingFile = createAsyncThunk('files/renameExistingFile', async ({ fileId, name }, thunkAPI) => {
+  try {
+    const data = await renameFileApi(fileId, name);
+    return normalizeFile(data.file || data);
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to rename file');
   }
 });
 
@@ -513,6 +523,13 @@ const filesSlice = createSlice({
       })
       .addCase(moveFileToFolder.rejected, (state, action) => {
         state.error = action.payload;
+      })
+      // renameExistingFile
+      .addCase(renameExistingFile.fulfilled, (state, action) => {
+        const updated = action.payload;
+        if (!updated || !updated.id) return;
+        state.files = state.files.map(f => f.id === updated.id ? { ...f, originalName: updated.originalName } : f);
+        state.allFiles = state.allFiles.map(f => f.id === updated.id ? { ...f, originalName: updated.originalName } : f);
       })
       // emptyAllTrash
       .addCase(emptyAllTrash.pending, (state) => {

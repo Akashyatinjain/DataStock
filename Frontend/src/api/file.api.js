@@ -79,3 +79,8 @@ export const moveFile = async (fileId, folderId) => {
   const response = await API.patch(`/files/${fileId}/move`, { folderId });
   return response.data;
 };
+
+export const renameFile = async (fileId, name) => {
+  const response = await API.patch(`/files/${fileId}/rename`, { name });
+  return response.data;
+};

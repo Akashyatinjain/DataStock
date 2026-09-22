@@ -25,6 +25,7 @@ import {
   FileArchive,
 } from 'lucide-react';
 import { fetchPublicFile, clearPublicFile, verifyPublicFilePasswordThunk } from '../store/slices/shareSlice';
+import { getCloudinaryDownloadUrl } from '../utils/fileHelpers';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import SeoHead from '../seo/SeoHead';
 import { getPageSeo } from '../seo/config';
@@ -305,15 +306,15 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
   if (isExcel) {
     return (
       <div
-        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-slate-800'} bg-slate-950 flex flex-col overflow-hidden text-left`}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-slate-200'} bg-white flex flex-col overflow-hidden text-left`}
         style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
-        <div className="bg-slate-900 p-2 flex gap-2 border-b border-slate-800 overflow-x-auto">
+        <div className="bg-slate-50 p-2 flex gap-2 border-b border-slate-200 overflow-x-auto">
           {xlsxSheetNames.map(n => (
             <button
               key={n}
               onClick={() => setXlsxActiveSheet(n)}
-              className={`px-3 py-1 rounded text-xs font-semibold ${xlsxActiveSheet === n ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+              className={`px-3 py-1 rounded text-xs font-semibold ${xlsxActiveSheet === n ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
             >
               {n}
             </button>
@@ -326,12 +327,12 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
               <span>Loading sheet...</span>
             </div>
           ) : (
-            <table className="w-full text-xs font-mono text-slate-200 border-collapse">
+            <table className="w-full text-xs font-mono text-slate-700 border-collapse">
               <tbody>
                 {(xlsxSheets[xlsxActiveSheet] || []).map((row, r) => (
-                  <tr key={r} className="border-b border-slate-800">
+                  <tr key={r} className="border-b border-slate-100 hover:bg-slate-50">
                     {row.map((c, col) => (
-                      <td key={col} className="p-2 border-r border-slate-800 whitespace-nowrap">{String(c ?? '')}</td>
+                      <td key={col} className="p-2 border-r border-slate-100 whitespace-nowrap">{String(c ?? '')}</td>
                     ))}
                   </tr>
                 ))}

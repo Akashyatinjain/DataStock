@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Shield, FileText, RotateCcw, BarChart2, Users } from 'lucide-react';
 
 const SystemStatusModal = ({
@@ -10,11 +10,8 @@ const SystemStatusModal = ({
   totalFiles,
   user,
 }) => {
-  const [activeTab, setActiveTab] = useState(initialTab || 'vault');
-
-  useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
-  }, [initialTab]);
+  const [selectedTab, setSelectedTab] = useState(null);
+  const activeTab = selectedTab ?? (initialTab || 'vault');
 
   if (!isOpen) return null;
 
@@ -27,10 +24,10 @@ const SystemStatusModal = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/70 backdrop-blur-xs px-4 select-none animate-fade-in text-left">
-      <div className="fixed inset-0" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4 select-none animate-fade-in text-left">
+      <div className="fixed inset-0" onClick={() => { setSelectedTab(null); onClose(); }} />
 
-      <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col h-[500px]">
+      <div className="bg-white border border-gray-200 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col h-[500px]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#334155]">
           <div>
@@ -43,7 +40,7 @@ const SystemStatusModal = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#334155] text-gray-400 hover:text-gray-600 transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-full transition text-gray-400 hover:text-gray-600"
           >
             <X className="w-5 h-5" />
           </button>
@@ -54,7 +51,7 @@ const SystemStatusModal = ({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setSelectedTab(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-white dark:bg-[#334155] text-[#3B82F6] dark:text-white shadow-xs border border-gray-100 dark:border-slate-700'

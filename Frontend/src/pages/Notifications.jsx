@@ -22,15 +22,19 @@ import {
   Eye,
   RotateCcw,
   ExternalLink,
+  CreditCard,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   fetchNotifications,
   readNotification,
   readAllNotifications,
   addNotification,
+  removeNotification,
+  clearNotifications,
 } from '../store/slices/notificationsSlice';
 import { fetchProfile } from '../store/slices/authSlice';
-import { connectSocket, socket } from '../socket';
+import { connectSocket } from '../socket';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import SeoHead from '../seo/SeoHead';
 import { getPageSeo } from '../seo/config';
@@ -55,7 +59,6 @@ export default function Notifications() {
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [deletedIds, setDeletedIds] = useState([]);
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -97,7 +100,11 @@ export default function Notifications() {
   };
 
   const handleDelete = (notificationId) => {
-    setDeletedIds((prev) => [...prev, notificationId]);
+    dispatch(removeNotification(notificationId));
+  };
+
+  const handleClearAll = () => {
+    dispatch(clearNotifications());
   };
 
   // Expanded classification logic for richer notification types
@@ -209,9 +216,7 @@ export default function Notifications() {
     return msg.replace(/"/g, '');
   };
 
-  const visibleNotifications = useMemo(() => {
-    return notifications.filter((notif) => !deletedIds.includes(notif.id));
-  }, [notifications, deletedIds]);
+  const visibleNotifications = notifications;
 
   const unreadCount = useMemo(() => {
     return visibleNotifications.filter((n) => !n.isRead && !n.read).length;
@@ -343,6 +348,16 @@ export default function Notifications() {
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Mark all read</span>
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 rounded-xl transition cursor-pointer"
+                  title="Clear all notifications"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear all</span>
                 </button>
               )}
               <ThemeToggle />

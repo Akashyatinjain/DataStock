@@ -18,9 +18,9 @@ const PublicSharePage = lazy(() => import('./pages/PublicSharePage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const PageLoader = () => (
-  <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f7f8fa] dark:bg-[#0F172A] text-[#3B82F6] transition-colors duration-200">
+  <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 text-[#3B82F6]">
     <div className="relative flex items-center justify-center">
-      <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/30 flex items-center justify-center shadow-md shadow-blue-500/10">
+      <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center shadow-md shadow-blue-500/10">
         <Loader2 className="w-6 h-6 animate-spin text-[#3B82F6]" />
       </div>
     </div>

@@ -38,3 +38,8 @@ export const deleteFolder = async (
 
   return response.data;
 };
+
+export const renameFolder = async (folderId, name) => {
+  const response = await API.patch(`/folders/${folderId}/rename`, { name });
+  return response.data;
+};

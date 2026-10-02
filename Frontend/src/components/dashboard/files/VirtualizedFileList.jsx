@@ -203,18 +203,18 @@ const VirtualizedFileList = ({
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      className="bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-2xl overflow-hidden shadow-sm relative select-none"
+      className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative select-none"
     >
       {renderMarqueeBox()}
 
-      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 dark:border-[#334155] bg-gray-50/80 dark:bg-[#334155]/50">
-        <div className="col-span-6 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
+      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-50 bg-gray-50/80">
+        <div className="col-span-6 text-xs font-extrabold text-gray-400 tracking-wide">
           Name
         </div>
-        <div className="col-span-2 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
+        <div className="col-span-2 text-xs font-extrabold text-gray-400 tracking-wide">
           Size
         </div>
-        <div className="col-span-3 text-xs font-extrabold text-gray-400 dark:text-slate-500 tracking-wide">
+        <div className="col-span-3 text-xs font-extrabold text-gray-400 tracking-wide">
           Date
         </div>
         <div className="col-span-1" />

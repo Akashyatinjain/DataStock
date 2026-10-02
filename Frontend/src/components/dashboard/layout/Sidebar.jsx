@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Plus } from 'lucide-react';
 
@@ -16,10 +16,11 @@ import {
   MobileSidebarPanel,
   DesktopSidebarPanel,
 } from './MobileSidebar';
-import NewFolderModal from '../modals/NewFolderModal';
-import NewDocumentModal from '../modals/NewDocumentModal';
-import UploadModal from '../modals/UploadModal';
-import ProfileModal from '../modals/ProfileModal';
+
+const NewFolderModal = lazy(() => import('../modals/NewFolderModal'));
+const NewDocumentModal = lazy(() => import('../modals/NewDocumentModal'));
+const UploadModal = lazy(() => import('../modals/UploadModal'));
+const ProfileModal = lazy(() => import('../modals/ProfileModal'));
 import { DEFAULT_STORAGE } from '../../../utils/constants';
 import { computeUsedGB, getActiveFolderId, normalizeFile } from '../../../utils/fileHelpers';
 import { fetchFiles } from '../../../store/slices/filesSlice';
@@ -203,53 +204,55 @@ const Sidebar = ({
 
   const modals = (
     <>
-      {showNewDocument && (
-        <NewDocumentModal
-          isOpen={showNewDocument}
-          onClose={() => setShowNewDocument(false)}
-          folderId={selectedFolderId}
-          onCreated={(f) => {
-            const file = normalizeFile(f);
-            if (onFileUploaded) {
-              onFileUploaded(file);
-              onFilesChanged?.();
-            }
-            onOpenWorkspace?.(file);
-          }}
-          toast={toast}
-        />
-      )}
-      {showNewFolder && (
-        <NewFolderModal
-          onClose={() => setShowNewFolder(false)}
-          onCreated={(f) => {
-            onFolderCreated?.(f);
-          }}
-          toast={toast}
-        />
-      )}
-      {showUpload && (
-        <UploadModal
-          onClose={() => setShowUpload(false)}
-          folderId={selectedFolderId}
-          onUploaded={(f) => {
-            const file = normalizeFile(f);
-            if (onFileUploaded) {
-              onFileUploaded(file);
-              onFilesChanged?.();
-            }
-          }}
-          toast={toast}
-        />
-      )}
-      {showProfile && (
-        <ProfileModal
-          profile={profile}
-          onClose={() => setShowProfile(false)}
-          onUpdated={() => {}}
-          toast={toast}
-        />
-      )}
+      <Suspense fallback={null}>
+        {showNewDocument && (
+          <NewDocumentModal
+            isOpen={showNewDocument}
+            onClose={() => setShowNewDocument(false)}
+            folderId={selectedFolderId}
+            onCreated={(f) => {
+              const file = normalizeFile(f);
+              if (onFileUploaded) {
+                onFileUploaded(file);
+                onFilesChanged?.();
+              }
+              onOpenWorkspace?.(file);
+            }}
+            toast={toast}
+          />
+        )}
+        {showNewFolder && (
+          <NewFolderModal
+            onClose={() => setShowNewFolder(false)}
+            onCreated={(f) => {
+              onFolderCreated?.(f);
+            }}
+            toast={toast}
+          />
+        )}
+        {showUpload && (
+          <UploadModal
+            onClose={() => setShowUpload(false)}
+            folderId={selectedFolderId}
+            onUploaded={(f) => {
+              const file = normalizeFile(f);
+              if (onFileUploaded) {
+                onFileUploaded(file);
+                onFilesChanged?.();
+              }
+            }}
+            toast={toast}
+          />
+        )}
+        {showProfile && (
+          <ProfileModal
+            profile={profile}
+            onClose={() => setShowProfile(false)}
+            onUpdated={() => {}}
+            toast={toast}
+          />
+        )}
+      </Suspense>
       <Toast toasts={toasts} removeToast={removeToast} />
     </>
   );

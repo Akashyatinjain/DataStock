@@ -43,17 +43,17 @@ export const getAvatarUrl = (profile) => {
 };
 
 export const FILE_TYPES = {
-  image:      { icon: ImageIcon, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Image' },
-  video:      { icon: Video,     color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Video' },
-  pdf:        { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'PDF' },
-  zip:        { icon: Archive,   color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'ZIP' },
-  audio:      { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'Audio' },
-  default:    { icon: FileText,  color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800', label: 'FILE' },
+  image:      { icon: ImageIcon, color: 'text-slate-500', bg: 'bg-slate-100', label: 'Image' },
+  video:      { icon: Video,     color: 'text-slate-500', bg: 'bg-slate-100', label: 'Video' },
+  pdf:        { icon: FileText,  color: 'text-slate-500', bg: 'bg-slate-100', label: 'PDF' },
+  zip:        { icon: Archive,   color: 'text-slate-500', bg: 'bg-slate-100', label: 'ZIP' },
+  audio:      { icon: FileText,  color: 'text-slate-500', bg: 'bg-slate-100', label: 'Audio' },
+  default:    { icon: FileText,  color: 'text-slate-500', bg: 'bg-slate-100', label: 'FILE' },
 };
 
 export const getFileType = (mimeType, originalName = '') => {
   const ext = originalName ? originalName.split('.').pop().toLowerCase() : '';
-  const neutralStyle = { icon: FileText, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-slate-800' };
+  const neutralStyle = { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-100' };
   
   if (['docx', 'doc'].includes(ext) || mimeType?.includes('word')) {
     return { ...neutralStyle, icon: FileText, label: 'DOCX' };
@@ -110,41 +110,41 @@ export const ANALYTICS_CATEGORIES = [
     key: 'images',
     label: 'Images',
     icon: ImageIcon,
-    text: 'text-slate-900 dark:text-slate-100',
-    bg: 'bg-slate-100 dark:bg-slate-800',
+    text: 'text-slate-900',
+    bg: 'bg-slate-100',
     bar: 'bg-[#2563EB]',
   },
   {
     key: 'documents',
     label: 'Documents',
     icon: FileText,
-    text: 'text-slate-900 dark:text-slate-100',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    bar: 'bg-slate-600 dark:bg-slate-400',
+    text: 'text-slate-900',
+    bg: 'bg-slate-100',
+    bar: 'bg-slate-600',
   },
   {
     key: 'videos',
     label: 'Videos',
     icon: Video,
-    text: 'text-slate-900 dark:text-slate-100',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    bar: 'bg-slate-500 dark:bg-slate-500',
+    text: 'text-slate-900',
+    bg: 'bg-slate-100',
+    bar: 'bg-slate-500',
   },
   {
     key: 'archives',
     label: 'Archives',
     icon: Archive,
-    text: 'text-slate-900 dark:text-slate-100',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    bar: 'bg-slate-400 dark:bg-slate-600',
+    text: 'text-slate-900',
+    bg: 'bg-slate-100',
+    bar: 'bg-slate-400',
   },
   {
     key: 'others',
     label: 'Others',
     icon: Folder,
-    text: 'text-slate-900 dark:text-slate-100',
-    bg: 'bg-slate-100 dark:bg-slate-800',
-    bar: 'bg-slate-300 dark:bg-slate-700',
+    text: 'text-slate-900',
+    bg: 'bg-slate-100',
+    bar: 'bg-slate-300',
   },
 ];
 

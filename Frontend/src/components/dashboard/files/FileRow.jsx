@@ -125,10 +125,10 @@ const FileRow = ({
         e.dataTransfer.effectAllowed = 'move';
       }}
       className={`
-        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-3.5 border-b border-[#E2E8F0] dark:border-slate-800
-        hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition items-center cursor-pointer group
+        grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-3.5 border-b border-[#E2E8F0]
+        hover:bg-slate-50/80 transition items-center cursor-pointer group
         ${isDeleting || isRestoring ? 'opacity-50 pointer-events-none' : ''}
-        ${isSelected ? 'bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-l-[#2563EB] pl-[12px] sm:pl-[20px]' : ''}
+        ${isSelected ? 'bg-blue-50/80 border-l-4 border-l-[#2563EB] pl-[12px] sm:pl-[20px]' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}
@@ -173,7 +173,7 @@ const FileRow = ({
               className={`w-4.5 h-4.5 rounded flex items-center justify-center cursor-pointer transition-all shadow-xs ${
                 isSelected
                   ? 'bg-[#2563EB] text-white'
-                  : 'bg-white dark:bg-slate-800 border border-[#E2E8F0] dark:border-slate-600 hover:border-[#2563EB]'
+                  : 'bg-white border border-[#E2E8F0] hover:border-[#2563EB]'
               }`}
             >
               {isSelected && (
@@ -185,14 +185,14 @@ const FileRow = ({
           </div>
         )}
         <div
-          className="w-9 h-9 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 border border-slate-200/60 dark:border-slate-700/60 transition-colors"
+          className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 border border-slate-200/60 transition-colors"
         >
-          <Icon className="w-4.5 h-4.5 text-slate-500 dark:text-slate-400 group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors" />
+          <Icon className="w-4.5 h-4.5 text-slate-500 group-hover:text-[#2563EB] transition-colors" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
             <p
-              className={`text-sm truncate ${isLocked ? 'font-mono text-[11px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200/50 dark:border-amber-900/30' : 'font-medium text-[#0F172A] dark:text-[#F8FAFC]'}`}
+              className={`text-sm truncate ${isLocked ? 'font-mono text-[11px] font-bold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200/50' : 'font-medium text-[#0F172A]'}`}
               title={file.originalName}
             >
               {file.originalName}
@@ -219,14 +219,14 @@ const FileRow = ({
                 ?.toLowerCase()
                 .includes(searchQuery.toLowerCase()) && (
                 <span
-                  className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] dark:bg-blue-950/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 shrink-0"
+                  className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-100 shrink-0"
                   title="Found in file contents"
                 >
                   🔍 Content Match
                 </span>
               )}
           </div>
-          <p className="md:hidden text-[11px] text-[#64748B] dark:text-slate-400 truncate">
+          <p className="md:hidden text-[11px] text-[#64748B] truncate">
             {isLocked ? '🔒 Locked' : formatFileSize(file.size)} •{' '}
             {new Date(file.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',
@@ -236,11 +236,11 @@ const FileRow = ({
         </div>
       </div>
 
-      <div className="hidden md:block md:col-span-2 text-sm text-[#64748B] dark:text-[#94A3B8]">
+      <div className="hidden md:block md:col-span-2 text-sm text-[#64748B]">
         {isLocked ? '🔒 Locked' : formatFileSize(file.size)}
       </div>
 
-      <div className="hidden md:block md:col-span-3 text-sm text-[#64748B] dark:text-slate-400">
+      <div className="hidden md:block md:col-span-3 text-sm text-[#64748B]">
         {new Date(file.createdAt).toLocaleDateString('en-IN', {
           day: '2-digit',
           month: 'short',
@@ -268,8 +268,8 @@ const FileRow = ({
                 disabled={isStarring}
                 className={`p-1.5 rounded-lg transition ${
                   isStarred
-                    ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-800'
-                    : 'text-[#64748B] hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'text-amber-500 hover:bg-amber-50'
+                    : 'text-[#64748B] hover:bg-slate-100'
                 }`}
                 title={isStarred ? 'Remove Star' : 'Add Star'}
               >
@@ -282,7 +282,7 @@ const FileRow = ({
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 text-[#64748B] hover:text-[#0F172A] dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
+                className="p-1.5 text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 rounded-lg transition"
               >
                 <MoreVertical className="w-3.5 h-3.5" />
               </button>
@@ -293,13 +293,13 @@ const FileRow = ({
                     className="fixed inset-0 z-40"
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 bottom-8 mt-1 w-40 bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-lg shadow-lg py-1 z-50 animate-fade-in text-left">
+                  <div className="absolute right-0 bottom-8 mt-1 w-40 bg-white border border-[#E2E8F0] rounded-lg shadow-lg py-1 z-50 animate-fade-in text-left">
                     <button
                       onClick={() => {
                         setShowMenu(false);
                         onPreview(file);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                     >
                       <Eye className="w-3.5 h-3.5 text-[#2563EB]" /> Preview
                     </button>
@@ -310,7 +310,7 @@ const FileRow = ({
                             setShowMenu(false);
                             onShare(file);
                           }}
-                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                         >
                           <Share2 className="w-3.5 h-3.5 text-emerald-600" /> Share
                         </button>
@@ -320,7 +320,7 @@ const FileRow = ({
                               setShowMenu(false);
                               onRename(file);
                             }}
-                            className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                            className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                           >
                             <Pencil className="w-3.5 h-3.5 text-blue-600" /> Rename
                           </button>
@@ -330,7 +330,7 @@ const FileRow = ({
                             setShowMenu(false);
                             onToggleArchive(file.id);
                           }}
-                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                         >
                           <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                           {isArchived ? 'Unarchive' : 'Archive'}
@@ -343,7 +343,7 @@ const FileRow = ({
                                 setShowMenu(false);
                                 onExtract(file.id, file.originalName);
                               }}
-                              className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                              className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                             >
                               <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                               Extract ZIP
@@ -357,7 +357,7 @@ const FileRow = ({
                           setShowMenu(false);
                           onRestore(file.id);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2"
                       >
                         <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />{' '}
                         Restore
@@ -368,7 +368,7 @@ const FileRow = ({
                         setShowMenu(false);
                         onDelete(file.id);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50 transition flex items-center gap-2"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-red-600" />{' '}
                       {isTrashView ? 'Delete Forever' : 'Delete'}

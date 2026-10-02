@@ -16,7 +16,7 @@ const TEMPLATES = [
     name: 'Blank Document',
     description: 'Clean slate for notes, drafts, or code',
     icon: FileText,
-    color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800',
+    color: 'text-blue-500 bg-blue-50 border-blue-200',
     content: `# Untitled Document\n\nStart typing your content here...\n`,
   },
   {
@@ -24,7 +24,7 @@ const TEMPLATES = [
     name: 'Meeting Notes',
     description: 'Attendees, agenda, discussion, and action items',
     icon: Layers,
-    color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800',
+    color: 'text-purple-500 bg-purple-50 border-purple-200',
     content: `# 📋 Team Sync & Meeting Notes\n**Date:** ${new Date().toLocaleDateString()}\n**Participants:** @you, @team\n\n## 🎯 Goals & Agenda\n1. Review sprint progress\n2. Blockers and architectural decisions\n3. Roadmap for next release\n\n## 💬 Discussion & Notes\n- \n\n## ✅ Action Items\n- [ ] Finalize collaborative workspace design\n- [ ] Run benchmark load tests\n- [ ] Update documentation\n`,
   },
   {
@@ -32,7 +32,7 @@ const TEMPLATES = [
     name: 'Project Specification',
     description: 'Product requirements, architecture, and milestones',
     icon: FileCode,
-    color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800',
+    color: 'text-emerald-500 bg-emerald-50 border-emerald-200',
     content: `# 🚀 Product Specification\n**Author:** Current User\n**Status:** In Review\n\n## 1. Overview & Problem Statement\nDescribe the user problem and the value proposition.\n\n## 2. Technical Architecture\n- **Frontend:** React 19, Tailwind CSS, WebSockets\n- **Backend:** Node.js, Express, Socket.io, Prisma\n- **Database:** PostgreSQL\n\n## 3. Milestones & Checklist\n- [ ] Phase 1: MVP Core Logic\n- [ ] Phase 2: Real-time Multi-user Sync\n- [ ] Phase 3: Production Hardening\n`,
   },
   {
@@ -40,7 +40,7 @@ const TEMPLATES = [
     name: 'Task Checklist',
     description: 'Linear-style interactive priority task board',
     icon: CheckSquare,
-    color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800',
+    color: 'text-amber-500 bg-amber-50 border-amber-200',
     content: `# ⚡ Priority Task Board\n\n## 🔴 High Priority\n- [ ] Implement live multiplayer cursors\n- [ ] Verify debounced auto-save\n\n## 🟡 In Progress\n- [ ] Style Linear-tier formatting toolbar\n- [ ] Add version time machine diff viewer\n\n## 🟢 Completed\n- [x] Socket.io collaboration rooms\n- [x] Template scaffold generator\n`,
   },
 ];
@@ -93,25 +93,25 @@ export default function NewDocumentModal({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-scale-up">
+      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-scale-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-750">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold text-slate-900">
                 New Collaborative Document
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 Google Docs & Linear tier live collaboration
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -120,7 +120,7 @@ export default function NewDocumentModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
               Document Name
             </label>
             <input
@@ -129,12 +129,12 @@ export default function NewDocumentModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Sprint Planning, System Spec, Meeting Notes"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
               Choose a Starter Template
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -148,18 +148,18 @@ export default function NewDocumentModal({
                     onClick={() => setSelectedTemplate(tmpl.id)}
                     className={`flex items-start gap-3 p-3 rounded-xl border text-left transition cursor-pointer ${
                       isSelected
-                        ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                        ? 'border-indigo-500 bg-indigo-50/60 ring-2 ring-indigo-500/20'
+                        : 'border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     <div className={`p-2 rounded-lg ${tmpl.color}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                      <div className="text-xs font-semibold text-slate-900 truncate">
                         {tmpl.name}
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
+                      <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
                         {tmpl.description}
                       </div>
                     </div>
@@ -174,7 +174,7 @@ export default function NewDocumentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
             >
               Cancel
             </button>

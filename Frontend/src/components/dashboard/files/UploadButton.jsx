@@ -15,16 +15,16 @@ const UploadButton = ({ uploading, onChange }) => (
       className={`
       px-3.5 py-1.5 rounded-lg inline-flex items-center gap-2 transition-all duration-200 font-medium text-xs sm:text-sm whitespace-nowrap shadow-xs cursor-pointer select-none
       ${uploading
-        ? 'bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] dark:text-blue-400 cursor-not-allowed border border-blue-200 dark:border-blue-800'
+        ? 'bg-blue-50 text-[#2563EB] cursor-not-allowed border border-blue-200'
         : 'bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1D4ED8] text-white border border-[#2563EB] hover:shadow-sm active:translate-y-0.5'}
     `}
     >
       {uploading ? (
-        <Loader2 className="w-4 h-4 animate-spin text-[#2563EB] dark:text-blue-400" />
+        <Loader2 className="w-4 h-4 animate-spin text-[#2563EB]" />
       ) : (
         <Upload className="w-4 h-4 text-white" />
       )}
-      <span className={uploading ? 'text-[#2563EB] dark:text-blue-400' : 'text-white'}>
+      <span className={uploading ? 'text-[#2563EB]' : 'text-white'}>
         {uploading ? 'Uploading…' : 'Upload'}
       </span>
     </div>

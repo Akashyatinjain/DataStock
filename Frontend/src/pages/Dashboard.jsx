@@ -1,13 +1,9 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef, Fragment } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef, Fragment, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Folder,
   Upload,
-  FileText,
-  Image as ImageIcon,
-  Video,
-  MoreVertical,
   Trash2,
   Grid3X3,
   List,
@@ -17,23 +13,16 @@ import {
   AlertCircle,
   X,
   Download,
-  Eye,
   Bell,
-  Check,
   Star,
   Share2,
   Users,
   RotateCcw,
-  Lock,
-  Unlock,
   ShieldCheck,
-  ShieldAlert,
   Search,
   HardDrive,
   Clock,
   Shield,
-  BarChart2,
-  Activity,
   ChevronRight,
   Cloud,
   User,
@@ -53,12 +42,13 @@ import {
   decryptBuffer,
 } from '../utils/cryptoHelper';
 import Sidebar from '../components/dashboard/layout/Sidebar';
-import FilePreviewModal from '../components/ui/FilePreviewModal';
-import CollaborativeWorkspaceModal from '../components/workspace/CollaborativeWorkspaceModal';
-import PdfEditorModal from '../components/pdf/PdfEditorModal';
-import ShareModal from '../components/dashboard/modals/ShareModal';
-import ConfirmModal from '../components/dashboard/modals/ConfirmModal';
-import ActivityLogView from '../components/dashboard/ActivityLogView';
+
+const FilePreviewModal = lazy(() => import('../components/ui/FilePreviewModal'));
+const CollaborativeWorkspaceModal = lazy(() => import('../components/workspace/CollaborativeWorkspaceModal'));
+const PdfEditorModal = lazy(() => import('../components/pdf/PdfEditorModal'));
+const ShareModal = lazy(() => import('../components/dashboard/modals/ShareModal'));
+const ConfirmModal = lazy(() => import('../components/dashboard/modals/ConfirmModal'));
+const ActivityLogView = lazy(() => import('../components/dashboard/ActivityLogView'));
 
 import { SUBSCRIPTION_UPDATED_EVENT } from '../utils/subscription';
 import {
@@ -107,21 +97,19 @@ import {
 import { fetchSharedWithMe } from '../store/slices/shareSlice';
 import { useDecryptedFiles } from '../hooks/useDecryptedFiles';
 
-// Extracted Modular Components
-import StorageAnalyticsView from '../components/dashboard/StorageAnalyticsView';
+// Extracted Modular Components — lazy-load heavy ones
+const StorageAnalyticsView = lazy(() => import('../components/dashboard/StorageAnalyticsView'));
 import NotificationsView from '../components/dashboard/NotificationsView';
-import FileCard from '../components/dashboard/files/FileCard';
-import FileRow from '../components/dashboard/files/FileRow';
 import SeoHead from '../seo/SeoHead';
 import { getPageSeo } from '../seo/config';
 import VirtualizedFileGrid from '../components/dashboard/files/VirtualizedFileGrid';
 import VirtualizedFileList from '../components/dashboard/files/VirtualizedFileList';
 import SuggestedFileCard from '../components/dashboard/files/SuggestedFileCard';
 import UploadButton from '../components/dashboard/files/UploadButton';
-import CommandPaletteModal from '../components/dashboard/modals/CommandPaletteModal';
-import MoveItemsModal from '../components/dashboard/modals/MoveItemsModal';
-import SystemStatusModal from '../components/dashboard/modals/SystemStatusModal';
-import RenameModal from '../components/dashboard/modals/RenameModal';
+const CommandPaletteModal = lazy(() => import('../components/dashboard/modals/CommandPaletteModal'));
+const MoveItemsModal = lazy(() => import('../components/dashboard/modals/MoveItemsModal'));
+const SystemStatusModal = lazy(() => import('../components/dashboard/modals/SystemStatusModal'));
+const RenameModal = lazy(() => import('../components/dashboard/modals/RenameModal'));
 
 const ToastIcon = ({ type }) => {
   if (type === 'success') return <CheckCircle2 className="w-5 h-5 text-[#3B82F6] shrink-0" />;
@@ -200,7 +188,7 @@ const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const dragCounter = React.useRef(0);
+  const dragCounter = useRef(0);
 
   useEffect(() => {
     let lastKey = '';
@@ -248,13 +236,10 @@ const Dashboard = () => {
     isE2eeSetup,
     isE2eeUnlocked,
     unlockE2ee,
-    masterKey,
-    privateKey,
   } = useCrypto();
 
   const [encryptNewUploads, setEncryptNewUploads] = useState(false);
   const [bannerPass, setBannerPass] = useState("");
-  const [isE2eeBannerDismissed, setIsE2eeBannerDismissed] = useState(false);
 
   const handleUnlockBannerSubmit = async (e) => {
     e.preventDefault();
@@ -340,35 +325,7 @@ const Dashboard = () => {
     });
   }, [folders, sharedWithMe, onlineUsersList, user]);
 
-  const activeCollaboratorsText = useMemo(() => {
-    const onlineOthers = driveCollaborators.filter(c => c.status === 'online');
 
-    if (onlineOthers.length > 0) {
-      if (onlineOthers.length === 1) {
-        return `${onlineOthers[0].username} is active now`;
-      }
-      return `${onlineOthers[0].username} and ${onlineOthers.length - 1} others are active now`;
-    }
-
-    if (driveCollaborators.length > 0) {
-      if (driveCollaborators.length === 1) {
-        return `${driveCollaborators[0].username} is currently offline`;
-      }
-      return `${driveCollaborators[0].username} and ${driveCollaborators.length - 1} others are currently offline`;
-    }
-
-    return "Only you have access to this drive";
-  }, [driveCollaborators]);
-
-  const collaboratorsHeaderText = useMemo(() => {
-    const total = driveCollaborators.length;
-    const online = driveCollaborators.filter(c => c.status === 'online').length;
-    if (total === 0) return "0 Collaborators";
-    if (online > 0) {
-      return `${online} Online`;
-    }
-    return `${total} Collaborator${total === 1 ? '' : 's'}`;
-  }, [driveCollaborators]);
 
   const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadingFileName, setUploadingFileName] = useState("");
@@ -712,17 +669,10 @@ const Dashboard = () => {
   const totalGB = totalStorage / (1024 * 1024 * 1024);
   const storagePercentage = Math.min((usedStorage / totalStorage) * 100, 100);
   const totalFileCount = allFiles.length;
-  const imageCount = allFiles.filter(f => f.mimeType?.startsWith('image')).length;
-  const videoCount = allFiles.filter(f => f.mimeType?.startsWith('video')).length;
-  const pdfCount = allFiles.filter(f => f.mimeType?.includes('pdf')).length;
-  const docCount = allFiles.filter(f =>
-    f.mimeType?.includes('document') ||
-    f.mimeType?.includes('sheet') ||
-    f.mimeType?.includes('msword') ||
-    f.mimeType?.includes('presentation')
-  ).length;
-  const totalFoldersCount = folders?.length || 0;
-  const totalSharedFilesCount = allFiles?.filter(f => f.isShared || f.sharedWith?.length > 0 || f._isDirectlyShared || f._isSharedDescendant).length || 0;
+  const totalSharedFilesCount = useMemo(
+    () => allFiles?.filter(f => f.isShared || f.sharedWith?.length > 0 || f._isDirectlyShared || f._isSharedDescendant).length || 0,
+    [allFiles]
+  );
 
   const sidebarStorageData = useMemo(() => ({
     used: usedGB,
@@ -1505,25 +1455,10 @@ const Dashboard = () => {
 
   const isTrashView = activeTab === 'trash';
 
-  const hasFiles = (imageCount + videoCount + pdfCount + docCount) > 0;
-  const totalCatFiles = hasFiles ? (imageCount + videoCount + pdfCount + docCount) : 1;
-  const imgPct = hasFiles ? Math.round((imageCount / totalCatFiles) * 100) : 0;
-  const vidPct = hasFiles ? Math.round((videoCount / totalCatFiles) * 100) : 0;
-  const pdfPct = hasFiles ? Math.round((pdfCount / totalCatFiles) * 100) : 0;
-  const docPct = hasFiles ? Math.max(0, 100 - imgPct - vidPct - pdfPct) : 0;
 
-  const imgEnd = imgPct;
-  const vidEnd = imgEnd + vidPct;
-  const pdfEnd = vidEnd + pdfPct;
-
-  const pieChartStyle = {
-    background: hasFiles
-      ? `conic-gradient(#2563EB 0% ${imgEnd}%, #8B5CF6 ${imgEnd}% ${vidEnd}%, #F59E0B ${vidEnd}% ${pdfEnd}%, #10B981 ${pdfEnd}% 100%)`
-      : 'rgba(148, 163, 184, 0.2)'
-  };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] transition-colors duration-200">
+    <div className="min-h-screen bg-[#F8FAFC] transition-colors duration-200">
       <SeoHead
         title={getPageSeo("dashboard").title}
         description={getPageSeo("dashboard").description}
@@ -1601,12 +1536,12 @@ const Dashboard = () => {
           className="p-4 sm:px-6 lg:px-8 sm:py-6 lg:py-8 pb-32 sm:pb-28 max-w-[1920px] w-full relative"
         >
           {isDraggingFile && (
-            <div className="absolute inset-0 bg-blue-50/90 dark:bg-[#1E293B]/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
-              <div className="bg-white dark:bg-[#334155] p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-[#3B82F6]/10 flex items-center justify-center animate-bounce">
-                  <Upload className="w-8 h-8 text-[#3B82F6] dark:text-[#3B82F6]" />
+            <div className="absolute inset-0 bg-blue-50/90 backdrop-blur-sm border-2 border-dashed border-[#3B82F6] rounded-3xl z-50 flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
+              <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center animate-bounce">
+                  <Upload className="w-8 h-8 text-[#3B82F6]" />
                 </div>
-                <p className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">Drop files here to upload</p>
+                <p className="text-lg font-bold text-gray-900">Drop files here to upload</p>
                 <p className="text-xs text-gray-400">Upload directly to {selectedFolder ? `"${selectedFolder.name}"` : 'My Drive'}</p>
               </div>
             </div>
@@ -1616,10 +1551,10 @@ const Dashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5 min-w-0">
             <div className="min-w-0">
               {activeTab?.startsWith('folder-') && folderPath.length > 0 && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-[#94A3B8] mb-2.5 flex-wrap">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 mb-2.5 flex-wrap">
                   <span
                     onClick={() => setActiveTab('my-drive')}
-                    className="hover:text-[#3B82F6] dark:hover:text-[#3B82F6] cursor-pointer transition-colors"
+                    className="hover:text-[#3B82F6] cursor-pointer transition-colors"
                   >
                     My Drive
                   </span>
@@ -1627,10 +1562,10 @@ const Dashboard = () => {
                     const isLast = idx === folderPath.length - 1;
                     return (
                       <React.Fragment key={item.id}>
-                        <span className="text-gray-300 dark:text-gray-700">/</span>
+                        <span className="text-gray-300">/</span>
                         <span
                           onClick={() => !isLast && setActiveTab(`folder-${item.id}`)}
-                          className={isLast ? "text-gray-505 dark:text-[#94A3B8] font-semibold" : "hover:text-[#3B82F6] dark:hover:text-[#3B82F6] cursor-pointer transition-colors"}
+                          className={isLast ? "text-gray-505 font-semibold" : "hover:text-[#3B82F6] cursor-pointer transition-colors"}
                         >
                           {item.name}
                         </span>
@@ -1642,10 +1577,10 @@ const Dashboard = () => {
               {activeTab === 'my-drive' && !selectedFolder ? (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
                   <div className="flex flex-col gap-1">
-                    <h1 className="text-2xl sm:text-2xl font-black text-gray-900 dark:text-[#F8FAFC] tracking-tight">
+                    <h1 className="text-2xl sm:text-2xl font-black text-gray-900 tracking-tight">
                       My Drive
                     </h1>
-                    <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">
+                    <span className="text-xs sm:text-sm font-medium text-gray-500">
                       {(() => {
                         const hr = new Date().getHours();
                         const rawName = user?.username || 'Akash';
@@ -1660,14 +1595,14 @@ const Dashboard = () => {
 
                   {/* Clean Header Collaborators Stack */}
                   {driveCollaborators.length > 0 && (
-                    <div className="flex items-center gap-2 self-start sm:self-center bg-gray-50/50 dark:bg-slate-800/40 border border-gray-100/80 dark:border-slate-800/60 rounded-full px-3 py-1 shadow-3xs">
+                    <div className="flex items-center gap-2 self-start sm:self-center bg-gray-50/50 border border-gray-100/80 rounded-full px-3 py-1 shadow-3xs">
                       <div className="flex items-center -space-x-2">
                         {driveCollaborators.slice(0, 4).map((collab) => (
                           <div
                             key={`header-collab-${collab.id}`}
                             className={`w-6 h-6 rounded-full border-2 bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-[9px] font-extrabold overflow-hidden shadow-xs hover:translate-y-[-2px] transition duration-200 ${collab.status === 'online'
                               ? 'border-emerald-500 ring-1 ring-emerald-500/20'
-                              : 'border-white dark:border-slate-800 opacity-60'
+                              : 'border-white opacity-60'
                               }`}
                             title={`${collab.username} (${collab.email}) - ${collab.status === 'online' ? 'Online' : 'Offline'}`}
                           >
@@ -1679,12 +1614,12 @@ const Dashboard = () => {
                           </div>
                         ))}
                         {driveCollaborators.length > 4 && (
-                          <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-300 text-[9px] font-bold shadow-xs">
+                          <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-gray-500 text-[9px] font-bold shadow-xs">
                             +{driveCollaborators.length - 4}
                           </div>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
                         {driveCollaborators.filter(c => c.status === 'online').length > 0 ? "Live" : "Collaborators"}
                       </span>
                     </div>
@@ -1693,24 +1628,24 @@ const Dashboard = () => {
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                    <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight truncate">
                       {pageTitle}
                     </h1>
                     {selectedFolder && (
                       <button
                         onClick={() => handleShareFolder(selectedFolder)}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition flex items-center justify-center shrink-0 border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#1E293B] shadow-2xs"
+                        className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center justify-center shrink-0 border border-slate-200/80 bg-white shadow-2xs"
                         title="Share folder"
                       >
                         <Share2 className="w-4 h-4" />
                       </button>
                     )}
                     {folderUsers.length > 0 && (
-                      <div className="flex items-center -space-x-1.5 ml-2 sm:ml-4 bg-white dark:bg-[#1E293B] px-3 py-1 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+                      <div className="flex items-center -space-x-1.5 ml-2 sm:ml-4 bg-white px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
                         {folderUsers.map((viewer) => (
                           <div
                             key={viewer.id}
-                            className="relative group w-6.5 h-6.5 rounded-full border border-white dark:border-ds-card bg-ds-brand flex items-center justify-center text-white text-[10px] font-medium shadow-2xs overflow-hidden cursor-pointer"
+                            className="relative group w-6.5 h-6.5 rounded-full border border-white bg-ds-brand flex items-center justify-center text-white text-[10px] font-medium shadow-2xs overflow-hidden cursor-pointer"
                             title={`${viewer.username} (${viewer.email}) is viewing this folder`}
                           >
                             {viewer.imageUrl ? (
@@ -1718,17 +1653,17 @@ const Dashboard = () => {
                             ) : (
                               <span>{viewer.username.charAt(0).toUpperCase()}</span>
                             )}
-                            <div className="absolute top-0 right-0 w-2 h-2 bg-[#3B82F6] rounded-full border border-white dark:border-[#1E293B] animate-pulse" />
+                            <div className="absolute top-0 right-0 w-2 h-2 bg-[#3B82F6] rounded-full border border-white animate-pulse" />
                           </div>
                         ))}
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-2 font-medium">
+                        <span className="text-[11px] text-slate-500 ml-2 font-medium">
                           {folderUsers.length} viewing now
                         </span>
                       </div>
                     )}
                   </div>
                   {pageSubtitle && (
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm font-normal truncate">
+                    <p className="text-slate-500 mt-1 text-sm font-normal truncate">
                       {pageSubtitle}
                     </p>
                   )}
@@ -1738,7 +1673,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('my-drive')}
-                  className="mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700/80 transition shadow-2xs hover:shadow-xs cursor-pointer"
+                  className="mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 transition shadow-2xs hover:shadow-xs cursor-pointer"
                 >
                   <span>←</span> Back to My Drive
                 </button>
@@ -1751,15 +1686,15 @@ const Dashboard = () => {
                 {isE2eeSetup && isE2eeUnlocked && (
                   <div
                     onClick={() => setEncryptNewUploads((prev) => !prev)}
-                    className="flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-[#1E293B] border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-2xs cursor-pointer select-none"
+                    className="flex items-center justify-between px-3.5 py-2.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2">
                       <ShieldCheck className={`w-4 h-4 ${encryptNewUploads ? 'text-emerald-500' : 'text-slate-400'}`} />
-                      <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                      <span className="text-xs font-medium text-slate-700">
                         Zero-Knowledge E2EE
                       </span>
                     </div>
-                    <div className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${encryptNewUploads ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                    <div className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${encryptNewUploads ? 'bg-emerald-500' : 'bg-slate-300'}`}>
                       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${encryptNewUploads ? 'translate-x-4.5' : 'translate-x-1'}`} />
                     </div>
                   </div>
@@ -1792,17 +1727,17 @@ const Dashboard = () => {
                 )}
 
                 {/* Desktop View toggle */}
-                <div className="flex items-center bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-lg p-0.5 shadow-3xs">
+                <div className="flex items-center bg-white border border-[#E2E8F0] rounded-lg p-0.5 shadow-3xs">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-800 text-[#2563EB] dark:text-blue-400 font-medium' : 'text-[#64748B] hover:text-[#0F172A] dark:hover:text-slate-200'}`}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-100 text-[#2563EB] font-medium' : 'text-[#64748B] hover:text-[#0F172A]'}`}
                     title="Grid view"
                   >
                     <Grid3X3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-800 text-[#2563EB] dark:text-blue-400 font-medium' : 'text-[#64748B] hover:text-[#0F172A] dark:hover:text-slate-200'}`}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-slate-100 text-[#2563EB] font-medium' : 'text-[#64748B] hover:text-[#0F172A]'}`}
                     title="List view"
                   >
                     <List className="w-4 h-4" />
@@ -1814,14 +1749,14 @@ const Dashboard = () => {
                     {isE2eeSetup && isE2eeUnlocked && (
                       <div
                         onClick={() => setEncryptNewUploads((prev) => !prev)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#1E293B] shadow-3xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer select-none transition-all"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white shadow-3xs hover:border-slate-300 cursor-pointer select-none transition-all"
                         title={encryptNewUploads ? "Zero-Knowledge Encryption enabled. Files are encrypted with AES-256 before upload." : "Click to enable Zero-Knowledge E2EE."}
                       >
-                        <ShieldCheck className={`w-3.5 h-3.5 transition-colors ${encryptNewUploads ? 'text-[#2563EB] dark:text-blue-400' : 'text-slate-400'}`} />
-                        <span className="text-xs font-medium text-[#0F172A] dark:text-slate-200">
+                        <ShieldCheck className={`w-3.5 h-3.5 transition-colors ${encryptNewUploads ? 'text-[#2563EB]' : 'text-slate-400'}`} />
+                        <span className="text-xs font-medium text-[#0F172A]">
                           E2EE
                         </span>
-                        <div className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${encryptNewUploads ? 'bg-[#2563EB]' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                        <div className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${encryptNewUploads ? 'bg-[#2563EB]' : 'bg-slate-200'}`}>
                           <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${encryptNewUploads ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
                         </div>
                       </div>
@@ -1839,44 +1774,44 @@ const Dashboard = () => {
               {/* 1. Storage Used */}
               <div
                 onClick={() => setActiveTab('analytics')}
-                className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-3.5 shadow-3xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all cursor-pointer group"
+                className="bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-3xs hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] dark:text-slate-400 mb-1">
-                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A] dark:text-slate-300">
+                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] mb-1">
+                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A]">
                     <HardDrive className="w-3.5 h-3.5 text-[#64748B]" />
                     Storage Used
                   </span>
-                  <span className="text-[11px] font-medium text-[#2563EB] dark:text-blue-400">
+                  <span className="text-[11px] font-medium text-[#2563EB]">
                     {Math.round(storagePercentage)}%
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden my-2">
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden my-2">
                   <div
                     className="h-full rounded-full bg-[#2563EB] transition-all duration-500"
                     style={{ width: `${storagePercentage}%` }}
                   />
                 </div>
-                <div className="flex justify-between items-center text-[11px] text-[#64748B] dark:text-slate-400">
-                  <span className="font-medium text-[#0F172A] dark:text-slate-200">{usedFormatted}</span>
+                <div className="flex justify-between items-center text-[11px] text-[#64748B]">
+                  <span className="font-medium text-[#0F172A]">{usedFormatted}</span>
                   <span>of {totalFormatted}</span>
                 </div>
               </div>
 
               {/* 2. Recent Activity */}
-              <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-3.5 shadow-3xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] dark:text-slate-400 mb-1">
-                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A] dark:text-slate-300">
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-3xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] mb-1">
+                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A]">
                     <Clock className="w-3.5 h-3.5 text-[#64748B]" />
                     Recent Activity
                   </span>
-                  <span className="text-[10px] text-[#64748B] dark:text-slate-400 font-normal">Auto-sync</span>
+                  <span className="text-[10px] text-[#64748B] font-normal">Auto-sync</span>
                 </div>
                 <div className="my-0.5">
-                  <span className="text-sm font-semibold text-[#0F172A] dark:text-slate-100">
+                  <span className="text-sm font-semibold text-[#0F172A]">
                     {suggestedFiles.length > 0 ? `${suggestedFiles.length} files updated` : `${totalFileCount} files stored`}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#64748B] dark:text-slate-400 truncate">
+                <p className="text-[11px] text-[#64748B] truncate">
                   {suggestedFiles.length > 0 ? `Latest: ${suggestedFiles[0]?.originalName}` : 'All vaults synced'}
                 </p>
               </div>
@@ -1884,39 +1819,39 @@ const Dashboard = () => {
               {/* 3. Shared with Me */}
               <div
                 onClick={() => setActiveTab('shared')}
-                className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-3.5 shadow-3xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
+                className="bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-3xs hover:border-slate-300 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] dark:text-slate-400 mb-1">
-                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A] dark:text-slate-300">
+                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] mb-1">
+                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A]">
                     <Users className="w-3.5 h-3.5 text-[#64748B]" />
                     Shared with Me
                   </span>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </div>
                 <div className="my-0.5">
-                  <span className="text-sm font-semibold text-[#0F172A] dark:text-slate-100">
+                  <span className="text-sm font-semibold text-[#0F172A]">
                     {totalSharedFilesCount} {totalSharedFilesCount === 1 ? 'shared item' : 'shared items'}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#64748B] dark:text-slate-400 truncate">
+                <p className="text-[11px] text-[#64748B] truncate">
                   Direct files & shared folders
                 </p>
               </div>
 
               {/* 4. Security Status (Enterprise) */}
-              <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-3.5 shadow-3xs flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] dark:text-slate-400 mb-1">
-                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A] dark:text-slate-300">
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-3xs flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs font-medium text-[#64748B] mb-1">
+                  <span className="flex items-center gap-1.5 font-medium text-[#0F172A]">
                     <Shield className="w-3.5 h-3.5 text-[#64748B]" />
                     Security
                   </span>
                   {isE2eeSetup && isE2eeUnlocked ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       Protected
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                       Locked
                     </span>
@@ -1930,7 +1865,7 @@ const Dashboard = () => {
                       placeholder="Passphrase"
                       value={bannerPass}
                       onChange={(e) => setBannerPass(e.target.value)}
-                      className="bg-[#F8FAFC] dark:bg-slate-800 border border-[#E2E8F0] dark:border-slate-700 text-[#0F172A] dark:text-slate-100 rounded-lg px-2 py-1 text-xs outline-none focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]/30 w-full min-w-0"
+                      className="bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] rounded-lg px-2 py-1 text-xs outline-none focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]/30 w-full min-w-0"
                     />
                     <button
                       type="submit"
@@ -1942,10 +1877,10 @@ const Dashboard = () => {
                 ) : (
                   <div className="flex items-center justify-between mt-1">
                     <div>
-                      <span className="text-xs font-semibold text-[#0F172A] dark:text-slate-100">
+                      <span className="text-xs font-semibold text-[#0F172A]">
                         {isE2eeSetup ? "Encryption Active" : "Standard Security"}
                       </span>
-                      <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+                      <p className="text-[11px] text-[#64748B]">
                         AES-256 GCM • Zero-Knowledge
                       </p>
                     </div>
@@ -1959,10 +1894,10 @@ const Dashboard = () => {
           {activeTab === 'my-drive' && !loading && suggestedFiles.length > 0 && (
             <div className="mb-6 animate-fade-up">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
                   Recent Files
                 </h3>
-                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-normal text-slate-500">
                   {suggestedFiles.length} {suggestedFiles.length === 1 ? 'file' : 'files'}
                 </span>
               </div>
@@ -1998,8 +1933,8 @@ const Dashboard = () => {
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFolders.length > 0 && (
             <div className="mb-6 animate-fade-up">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">Folders</h3>
-                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{filteredFolders.length} {filteredFolders.length === 1 ? 'Folder' : 'Folders'}</span>
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight">Folders</h3>
+                <span className="text-xs font-normal text-slate-500">{filteredFolders.length} {filteredFolders.length === 1 ? 'Folder' : 'Folders'}</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 stagger">
                 {filteredFolders.map(folder => (
@@ -2022,10 +1957,10 @@ const Dashboard = () => {
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length > 0 && (
             <div className="flex items-center justify-between mb-3 mt-5">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
                   All Files
                 </h3>
-                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-normal text-slate-500">
                   ({filteredFiles.length})
                 </span>
               </div>
@@ -2040,17 +1975,17 @@ const Dashboard = () => {
                       setSelectedFileIds(new Set(filteredFiles.map(f => f.id)));
                     }
                   }}
-                  className="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5"
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition flex items-center gap-1.5"
                 >
                   <span>{selectedFileIds.size === filteredFiles.length ? "Deselect All" : "Select All"}</span>
                 </button>
 
                 {/* View Mode Toggle */}
-                <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200/60">
                   <button
                     type="button"
                     onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded-md transition ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-[#2563EB] dark:text-blue-400 shadow-2xs font-semibold' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                    className={`p-1.5 rounded-md transition ${viewMode === 'grid' ? 'bg-white text-[#2563EB] shadow-2xs font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
                     title="Grid View"
                   >
                     <Grid3X3 className="w-3.5 h-3.5" />
@@ -2058,7 +1993,7 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded-md transition ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-[#2563EB] dark:text-blue-400 shadow-2xs font-semibold' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                    className={`p-1.5 rounded-md transition ${viewMode === 'list' ? 'bg-white text-[#2563EB] shadow-2xs font-semibold' : 'text-slate-400 hover:text-slate-600'}`}
                     title="List View"
                   >
                     <List className="w-3.5 h-3.5" />
@@ -2072,7 +2007,7 @@ const Dashboard = () => {
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? trashLoading : activeTab === 'shared' ? sharedLoading : loading) && (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
                 </div>
               </div>
@@ -2084,14 +2019,14 @@ const Dashboard = () => {
 
           {/* ── EMPTY STATE ── */}
           {activeTab !== 'notifications' && activeTab !== 'analytics' && (activeTab === 'trash' ? !trashLoading : activeTab === 'shared' ? !sharedLoading : !loading) && filteredFiles.length === 0 && filteredFolders.length === 0 && (
-            <div className="bg-white dark:bg-[#1E293B] border border-dashed border-[#E2E8F0] dark:border-slate-800 rounded-2xl px-6 py-10 sm:px-12 sm:py-16 text-center max-w-2xl mx-auto shadow-xs">
-              <div className="w-20 h-20 bg-blue-50 dark:bg-blue-950/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100 dark:border-blue-900/30 text-[#2563EB]">
+            <div className="bg-white border border-dashed border-[#E2E8F0] rounded-2xl px-6 py-10 sm:px-12 sm:py-16 text-center max-w-2xl mx-auto shadow-xs">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100 text-[#2563EB]">
                 {isTrashView ? <Trash2 className="w-8 h-8" /> : <Cloud className="w-8 h-8" />}
               </div>
-              <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight mb-2">
+              <h2 className="text-xl font-bold text-[#0F172A] tracking-tight mb-2">
                 {emptyState.title}
               </h2>
-              <p className="text-[#64748B] dark:text-slate-400 mb-6 text-sm max-w-md mx-auto leading-relaxed">
+              <p className="text-[#64748B] mb-6 text-sm max-w-md mx-auto leading-relaxed">
                 {emptyState.desc || "Get started by dragging files directly into the window or using the action triggers below."}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-8">
@@ -2112,7 +2047,7 @@ const Dashboard = () => {
                     input.onChange = handleUpload;
                     input.click();
                   }}
-                  className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-[#E2E8F0] dark:border-slate-700 text-[#0F172A] dark:text-slate-200 rounded-lg flex items-center justify-center gap-2 transition font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs w-full sm:w-auto"
+                  className="px-5 py-2.5 bg-white border border-[#E2E8F0] text-[#0F172A] rounded-lg flex items-center justify-center gap-2 transition font-medium text-sm hover:bg-slate-50 shadow-xs w-full sm:w-auto"
                 >
                   <Folder className="w-4 h-4 text-slate-500" />
                   Upload Folder
@@ -2120,12 +2055,12 @@ const Dashboard = () => {
               </div>
 
               {/* Usage Tips section */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 text-left border border-[#E2E8F0] dark:border-slate-800 max-w-lg mx-auto">
-                <h4 className="text-[11px] font-semibold text-[#64748B] dark:text-slate-400 uppercase tracking-wider mb-2">💡 Quick Tips</h4>
-                <ul className="text-xs text-[#64748B] dark:text-slate-300 space-y-1.5 list-disc pl-4 font-normal">
+              <div className="bg-slate-50 rounded-xl p-4 text-left border border-[#E2E8F0] max-w-lg mx-auto">
+                <h4 className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">💡 Quick Tips</h4>
+                <ul className="text-xs text-[#64748B] space-y-1.5 list-disc pl-4 font-normal">
                   <li>Drag and drop files anywhere on the page to trigger instant uploads.</li>
                   <li>Toggle the E2EE switch in the toolbar to encrypt files zero-knowledge.</li>
-                  <li>Hold <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[10px]">Ctrl</kbd> to select multiple files for batch downloads and shares.</li>
+                  <li>Hold <kbd className="px-1.5 py-0.5 bg-slate-200 rounded text-[10px]">Ctrl</kbd> to select multiple files for batch downloads and shares.</li>
                 </ul>
               </div>
             </div>
@@ -2194,50 +2129,54 @@ const Dashboard = () => {
 
           {/* ── STORAGE ANALYTICS VIEW ── */}
           {activeTab === 'analytics' && (
-            <StorageAnalyticsView
-              analytics={analytics}
-              analyticsLoading={analyticsLoading}
-              analyticsCategories={analyticsCategories}
-              analyticsUsed={analyticsUsed}
-              analyticsLimit={analyticsLimit}
-              analyticsPercent={analyticsPercent}
-              analyticsRemaining={analyticsRemaining}
-              analyticsActiveSize={analyticsActiveSize}
-              analyticsFileCount={analyticsFileCount}
-              analyticsTrash={analyticsTrash}
-              uploadTrend={uploadTrend}
-              uploadTrendMax={uploadTrendMax}
-              weeklyUploadCount={weeklyUploadCount}
-              weeklyUploadSize={weeklyUploadSize}
-              largestCategory={largestCategory}
-              storageStatus={storageStatus}
-              onEmptyTrash={handleEmptyTrash}
-              onUpgrade={() => navigate('/pricing')}
-              storageActivity={storageActivity}
-              activityLoading={activityLoading}
-              isE2eeUnlocked={isE2eeUnlocked}
-              isE2eeSetup={isE2eeSetup}
-              allFiles={allFiles}
-              folders={folders}
-              onPreview={(file) => { setPreviewFile(file); setIsPreviewOpen(true); }}
-              onDelete={handleDelete}
-            />
+            <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>}>
+              <StorageAnalyticsView
+                analytics={analytics}
+                analyticsLoading={analyticsLoading}
+                analyticsCategories={analyticsCategories}
+                analyticsUsed={analyticsUsed}
+                analyticsLimit={analyticsLimit}
+                analyticsPercent={analyticsPercent}
+                analyticsRemaining={analyticsRemaining}
+                analyticsActiveSize={analyticsActiveSize}
+                analyticsFileCount={analyticsFileCount}
+                analyticsTrash={analyticsTrash}
+                uploadTrend={uploadTrend}
+                uploadTrendMax={uploadTrendMax}
+                weeklyUploadCount={weeklyUploadCount}
+                weeklyUploadSize={weeklyUploadSize}
+                largestCategory={largestCategory}
+                storageStatus={storageStatus}
+                onEmptyTrash={handleEmptyTrash}
+                onUpgrade={() => navigate('/pricing')}
+                storageActivity={storageActivity}
+                activityLoading={activityLoading}
+                isE2eeUnlocked={isE2eeUnlocked}
+                isE2eeSetup={isE2eeSetup}
+                allFiles={allFiles}
+                folders={folders}
+                onPreview={(file) => { setPreviewFile(file); setIsPreviewOpen(true); }}
+                onDelete={handleDelete}
+              />
+            </Suspense>
           )}
 
           {/* ── AUDIT LOGS / ACTIVITY STREAM VIEW ── */}
           {activeTab === 'activity-log' && (
-            <ActivityLogView />
+            <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>}>
+              <ActivityLogView />
+            </Suspense>
           )}
 
 
         </div>
 
         {/* MOBILE BOTTOM NAVIGATION BAR */}
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-xl border-t border-[#E2E8F0] dark:border-slate-800 px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around z-40 shadow-2xl">
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around z-40 shadow-2xl">
           {/* 1. Drive */}
           <button
             onClick={() => setActiveTab('my-drive')}
-            className={`flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors cursor-pointer ${activeTab === 'my-drive' ? 'text-[#2563EB] dark:text-blue-400' : 'text-[#64748B] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white'
+            className={`flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors cursor-pointer ${activeTab === 'my-drive' ? 'text-[#2563EB]' : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
           >
             <Cloud className="w-5 h-5" />
@@ -2247,7 +2186,7 @@ const Dashboard = () => {
           {/* 2. Search */}
           <button
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="flex flex-col items-center gap-0.5 text-[10px] font-semibold text-[#64748B] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white transition-colors cursor-pointer"
+            className="flex flex-col items-center gap-0.5 text-[10px] font-semibold text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer"
           >
             <Search className="w-5 h-5" />
             <span>Search</span>
@@ -2256,7 +2195,7 @@ const Dashboard = () => {
           {/* 3. FAB Upload Trigger */}
           <label className="cursor-pointer -mt-5">
             <input type="file" className="hidden" accept={ALLOWED_UPLOAD_ACCEPT} onChange={handleUpload} multiple />
-            <div className="w-11 h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-full flex items-center justify-center shadow-md shadow-blue-500/25 border-2 border-white dark:border-[#1E293B] active:scale-95 transition-all">
+            <div className="w-11 h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-full flex items-center justify-center shadow-md shadow-blue-500/25 border-2 border-white active:scale-95 transition-all">
               <Plus className="w-5 h-5 stroke-[2.5]" />
             </div>
           </label>
@@ -2264,12 +2203,12 @@ const Dashboard = () => {
           {/* 4. Notifications */}
           <button
             onClick={() => setActiveTab('notifications')}
-            className={`flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors relative cursor-pointer ${activeTab === 'notifications' ? 'text-[#2563EB] dark:text-blue-400' : 'text-[#64748B] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white'
+            className={`flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors relative cursor-pointer ${activeTab === 'notifications' ? 'text-[#2563EB]' : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-0.5 right-2 w-2 h-2 bg-[#2563EB] dark:bg-blue-400 rounded-full ring-2 ring-white dark:ring-[#1E293B]" />
+              <span className="absolute top-0.5 right-2 w-2 h-2 bg-[#2563EB] rounded-full ring-2 ring-white" />
             )}
             <span>Alerts</span>
           </button>
@@ -2277,7 +2216,7 @@ const Dashboard = () => {
           {/* 5. Profile */}
           <button
             onClick={() => navigate('/profile')}
-            className="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-gray-500 dark:text-[#94A3B8] hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+            className="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
           >
             <User className="w-5 h-5" />
             <span>Profile</span>
@@ -2285,70 +2224,79 @@ const Dashboard = () => {
         </nav>
       </main>
 
-      {/* PREVIEW MODAL */}
-      <FilePreviewModal
-        file={previewFile}
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        onToast={addToast}
-        loadFiles={() => loadFiles(selectedFolderId)}
-        onOpenWorkspace={handleOpenWorkspace}
-        onOpenPdfEditor={handleOpenPdfEditor}
-      />
+      {/* MODALS SUSPENSE WRAPPER */}
+      <Suspense fallback={null}>
+        {/* PREVIEW MODAL */}
+        {isPreviewOpen && (
+          <FilePreviewModal
+            file={previewFile}
+            isOpen={isPreviewOpen}
+            onClose={() => setIsPreviewOpen(false)}
+            onToast={addToast}
+            loadFiles={() => loadFiles(selectedFolderId)}
+            onOpenWorkspace={handleOpenWorkspace}
+            onOpenPdfEditor={handleOpenPdfEditor}
+          />
+        )}
 
-      {/* COLLABORATIVE WORKSPACE MODAL (Google Docs / Linear Tier) */}
-      {collaborativeFile && (
-        <CollaborativeWorkspaceModal
-          file={collaborativeFile}
-          isOpen={Boolean(collaborativeFile)}
-          onClose={() => setCollaborativeFile(null)}
-          onFileUpdated={refreshAllFiles}
-          toast={{
-            success: (msg) => addToast(msg, 'success'),
-            error: (msg) => addToast(msg, 'error'),
-            info: (msg) => addToast(msg, 'info'),
-          }}
-        />
-      )}
+        {/* COLLABORATIVE WORKSPACE MODAL */}
+        {collaborativeFile && (
+          <CollaborativeWorkspaceModal
+            file={collaborativeFile}
+            isOpen={Boolean(collaborativeFile)}
+            onClose={() => setCollaborativeFile(null)}
+            onFileUpdated={refreshAllFiles}
+            toast={{
+              success: (msg) => addToast(msg, 'success'),
+              error: (msg) => addToast(msg, 'error'),
+              info: (msg) => addToast(msg, 'info'),
+            }}
+          />
+        )}
 
-      {/* PDF EDITOR MODAL (Adobe Acrobat / Smallpdf Tier) */}
-      {editingPdfFile && (
-        <PdfEditorModal
-          file={editingPdfFile}
-          isOpen={Boolean(editingPdfFile)}
-          onClose={() => setEditingPdfFile(null)}
-          onFileSaved={refreshAllFiles}
-          toast={{
-            success: (msg) => addToast(msg, 'success'),
-            error: (msg) => addToast(msg, 'error'),
-            info: (msg) => addToast(msg, 'info'),
-          }}
-        />
-      )}
+        {/* PDF EDITOR MODAL */}
+        {editingPdfFile && (
+          <PdfEditorModal
+            file={editingPdfFile}
+            isOpen={Boolean(editingPdfFile)}
+            onClose={() => setEditingPdfFile(null)}
+            onFileSaved={refreshAllFiles}
+            toast={{
+              success: (msg) => addToast(msg, 'success'),
+              error: (msg) => addToast(msg, 'error'),
+              info: (msg) => addToast(msg, 'info'),
+            }}
+          />
+        )}
 
-      {/* SHARE MODAL */}
-      <ShareModal
-        item={shareModalFile}
-        isFolder={isFolderShare}
-        isOpen={isShareOpen}
-        onClose={() => { setIsShareOpen(false); setShareModalFile(null); }}
-        onToast={addToast}
-      />
+        {/* SHARE MODAL */}
+        {isShareOpen && (
+          <ShareModal
+            item={shareModalFile}
+            isFolder={isFolderShare}
+            isOpen={isShareOpen}
+            onClose={() => { setIsShareOpen(false); setShareModalFile(null); }}
+            onToast={addToast}
+          />
+        )}
+
+        {/* CONFIRM MODAL */}
+        {confirmConfig.isOpen && (
+          <ConfirmModal
+            isOpen={confirmConfig.isOpen}
+            onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            onConfirm={confirmConfig.onConfirm}
+            title={confirmConfig.title}
+            message={confirmConfig.message}
+            confirmText={confirmConfig.confirmText}
+            type={confirmConfig.type}
+            loading={confirmConfig.loading}
+          />
+        )}
+      </Suspense>
 
       {/* TOAST CONTAINER */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-
-      {/* CONFIRM MODAL */}
-      <ConfirmModal
-        isOpen={confirmConfig.isOpen}
-        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmConfig.onConfirm}
-        title={confirmConfig.title}
-        message={confirmConfig.message}
-        confirmText={confirmConfig.confirmText}
-        type={confirmConfig.type}
-        loading={confirmConfig.loading}
-      />
 
       {/* UPLOAD PROGRESS PANEL */}
       {uploadProgress !== null && (
@@ -2394,7 +2342,7 @@ const Dashboard = () => {
 
       {/* BULK ACTIONS FLOATING DOCK — Google Drive / macOS Finder Style */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed inset-x-3 sm:inset-x-4 bottom-20 sm:bottom-6 z-50 mx-auto max-w-2xl bg-slate-950/95 dark:bg-[#0B1120]/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-white animate-fade-up">
+        <div className="fixed inset-x-3 sm:inset-x-4 bottom-20 sm:bottom-6 z-50 mx-auto max-w-2xl bg-slate-950/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-white animate-fade-up">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Counter badge & Select all / Deselect */}
             <div className="flex items-center gap-2 pl-2">
@@ -2558,57 +2506,68 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* MOVE ITEMS MODAL */}
-      <MoveItemsModal
-        isOpen={showMoveModal}
-        onClose={() => setShowMoveModal(false)}
-        folders={folders}
-        onConfirm={handleBulkMove}
-      />
+      {/* BOTTOM MODALS SUSPENSE WRAPPER */}
+      <Suspense fallback={null}>
+        {/* MOVE ITEMS MODAL */}
+        {showMoveModal && (
+          <MoveItemsModal
+            isOpen={showMoveModal}
+            onClose={() => setShowMoveModal(false)}
+            folders={folders}
+            onConfirm={handleBulkMove}
+          />
+        )}
 
-      {/* COMMAND PALETTE MODAL */}
-      <CommandPaletteModal
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        files={decryptedAllFiles}
-        onPreview={handlePreview}
-        onTabChange={setActiveTab}
-        isUnlocked={isE2eeUnlocked}
-        onUnlock={() => {
-          const pass = prompt("Enter your security passphrase to unlock:");
-          if (pass) {
-            unlockE2ee(pass)
-              .then(ok => {
-                if (ok) addToast("Vault unlocked successfully!", "success");
-                else addToast("Invalid security passphrase.", "error");
-              });
-          }
-        }}
-        onLock={() => {
-          window.location.reload();
-        }}
-        isE2eeSetup={isE2eeSetup}
-      />
+        {/* COMMAND PALETTE MODAL */}
+        {isCommandPaletteOpen && (
+          <CommandPaletteModal
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            files={decryptedAllFiles}
+            onPreview={handlePreview}
+            onTabChange={setActiveTab}
+            isUnlocked={isE2eeUnlocked}
+            onUnlock={() => {
+              const pass = prompt("Enter your security passphrase to unlock:");
+              if (pass) {
+                unlockE2ee(pass)
+                  .then(ok => {
+                    if (ok) addToast("Vault unlocked successfully!", "success");
+                    else addToast("Invalid security passphrase.", "error");
+                  });
+              }
+            }}
+            onLock={() => {
+              window.location.reload();
+            }}
+            isE2eeSetup={isE2eeSetup}
+          />
+        )}
 
-      {/* SYSTEM STATUS VERIFIER MODAL */}
-      <SystemStatusModal
-        isOpen={isStatusModalOpen}
-        onClose={() => setIsStatusModalOpen(false)}
-        initialTab={selectedStatusTab}
-        isE2eeSetup={isE2eeSetup}
-        isE2eeUnlocked={isE2eeUnlocked}
-        totalFiles={totalFileCount}
-        user={user}
-      />
+        {/* SYSTEM STATUS VERIFIER MODAL */}
+        {isStatusModalOpen && (
+          <SystemStatusModal
+            isOpen={isStatusModalOpen}
+            onClose={() => setIsStatusModalOpen(false)}
+            initialTab={selectedStatusTab}
+            isE2eeSetup={isE2eeSetup}
+            isE2eeUnlocked={isE2eeUnlocked}
+            totalFiles={totalFileCount}
+            user={user}
+          />
+        )}
 
-      {/* RENAME MODAL */}
-      <RenameModal
-        isOpen={renameModalState.isOpen}
-        onClose={() => setRenameModalState({ isOpen: false, item: null, type: 'file' })}
-        currentName={renameModalState.item ? (renameModalState.item.name || renameModalState.item.originalName || '') : ''}
-        itemType={renameModalState.type}
-        onRename={handleConfirmRename}
-      />
+        {/* RENAME MODAL */}
+        {renameModalState.isOpen && (
+          <RenameModal
+            isOpen={renameModalState.isOpen}
+            onClose={() => setRenameModalState({ isOpen: false, item: null, type: 'file' })}
+            currentName={renameModalState.item ? (renameModalState.item.name || renameModalState.item.originalName || '') : ''}
+            itemType={renameModalState.type}
+            onRename={handleConfirmRename}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

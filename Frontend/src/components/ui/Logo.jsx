@@ -21,7 +21,7 @@ export default function Logo({ size = 'md', className = '', showText = false, te
         className={`${imageSizeClass} object-contain transition-transform duration-200 group-hover:scale-105 rounded-xl shadow-xs`} 
       />
       {showText && (
-        <span className={`font-extrabold tracking-tight text-gray-900 dark:text-[#F8FAFC] ${textClassName || 'text-xl'}`}>
+        <span className={`font-extrabold tracking-tight text-gray-900 ${textClassName || 'text-xl'}`}>
           Data<span className="text-[#3B82F6]">Stock</span>
         </span>
       )}

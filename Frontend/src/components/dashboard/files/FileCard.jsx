@@ -155,14 +155,14 @@ const FileCard = ({
         e.dataTransfer.effectAllowed = 'move';
       }}
       className={`
-        relative group bg-white dark:bg-[#1E293B] border rounded-xl
+        relative group bg-white border rounded-xl
         transition-all duration-200 cursor-pointer select-none flex flex-col justify-between
         ${showMenu ? 'z-40 overflow-visible' : 'z-0 overflow-hidden'}
         ${file.mimeType?.includes('image') ? 'sm:h-[195px] h-[168px]' : 'sm:h-[155px] h-[138px]'}
         ${isDeleting || isRestoring
-          ? 'border-red-200 dark:border-red-900 opacity-60 scale-95 pointer-events-none'
-          : 'border-[#E2E8F0] dark:border-slate-800 hover:border-[#2563EB] dark:hover:border-blue-500 shadow-xs hover:shadow-md'}
-        ${isSelected ? 'border-[#2563EB] ring-2 ring-[#2563EB]/30 shadow-md bg-blue-50/20 dark:bg-blue-950/20' : ''}
+          ? 'border-red-200 opacity-60 scale-95 pointer-events-none'
+          : 'border-[#E2E8F0] hover:border-[#2563EB] shadow-xs hover:shadow-md'}
+        ${isSelected ? 'border-[#2563EB] ring-2 ring-[#2563EB]/30 shadow-md bg-blue-50/20' : ''}
       `}
       onMouseDown={startPress}
       onTouchStart={startPress}
@@ -206,8 +206,8 @@ const FileCard = ({
           <div
             className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer transition-all shadow-xs ${
               isSelected
-                ? 'bg-[#2563EB] text-white ring-2 ring-white dark:ring-[#1E293B]'
-                : 'bg-white/95 dark:bg-slate-800/95 border border-[#E2E8F0] dark:border-slate-600 hover:border-[#2563EB]'
+                ? 'bg-[#2563EB] text-white ring-2 ring-white'
+                : 'bg-white/95 border border-[#E2E8F0] hover:border-[#2563EB]'
             }`}
           >
             {isSelected && (
@@ -220,7 +220,7 @@ const FileCard = ({
       )}
 
       {isDeleting && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-red-500">
             {isTrashView ? 'Deleting…' : 'Trashing…'}
@@ -228,7 +228,7 @@ const FileCard = ({
         </div>
       )}
       {isRestoring && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
           <Loader2 className="w-8 h-8 text-green-500 animate-spin mb-2" />
           <span className="text-sm font-semibold text-green-500">
             Restoring…
@@ -240,7 +240,7 @@ const FileCard = ({
       <div className="relative rounded-t-xl overflow-hidden">
         {file.mimeType?.includes('image') ? (
           isLocked || imgError || (isEncrypted && !file.url) ? (
-            <div className="h-20 sm:h-24 overflow-hidden bg-slate-900 dark:bg-slate-950 relative flex flex-col items-center justify-center border-b border-slate-800 select-none group">
+            <div className="h-20 sm:h-24 overflow-hidden bg-slate-900 relative flex flex-col items-center justify-center border-b border-slate-800 select-none group">
               <span className="absolute bottom-2 left-2 z-10 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md text-slate-200 border border-slate-700 flex items-center gap-1 shadow-xs">
                 <Lock className="w-2.5 h-2.5 text-amber-400" /> {type.label}
               </span>
@@ -254,7 +254,7 @@ const FileCard = ({
               </div>
             </div>
           ) : (
-            <div className="h-20 sm:h-24 overflow-hidden bg-slate-50 dark:bg-slate-800 relative flex items-center justify-center">
+            <div className="h-20 sm:h-24 overflow-hidden bg-slate-50 relative flex items-center justify-center">
               <img
                 src={file.url}
                 alt=""
@@ -269,18 +269,18 @@ const FileCard = ({
             </div>
           )
         ) : isLocked ? (
-          <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 dark:bg-amber-950/30 border-b border-[#E2E8F0] dark:border-slate-800 relative select-none">
-            <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+          <div className="h-10 sm:h-12 flex items-center justify-center gap-2 bg-amber-500/10 border-b border-[#E2E8F0] relative select-none">
+            <Lock className="w-3.5 h-3.5 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">
               Encrypted (Locked)
             </span>
           </div>
         ) : (
           <div
-            className="h-10 sm:h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/80 relative transition-colors duration-200"
+            className="h-10 sm:h-12 flex items-center justify-center bg-slate-50 border-b border-slate-100 relative transition-colors duration-200"
           >
             <Icon
-              className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500 dark:text-slate-400 group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors duration-200"
+              className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500 group-hover:text-[#2563EB] transition-colors duration-200"
             />
           </div>
         )}
@@ -295,7 +295,7 @@ const FileCard = ({
           <button
             onClick={() => onToggleStar(file.id)}
             disabled={isStarring}
-            className={`p-1 rounded-lg backdrop-blur-md bg-white/80 dark:bg-[#1E293B]/80 shadow-xs transition hover:scale-110 active:scale-95 ${
+            className={`p-1 rounded-lg backdrop-blur-md bg-white/80 shadow-xs transition hover:scale-110 active:scale-95 ${
               isStarred
                 ? 'text-amber-500'
                 : 'text-slate-400 hover:text-amber-500'
@@ -315,7 +315,7 @@ const FileCard = ({
           {/* File Name */}
           <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
             <h3
-              className={`truncate text-xs sm:text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-amber-600 dark:text-amber-400 font-bold' : 'font-semibold text-slate-900 dark:text-slate-100'}`}
+              className={`truncate text-xs sm:text-sm leading-tight flex-1 ${isLocked ? 'font-mono text-amber-600 font-bold' : 'font-semibold text-slate-900'}`}
               title={file.originalName}
             >
               {file.originalName}
@@ -325,7 +325,7 @@ const FileCard = ({
           <div className="flex flex-wrap items-center gap-1 mb-1.5">
             {!file.mimeType?.includes('image') && (
               <span
-                className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60"
+                className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60"
               >
                 {type.label}
               </span>
@@ -334,17 +334,17 @@ const FileCard = ({
               <SecurityBadge isEncrypted={isEncrypted} isLocked={isLocked} />
             )}
             {isShared && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60">
                 <Users className="w-2.5 h-2.5 text-slate-500" /> Shared
               </span>
             )}
             {isArchived && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200/60">
                 Archived
               </span>
             )}
             {(file.isTrash || isTrashView) && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-200/60 dark:border-red-900/40">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200/60">
                 Trash
               </span>
             )}
@@ -353,7 +353,7 @@ const FileCard = ({
                 ?.toLowerCase()
                 .includes(searchQuery.toLowerCase()) && (
                 <span
-                  className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] dark:bg-blue-950/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50"
+                  className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-100"
                   title="Found in file contents"
                 >
                   🔍 Content Match
@@ -363,8 +363,8 @@ const FileCard = ({
         </div>
 
         {/* Footer Metrics & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0] dark:border-slate-800 mt-auto">
-          <div className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium tracking-wide truncate mr-1 flex-1">
+        <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0] mt-auto">
+          <div className="text-[10px] text-[#64748B] font-medium tracking-wide truncate mr-1 flex-1">
             {isLocked ? '🔒 Locked' : formatFileSize(file.size)} •{' '}
             {new Date(file.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',
@@ -387,21 +387,21 @@ const FileCard = ({
                 e.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
-              className="p-1.5 text-[#64748B] hover:text-[#0F172A] dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+              className="p-1.5 text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 rounded-lg transition cursor-pointer"
               title="Options"
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-lg shadow-lg py-1 z-50 animate-fade-in text-left">
+              <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white border border-[#E2E8F0] rounded-lg shadow-lg py-1 z-50 animate-fade-in text-left">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowMenu(false);
                     onPreview(file);
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                  className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 text-[#2563EB]" /> Preview
                 </button>
@@ -413,7 +413,7 @@ const FileCard = ({
                         setShowMenu(false);
                         onShare(file);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                     >
                       <Share2 className="w-3.5 h-3.5 text-emerald-600" /> Share
                     </button>
@@ -424,7 +424,7 @@ const FileCard = ({
                           setShowMenu(false);
                           onRename(file);
                         }}
-                        className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                        className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                       >
                         <Pencil className="w-3.5 h-3.5 text-indigo-600" /> Rename
                       </button>
@@ -435,7 +435,7 @@ const FileCard = ({
                         setShowMenu(false);
                         onToggleArchive(file.id);
                       }}
-                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                      className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                     >
                       <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                       {isArchived ? 'Unarchive' : 'Archive'}
@@ -449,7 +449,7 @@ const FileCard = ({
                             setShowMenu(false);
                             onExtract(file.id, file.originalName);
                           }}
-                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                          className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                         >
                           <Archive className="w-3.5 h-3.5 text-slate-500" />{' '}
                           Extract ZIP
@@ -464,7 +464,7 @@ const FileCard = ({
                       setShowMenu(false);
                       onRestore(file.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition flex items-center gap-2 cursor-pointer"
+                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-[#0F172A] hover:bg-slate-50 transition flex items-center gap-2 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />{' '}
                     Restore
@@ -476,7 +476,7 @@ const FileCard = ({
                       setShowMenu(false);
                       onDelete(file.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition flex items-center gap-2 cursor-pointer"
+                    className="w-full px-3 py-1.5 text-left text-xs font-medium text-red-600 hover:bg-red-50 transition flex items-center gap-2 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-red-600" />{' '}
                     {isTrashView ? 'Delete Forever' : 'Delete'}

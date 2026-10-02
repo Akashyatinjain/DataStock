@@ -71,62 +71,62 @@ export default function NotificationsView({
       upload: {
         icon: Upload,
         label: 'Upload Log',
-        color: 'text-[#2563EB] dark:text-blue-400',
-        bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-150 dark:border-blue-900/40'
+        color: 'text-[#2563EB]',
+        bg: 'bg-blue-50 border-blue-150'
       },
       delete: {
         icon: Trash2,
         label: 'Delete Log',
-        color: 'text-red-600 dark:text-red-400',
-        bg: 'bg-red-50 dark:bg-red-950/20 border-red-150 dark:border-red-900/30'
+        color: 'text-red-600',
+        bg: 'bg-red-50 border-red-150'
       },
       share: {
         icon: Users,
         label: 'Share Log',
-        color: 'text-slate-700 dark:text-slate-300',
-        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+        color: 'text-slate-700',
+        bg: 'bg-slate-100 border-slate-200'
       },
       folder: {
         icon: Folder,
         label: 'Folder Created',
-        color: 'text-[#2563EB] dark:text-blue-400',
-        bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
+        color: 'text-[#2563EB]',
+        bg: 'bg-blue-50 border-blue-100'
       },
       login: {
         icon: Activity,
         label: 'Login Alert',
-        color: 'text-slate-700 dark:text-slate-300',
-        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+        color: 'text-slate-700',
+        bg: 'bg-slate-100 border-slate-200'
       },
       security: {
         icon: Lock,
         label: 'Security Alert',
-        color: 'text-slate-700 dark:text-slate-300',
-        bg: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+        color: 'text-slate-700',
+        bg: 'bg-slate-100 border-slate-200'
       },
       restore: {
         icon: RotateCcw,
         label: 'File Restored',
-        color: 'text-emerald-600 dark:text-emerald-400',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-150 dark:border-emerald-900/30'
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50 border-emerald-150'
       },
       warning: {
         icon: AlertCircle,
         label: 'Storage Warning',
-        color: 'text-amber-600 dark:text-amber-400',
-        bg: 'bg-amber-50 dark:bg-amber-950/20 border-amber-150 dark:border-amber-900/30'
+        color: 'text-amber-600',
+        bg: 'bg-amber-50 border-amber-150'
       },
       encryption: {
         icon: Lock,
         label: 'Encryption Log',
-        color: 'text-[#2563EB] dark:text-blue-400',
-        bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
+        color: 'text-[#2563EB]',
+        bg: 'bg-blue-50 border-blue-100'
       },
       system: {
         icon: Bell,
         label: 'System Notification',
-        color: 'text-[#2563EB] dark:text-blue-400',
-        bg: 'bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30'
+        color: 'text-[#2563EB]',
+        bg: 'bg-blue-50 border-blue-100'
       }
     };
     return configs[type] || configs.system;
@@ -275,7 +275,7 @@ export default function NotificationsView({
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
       
       {/* ── 1. HEADER FILTERS AND DYNAMIC STATS PANEL ── */}
-      <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-5 shadow-xs">
+      <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="flex items-center space-x-3">
@@ -283,8 +283,8 @@ export default function NotificationsView({
               <Bell className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">Notifications</h2>
-              <p className="text-[11px] text-[#64748B] dark:text-slate-400 font-medium">
+              <h2 className="text-base font-bold text-[#0F172A] tracking-tight">Notifications</h2>
+              <p className="text-[11px] text-[#64748B] font-medium">
                 Workspace Activity & Audit Logs
               </p>
             </div>
@@ -298,14 +298,14 @@ export default function NotificationsView({
                 placeholder="Search logs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8.5 pr-3 py-1.5 text-xs font-medium bg-[#F8FAFC] dark:bg-slate-800 text-[#0F172A] dark:text-[#F8FAFC] rounded-lg border border-[#E2E8F0] dark:border-slate-700 focus:outline-hidden focus:border-[#2563EB] transition-colors placeholder-[#64748B]"
+                className="w-full pl-8.5 pr-3 py-1.5 text-xs font-medium bg-[#F8FAFC] text-[#0F172A] rounded-lg border border-[#E2E8F0] focus:outline-hidden focus:border-[#2563EB] transition-colors placeholder-[#64748B]"
               />
             </div>
 
             {unreadCount > 0 && (
               <button
                 onClick={onMarkAllAsRead}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/30 rounded-lg transition cursor-pointer active:scale-95 border border-blue-200/40"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2563EB] bg-blue-50 hover:bg-blue-100 rounded-lg transition cursor-pointer active:scale-95 border border-blue-200/40"
               >
                 <Check className="w-3.5 h-3.5" />
                 Mark All Read
@@ -325,7 +325,7 @@ export default function NotificationsView({
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#64748B] dark:text-slate-300 border border-transparent'
+                    : 'bg-slate-100 hover:bg-slate-200/80 text-[#64748B] border border-transparent'
                 }`}
               >
                 {cat.label}
@@ -335,42 +335,42 @@ export default function NotificationsView({
         </div>
 
         {/* Dynamic Telemetry Stats Row */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3.5 border-t border-[#E2E8F0] dark:border-slate-800 text-[11px] font-medium text-[#64748B] dark:text-slate-400">
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Unread: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.unread}</span></span>
-          <span className="text-slate-300 dark:text-slate-700">|</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2563EB]" /> Today: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.today}</span></span>
-          <span className="text-slate-300 dark:text-slate-700">|</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-500" /> Security: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.security}</span></span>
-          <span className="text-slate-300 dark:text-slate-700">|</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-400" /> Uploads: <span className="font-semibold text-[#0F172A] dark:text-white">{stats.uploads}</span></span>
+        <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 pt-3.5 border-t border-[#E2E8F0] text-[11px] font-medium text-[#64748B]">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Unread: <span className="font-semibold text-[#0F172A]">{stats.unread}</span></span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2563EB]" /> Today: <span className="font-semibold text-[#0F172A]">{stats.today}</span></span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-500" /> Security: <span className="font-semibold text-[#0F172A]">{stats.security}</span></span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-400" /> Uploads: <span className="font-semibold text-[#0F172A]">{stats.uploads}</span></span>
         </div>
       </div>
 
       {/* ── 2. COMPACT CHRONOLOGICAL LOG FEED ── */}
       <div className="space-y-6">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl shadow-sm">
+          <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white border border-gray-100 rounded-3xl shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-500" strokeWidth={2} />
             <p className="text-xs text-gray-400 font-semibold">Parsing system events...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-[#1E293B] border border-gray-100 dark:border-[#334155] rounded-3xl shadow-sm">
-            <Bell className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" strokeWidth={1.5} />
-            <p className="text-gray-700 dark:text-[#94A3B8] text-base font-bold">
+          <div className="text-center py-20 bg-white border border-gray-100 rounded-3xl shadow-sm">
+            <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" strokeWidth={1.5} />
+            <p className="text-gray-700 text-base font-bold">
               {searchQuery.trim()
                 ? 'No notifications match search'
                 : activeCategory === 'unread'
                 ? "You're all caught up!"
                 : 'No notifications recorded'}
             </p>
-            <p className="text-gray-400 dark:text-[#64748B] text-xs mt-1 font-semibold">
+            <p className="text-gray-400 text-xs mt-1 font-semibold">
               New events will show here dynamically
             </p>
           </div>
         ) : (
           groupedNotifications.map((group) => (
             <div key={group.id} className="space-y-2.5">
-              <h3 className="text-[11px] font-semibold text-[#64748B] dark:text-slate-400 tracking-wider uppercase pl-1">
+              <h3 className="text-[11px] font-semibold text-[#64748B] tracking-wider uppercase pl-1">
                 {group.title}
               </h3>
               
@@ -385,10 +385,10 @@ export default function NotificationsView({
                   return (
                     <div
                       key={notif.id}
-                      className={`notif-timeline-card group relative rounded-xl border bg-white dark:bg-[#1E293B] cursor-pointer ${
+                      className={`notif-timeline-card group relative rounded-xl border bg-white cursor-pointer ${
                         !isRead
-                          ? 'border-[#2563EB]/40 dark:border-blue-500/40 bg-blue-50/10 dark:bg-blue-950/10 shadow-3xs'
-                          : 'border-[#E2E8F0] dark:border-slate-800'
+                          ? 'border-[#2563EB]/40 bg-blue-50/10 shadow-3xs'
+                          : 'border-[#E2E8F0]'
                       }`}
                       onClick={() => !isRead && onMarkAsRead(notif.id)}
                     >
@@ -408,23 +408,23 @@ export default function NotificationsView({
                                 </div>
                               )}
                               {!isRead && (
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#2563EB] rounded-full ring-2 ring-white dark:ring-[#1E293B]" />
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#2563EB] rounded-full ring-2 ring-white" />
                               )}
                             </div>
 
                             {/* Core text section */}
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <h4 className="text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] leading-snug truncate">
+                                <h4 className="text-xs font-semibold text-[#0F172A] leading-snug truncate">
                                   {formatNotificationMessage(notif.message)}
                                 </h4>
                                 {!isRead && (
-                                  <span className="inline-flex px-1.5 py-0.25 rounded text-[8px] font-bold uppercase bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] dark:text-blue-400 tracking-wider">
+                                  <span className="inline-flex px-1.5 py-0.25 rounded text-[8px] font-bold uppercase bg-blue-50 text-[#2563EB] tracking-wider">
                                     New
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
+                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#64748B] mt-0.5">
                                 <span>{config.label}</span>
                                 <span>•</span>
                                 <span>{formatTimeLabel(notif.createdAt)}</span>
@@ -440,7 +440,7 @@ export default function NotificationsView({
                                 e.stopPropagation();
                                 handleLocalDelete(notif.id);
                               }}
-                              className="p-1 text-[#64748B] hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                              className="p-1 text-[#64748B] hover:text-red-600 hover:bg-slate-100 rounded-lg transition opacity-0 group-hover:opacity-100 cursor-pointer"
                               title="Dismiss Event"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

@@ -45,17 +45,17 @@ export default function SidebarNav({
             className={`
               w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium select-none
               ${isActive
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-[#2563EB] dark:text-blue-400 font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}
-              ${isDragOver ? 'bg-blue-100 dark:bg-blue-900/40 border border-[#2563EB] shadow-xs' : ''}
+                ? 'bg-blue-50 text-[#2563EB] font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}
+              ${isDragOver ? 'bg-blue-100 border border-[#2563EB] shadow-xs' : ''}
             `}
           >
-            <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#2563EB] dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`} />
+            <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#2563EB]' : 'text-slate-500'}`} />
             {showLabels && (
               <>
                 <span className="flex-1 text-left truncate">{item.label}</span>
                 {isActive && (
-                  <div className="w-1.5 h-1.5 bg-[#2563EB] dark:bg-blue-400 rounded-full shrink-0" />
+                  <div className="w-1.5 h-1.5 bg-[#2563EB] rounded-full shrink-0" />
                 )}
               </>
             )}

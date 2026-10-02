@@ -1085,37 +1085,37 @@ export default function PdfEditorModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[140] bg-slate-950/90 backdrop-blur-md flex flex-col overflow-hidden text-slate-900 dark:text-slate-100 select-none animate-fade-in">
+    <div className="fixed inset-0 z-[140] bg-slate-950/90 backdrop-blur-md flex flex-col overflow-hidden text-slate-900 select-none animate-fade-in">
       {/* ========================================================= */}
       {/* TOP HEADER (TIER 1) - FULLY RESPONSIVE                    */}
       {/* ========================================================= */}
-      <header className="h-14 border-b border-slate-200 dark:border-slate-800 px-2 sm:px-4 flex items-center justify-between gap-2 bg-white dark:bg-[#0F172A] shrink-0">
+      <header className="h-14 border-b border-slate-200 px-2 sm:px-4 flex items-center justify-between gap-2 bg-white shrink-0">
         {/* Left: Document Info & Page Manager Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <button
             onClick={() => setShowThumbnails(!showThumbnails)}
             className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               showThumbnails
-                ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                : 'text-slate-600 hover:bg-slate-100 border border-transparent'
             }`}
             title="Toggle Page Thumbnails"
           >
             <Layers className="w-4 h-4" />
             <span className="hidden sm:inline">Pages</span>
-            <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-mono text-slate-700 dark:text-slate-300">
+            <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded-full font-mono text-slate-700">
               {numPages}
             </span>
           </button>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden xs:block" />
+          <div className="h-4 w-px bg-slate-200 hidden xs:block" />
 
           <div className="flex items-center gap-1.5 min-w-0">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200/50 dark:border-rose-900/50">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200/50">
               <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <h3
-              className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate max-w-[95px] xs:max-w-[140px] sm:max-w-xs"
+              className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-[95px] xs:max-w-[140px] sm:max-w-xs"
               title={fileName}
             >
               {fileName}
@@ -1126,22 +1126,22 @@ export default function PdfEditorModal({
         {/* Center: Page Controls, Zoom (Desktop), and Undo/Redo */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Page navigation */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
             <button
               onClick={() => setPageNum((p) => Math.max(1, p - 1))}
               disabled={pageNum <= 1}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer transition text-slate-700"
               title="Previous Page"
             >
               <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 px-1.5 select-none">
+            <span className="text-[11px] sm:text-xs font-semibold text-slate-700 px-1.5 select-none">
               {pageNum} <span className="text-slate-400 font-normal">/</span> {numPages}
             </span>
             <button
               onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
               disabled={pageNum >= numPages}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer transition text-slate-700"
               title="Next Page"
             >
               <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1149,13 +1149,13 @@ export default function PdfEditorModal({
           </div>
 
           {/* Desktop Zoom controls */}
-          <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+          <div className="hidden md:flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
             <button
               onClick={() => {
                 const nextRatio = Math.max(0.3, (scale / (baseFitScale || 1)) - 0.15);
                 setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
               }}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white cursor-pointer transition text-slate-700"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1177,24 +1177,24 @@ export default function PdfEditorModal({
                   setScale(Number(((baseFitScale || 1) * mult).toFixed(2)));
                 }
               }}
-              className="bg-transparent text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 px-1 hover:text-indigo-600 transition cursor-pointer border-0 focus:outline-none"
+              className="bg-transparent text-xs font-mono font-semibold text-slate-700 px-1 hover:text-indigo-600 transition cursor-pointer border-0 focus:outline-none"
               title="Zoom Level (Click to change or select Fit Page)"
             >
-              <option value="custom" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="custom" className="bg-white text-slate-900">
                 {Math.round((scale / (baseFitScale || 1)) * 100)}%
               </option>
-              <option value="fit-page" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="fit-page" className="bg-white text-slate-900">
                 Fit Page (100%)
               </option>
-              <option value="fit-width" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <option value="fit-width" className="bg-white text-slate-900">
                 Fit Width
               </option>
-              <option value="0.5" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">50%</option>
-              <option value="0.75" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">75%</option>
-              <option value="1.0" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">100% (Fit)</option>
-              <option value="1.25" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">125%</option>
-              <option value="1.5" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">150%</option>
-              <option value="2.0" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">200%</option>
+              <option value="0.5" className="bg-white text-slate-900">50%</option>
+              <option value="0.75" className="bg-white text-slate-900">75%</option>
+              <option value="1.0" className="bg-white text-slate-900">100% (Fit)</option>
+              <option value="1.25" className="bg-white text-slate-900">125%</option>
+              <option value="1.5" className="bg-white text-slate-900">150%</option>
+              <option value="2.0" className="bg-white text-slate-900">200%</option>
             </select>
 
             <button
@@ -1202,32 +1202,32 @@ export default function PdfEditorModal({
                 const nextRatio = Math.min(3.0, (scale / (baseFitScale || 1)) + 0.15);
                 setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
               }}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white cursor-pointer transition text-slate-700"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="h-3 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+            <div className="h-3 w-px bg-slate-300 mx-0.5" />
 
             {/* One-click Fit Page */}
             <button
               onClick={() => calculateFitScale('page')}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white cursor-pointer transition text-slate-700"
               title="Fit Full Page to Screen (100%)"
             >
               <Maximize2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block mx-0.5" />
+          <div className="h-4 w-px bg-slate-200 hidden sm:block mx-0.5" />
 
           {/* Undo / Redo */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200/60">
             <button
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer transition text-slate-700"
               title="Undo (Ctrl+Z)"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -1235,7 +1235,7 @@ export default function PdfEditorModal({
             <button
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
-              className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer transition text-slate-700 dark:text-slate-300"
+              className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer transition text-slate-700"
               title="Redo (Ctrl+Y)"
             >
               <RedoIcon className="w-3.5 h-3.5" />
@@ -1248,7 +1248,7 @@ export default function PdfEditorModal({
           {/* Rotate & Delete Page (Desktop) */}
           <button
             onClick={() => handleRotatePage(pageNum)}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
             title="Rotate Current Page 90° Clockwise"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -1257,20 +1257,20 @@ export default function PdfEditorModal({
 
           <button
             onClick={() => handleDeletePage(pageNum)}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
+            className="p-1.5 rounded-lg border border-slate-200 text-rose-500 hover:bg-rose-50 transition cursor-pointer hidden lg:flex items-center gap-1.5 text-xs font-medium"
             title="Delete Current Page"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Delete</span>
           </button>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden lg:block" />
+          <div className="h-4 w-px bg-slate-200 hidden lg:block" />
 
           {/* Download PDF Binary */}
           <button
             disabled={isCompiling}
             onClick={() => handleCompileAndExport('download')}
-            className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Download compiled PDF binary"
           >
             <Download className="w-3.5 h-3.5" />
@@ -1304,7 +1304,7 @@ export default function PdfEditorModal({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
             title="Close Editor"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1317,16 +1317,16 @@ export default function PdfEditorModal({
       {/* SUB-ROW 1: Primary Tools Bar (Smooth Horizontal Scroll)   */}
       {/* SUB-ROW 2: Contextual Property Inspector (Always Visible) */}
       {/* ========================================================= */}
-      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B1120] shrink-0 text-xs">
+      <div className="border-b border-slate-200 bg-white shrink-0 text-xs">
         {/* SUB-ROW 1: Primary Tools */}
-        <div className="h-11 px-2 sm:px-4 flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-[#0B1120]">
+        <div className="h-11 px-2 sm:px-4 flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-slate-100 bg-slate-50">
           {/* Select Tool (V) */}
           <button
             onClick={() => setActiveTool('select')}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'select'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Select & Move (V)"
           >
@@ -1343,7 +1343,7 @@ export default function PdfEditorModal({
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'text'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Add Text to PDF (T)"
           >
@@ -1360,12 +1360,12 @@ export default function PdfEditorModal({
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'block'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Add Block of Any Color (B)"
           >
             <div
-              className="w-3.5 h-3.5 rounded-xs border border-slate-400 dark:border-slate-500 shadow-2xs"
+              className="w-3.5 h-3.5 rounded-xs border border-slate-400 shadow-2xs"
               style={{ backgroundColor: activeColor }}
             />
             <span>Block</span>
@@ -1380,7 +1380,7 @@ export default function PdfEditorModal({
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'redact'
                 ? 'bg-rose-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Redact / Censor Sensitive Data (R)"
           >
@@ -1402,7 +1402,7 @@ export default function PdfEditorModal({
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'pen'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Draw Freehand Ink (P)"
           >
@@ -1419,7 +1419,7 @@ export default function PdfEditorModal({
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeTool === 'highlighter'
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-200'
             }`}
             title="Highlight Lines (H)"
           >
@@ -1430,7 +1430,7 @@ export default function PdfEditorModal({
           {/* Digital Signature Modal Trigger */}
           <button
             onClick={() => setShowSignatureModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-purple-50 text-purple-600 hover:bg-purple-100 transition cursor-pointer shrink-0"
             title="Insert Digital Signature"
           >
             <PenTool className="w-3.5 h-3.5" />
@@ -1441,7 +1441,7 @@ export default function PdfEditorModal({
           <div className="relative shrink-0">
             <button
               onClick={() => setShowStampsDropdown(!showStampsDropdown)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition cursor-pointer"
               title="Add Business Stamp"
             >
               <Stamp className="w-3.5 h-3.5" />
@@ -1449,7 +1449,7 @@ export default function PdfEditorModal({
             </button>
 
             {showStampsDropdown && (
-              <div className="absolute top-10 left-0 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-2 w-44 space-y-1 animate-fade-in">
+              <div className="absolute top-10 left-0 z-50 bg-white border border-slate-200 rounded-xl shadow-xl p-2 w-44 space-y-1 animate-fade-in">
                 {BUSINESS_STAMPS.map((s) => (
                   <button
                     key={s.id}
@@ -1457,7 +1457,7 @@ export default function PdfEditorModal({
                       handlePlaceStamp(s);
                       setShowStampsDropdown(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-between hover:bg-slate-100 cursor-pointer"
                     style={{ color: s.color }}
                   >
                     <span>{s.text}</span>
@@ -1469,12 +1469,12 @@ export default function PdfEditorModal({
         </div>
 
         {/* SUB-ROW 2: Contextual Property Inspector Strip (Always Directly Visible on All Screens) */}
-        <div className="min-h-[42px] px-2 sm:px-4 py-1 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar bg-white dark:bg-[#0F172A]">
+        <div className="min-h-[42px] px-2 sm:px-4 py-1 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar bg-white">
           {/* --- CASE 1: REDACT PROPERTIES (Active Tool = Redact OR Selected Element = Redact) --- */}
           {(activeTool === 'redact' || selectedElement?.type === 'redact') && (
             <div className="flex items-center gap-2 flex-wrap shrink-0 animate-fade-in">
-              <div className="flex items-center gap-1.5 bg-rose-50/80 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 rounded-xl p-1 text-[11px]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 px-1 shrink-0">
+              <div className="flex items-center gap-1.5 bg-rose-50/80 border border-rose-200 rounded-xl p-1 text-[11px]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 px-1 shrink-0">
                   Redaction Color
                 </span>
 
@@ -1499,14 +1499,14 @@ export default function PdfEditorModal({
                         }}
                         className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold transition cursor-pointer ${
                           isCurrent
-                            ? 'bg-white dark:bg-slate-900 border-indigo-500 shadow-xs ring-1.5 ring-indigo-500 text-slate-900 dark:text-white'
-                            : 'border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            ? 'bg-white border-indigo-500 shadow-xs ring-1.5 ring-indigo-500 text-slate-900'
+                            : 'border-slate-200 hover:bg-white text-slate-700'
                         }`}
                         title={item.label}
                       >
                         <span
                           className={`w-3 h-3 rounded-xs shrink-0 ${
-                            item.color === '#FFFFFF' ? 'border border-slate-300 dark:border-slate-600' : ''
+                            item.color === '#FFFFFF' ? 'border border-slate-300' : ''
                           }`}
                           style={{ backgroundColor: item.color }}
                         />
@@ -1516,11 +1516,11 @@ export default function PdfEditorModal({
                   })}
                 </div>
 
-                <div className="h-4 w-px bg-rose-200 dark:bg-rose-800 mx-0.5" />
+                <div className="h-4 w-px bg-rose-200 mx-0.5" />
 
                 {/* Custom Color Spectrum Picker */}
                 <label
-                  className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                  className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
                   title="Pick Custom Redaction Color"
                 >
                   <Palette className="w-3.5 h-3.5 text-slate-400" />
@@ -1540,7 +1540,7 @@ export default function PdfEditorModal({
                     }}
                     className="w-0 h-0 opacity-0 absolute pointer-events-none"
                   />
-                  <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                  <span className="text-[10px] font-mono uppercase text-slate-700 font-bold hidden sm:inline">
                     {selectedElement?.color || activeRedactColor}
                   </span>
                 </label>
@@ -1548,17 +1548,17 @@ export default function PdfEditorModal({
                 {/* Actions if a redact box is selected */}
                 {selectedElement && selectedElement.type === 'redact' && (
                   <>
-                    <div className="h-4 w-px bg-rose-200 dark:bg-rose-800 mx-0.5" />
+                    <div className="h-4 w-px bg-rose-200 mx-0.5" />
                     <button
                       onClick={() => duplicateElement(selectedElement)}
-                      className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                      className="p-1 rounded-lg hover:bg-slate-200 text-slate-600 cursor-pointer"
                       title="Duplicate Redaction (Ctrl+D)"
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => deleteElement(selectedElement.id)}
-                      className="p-1 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                      className="p-1 rounded-lg hover:bg-rose-100 text-rose-500 cursor-pointer"
                       title="Delete Redaction (Del)"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -1567,7 +1567,7 @@ export default function PdfEditorModal({
                 )}
               </div>
 
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden xl:inline">
+              <span className="text-[10px] text-slate-500 hidden xl:inline">
                 💡 Drag to censor or click anywhere to drop standard redact box
               </span>
             </div>
@@ -1575,8 +1575,8 @@ export default function PdfEditorModal({
 
           {/* --- CASE 2: TEXT PROPERTIES (Active Tool = Text OR Selected Element = Text) --- */}
           {(activeTool === 'text' || selectedElement?.type === 'text') && (
-            <div className="flex items-center gap-1.5 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in flex-wrap">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 px-1 hidden sm:inline">
+            <div className="flex items-center gap-1.5 bg-indigo-50/60 border border-indigo-200 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 px-1 hidden sm:inline">
                 Text
               </span>
 
@@ -1601,7 +1601,7 @@ export default function PdfEditorModal({
                 <span>{isDetectingStyle ? 'Detecting...' : 'Auto-Detect Style'}</span>
               </button>
 
-              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+              <div className="h-4 w-px bg-indigo-200 mx-0.5" />
 
               {/* Font Family selector (Categorized) */}
               <select
@@ -1615,7 +1615,7 @@ export default function PdfEditorModal({
                     if (selectedElement) updateElement(selectedElement.id, { fontFamily: val });
                   }
                 }}
-                className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-medium rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none max-w-[130px] sm:max-w-[150px]"
+                className="bg-white text-slate-800 text-[11px] font-medium rounded-lg px-2 py-1 border border-slate-200 cursor-pointer focus:outline-none max-w-[130px] sm:max-w-[150px]"
                 title="Font Family"
               >
                 <option value="auto">✨ Auto-Detect Font</option>
@@ -1631,7 +1631,7 @@ export default function PdfEditorModal({
               </select>
 
               {/* Font Size stepper */}
-              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-1 py-0.5">
+              <div className="flex items-center bg-white rounded-lg border border-slate-200 px-1 py-0.5">
                 <button
                   onClick={() => {
                     const currentSz = selectedElement?.fontSize || activeFontSize;
@@ -1639,12 +1639,12 @@ export default function PdfEditorModal({
                     setActiveFontSize(nextSz);
                     if (selectedElement) updateElement(selectedElement.id, { fontSize: nextSz });
                   }}
-                  className="px-1 font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                  className="px-1 font-bold text-slate-500 hover:text-slate-900 cursor-pointer"
                   title="Decrease font size"
                 >
                   -
                 </button>
-                <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400 px-1 min-w-[20px] text-center">
+                <span className="font-mono text-[11px] font-bold text-indigo-600 px-1 min-w-[20px] text-center">
                   {selectedElement?.fontSize || activeFontSize}
                 </span>
                 <button
@@ -1654,7 +1654,7 @@ export default function PdfEditorModal({
                     setActiveFontSize(nextSz);
                     if (selectedElement) updateElement(selectedElement.id, { fontSize: nextSz });
                   }}
-                  className="px-1 font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                  className="px-1 font-bold text-slate-500 hover:text-slate-900 cursor-pointer"
                   title="Increase font size"
                 >
                   +
@@ -1672,7 +1672,7 @@ export default function PdfEditorModal({
                 className={`p-1.5 rounded-lg transition cursor-pointer font-black ${
                   (selectedElement ? selectedElement.bold : activeTextBold)
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Bold"
               >
@@ -1690,7 +1690,7 @@ export default function PdfEditorModal({
                 className={`p-1.5 rounded-lg transition cursor-pointer italic ${
                   (selectedElement ? selectedElement.italic : activeTextItalic)
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Italic"
               >
@@ -1708,7 +1708,7 @@ export default function PdfEditorModal({
                 className={`p-1.5 rounded-lg transition cursor-pointer underline ${
                   (selectedElement ? selectedElement.underline : activeTextUnderline)
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Underline"
               >
@@ -1726,7 +1726,7 @@ export default function PdfEditorModal({
                 className={`p-1.5 rounded-lg transition cursor-pointer ${
                   (selectedElement ? selectedElement.strikethrough : activeTextStrikethrough)
                     ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-200'
                 }`}
                 title="Strikethrough"
               >
@@ -1734,7 +1734,7 @@ export default function PdfEditorModal({
               </button>
 
               {/* Text Alignment */}
-              <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+              <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5">
                 {[
                   { id: 'left', icon: AlignLeft, title: 'Align Left' },
                   { id: 'center', icon: AlignCenter, title: 'Align Center' },
@@ -1753,7 +1753,7 @@ export default function PdfEditorModal({
                       className={`p-1 rounded transition cursor-pointer ${
                         isActive
                           ? 'bg-indigo-600 text-white shadow-2xs'
-                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                          : 'text-slate-500 hover:text-slate-900'
                       }`}
                       title={item.title}
                     >
@@ -1763,15 +1763,15 @@ export default function PdfEditorModal({
                 })}
               </div>
 
-              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+              <div className="h-4 w-px bg-indigo-200 mx-0.5" />
 
               {/* Text Color Picker */}
               <label
-                className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
                 title="Text Color"
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 shadow-2xs"
+                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs"
                   style={{ backgroundColor: selectedElement?.color || activeColor }}
                 />
                 <input
@@ -1784,7 +1784,7 @@ export default function PdfEditorModal({
                   }}
                   className="w-0 h-0 opacity-0 absolute pointer-events-none"
                 />
-                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                <span className="text-[10px] font-mono uppercase text-slate-700 font-bold hidden sm:inline">
                   {selectedElement?.color || activeColor}
                 </span>
               </label>
@@ -1798,7 +1798,7 @@ export default function PdfEditorModal({
                       setActiveColor(c);
                       if (selectedElement) updateElement(selectedElement.id, { color: c });
                     }}
-                    className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 hover:scale-110 transition cursor-pointer"
+                    className="w-3.5 h-3.5 rounded-full border border-slate-300 hover:scale-110 transition cursor-pointer"
                     style={{ backgroundColor: c }}
                     title={c}
                   />
@@ -1807,17 +1807,17 @@ export default function PdfEditorModal({
 
               {selectedElement && (
                 <>
-                  <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800/80 mx-0.5" />
+                  <div className="h-4 w-px bg-indigo-200 mx-0.5" />
                   <button
                     onClick={() => duplicateElement(selectedElement)}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 cursor-pointer"
                     title="Duplicate Text (Ctrl+D)"
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => deleteElement(selectedElement.id)}
-                    className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 cursor-pointer"
                     title="Delete Text (Del)"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1829,14 +1829,14 @@ export default function PdfEditorModal({
 
           {/* --- CASE 3: BLOCK PROPERTIES (Active Tool = Block OR Selected Element = Block) --- */}
           {(activeTool === 'block' || selectedElement?.type === 'block') && (
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+            <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1 hidden sm:inline">
                 Block
               </span>
 
               {/* Color spectrum picker */}
               <label
-                className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
+                className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 cursor-pointer hover:border-indigo-400 transition"
                 title="Pick Block Color"
               >
                 <Palette className="w-3.5 h-3.5 text-slate-400" />
@@ -1854,7 +1854,7 @@ export default function PdfEditorModal({
                   }}
                   className="w-0 h-0 opacity-0 absolute pointer-events-none"
                 />
-                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                <span className="text-[10px] font-mono uppercase text-slate-700 font-bold hidden sm:inline">
                   {selectedElement?.color || activeColor}
                 </span>
               </label>
@@ -1871,7 +1871,7 @@ export default function PdfEditorModal({
                     className={`w-4 h-4 rounded border transition cursor-pointer ${
                       (selectedElement?.color || activeColor) === c
                         ? 'ring-2 ring-indigo-500 scale-110 shadow-xs'
-                        : 'border-slate-300 dark:border-slate-600 hover:scale-105'
+                        : 'border-slate-300 hover:scale-105'
                     }`}
                     style={{ backgroundColor: c }}
                     title={c}
@@ -1879,10 +1879,10 @@ export default function PdfEditorModal({
                 ))}
               </div>
 
-              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+              <div className="h-4 w-px bg-slate-300 mx-0.5" />
 
               {/* Opacity presets */}
-              <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-0.5 bg-white rounded-lg p-0.5 border border-slate-200">
                 <span className="text-slate-400 px-1 font-medium hidden md:inline text-[10px]">Opacity:</span>
                 {[1, 0.75, 0.5, 0.25].map((op) => {
                   const currentOp = selectedElement?.opacity !== undefined ? selectedElement.opacity : activeBlockOpacity;
@@ -1896,7 +1896,7 @@ export default function PdfEditorModal({
                       className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
                         currentOp === op
                           ? 'bg-indigo-600 text-white shadow-2xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                       title={`Opacity ${Math.round(op * 100)}%`}
                     >
@@ -1908,17 +1908,17 @@ export default function PdfEditorModal({
 
               {selectedElement && (
                 <>
-                  <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                  <div className="h-4 w-px bg-slate-300 mx-0.5" />
                   <button
                     onClick={() => duplicateElement(selectedElement)}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 cursor-pointer"
                     title="Duplicate Block (Ctrl+D)"
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => deleteElement(selectedElement.id)}
-                    className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 cursor-pointer"
                     title="Delete Block (Del)"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1930,14 +1930,14 @@ export default function PdfEditorModal({
 
           {/* --- CASE 4: PEN / DRAW PROPERTIES --- */}
           {activeTool === 'pen' && (
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+            <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1 hidden sm:inline">
                 Pen
               </span>
 
               {/* Stroke Color Picker */}
               <label
-                className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 cursor-pointer"
+                className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 cursor-pointer"
                 title="Pick Pen Color"
               >
                 <span className="w-3 h-3 rounded-full border border-slate-400 shadow-2xs" style={{ backgroundColor: activeColor }} />
@@ -1947,7 +1947,7 @@ export default function PdfEditorModal({
                   onChange={(e) => setActiveColor(e.target.value)}
                   className="w-0 h-0 opacity-0 absolute pointer-events-none"
                 />
-                <span className="text-[10px] font-mono uppercase text-slate-700 dark:text-slate-300 font-bold hidden sm:inline">
+                <span className="text-[10px] font-mono uppercase text-slate-700 font-bold hidden sm:inline">
                   {activeColor}
                 </span>
               </label>
@@ -1958,17 +1958,17 @@ export default function PdfEditorModal({
                   <button
                     key={c}
                     onClick={() => setActiveColor(c)}
-                    className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 hover:scale-110 transition cursor-pointer"
+                    className="w-3.5 h-3.5 rounded-full border border-slate-300 hover:scale-110 transition cursor-pointer"
                     style={{ backgroundColor: c }}
                     title={c}
                   />
                 ))}
               </div>
 
-              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+              <div className="h-4 w-px bg-slate-300 mx-0.5" />
 
               {/* Stroke thickness */}
-              <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-1 bg-white rounded-lg p-0.5 border border-slate-200">
                 {[
                   { w: 2, label: 'Thin' },
                   { w: 4, label: 'Med' },
@@ -1980,7 +1980,7 @@ export default function PdfEditorModal({
                     className={`px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer ${
                       activeStrokeWidth === item.w
                         ? 'bg-indigo-600 text-white shadow-2xs'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     {item.label}
@@ -1992,18 +1992,18 @@ export default function PdfEditorModal({
 
           {/* --- CASE 5: HIGHLIGHTER PROPERTIES --- */}
           {activeTool === 'highlighter' && (
-            <div className="flex items-center gap-2 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-1">
+            <div className="flex items-center gap-2 bg-amber-50/50 border border-amber-200 rounded-xl p-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 px-1">
                 Highlighter
               </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:inline">
+              <span className="text-[10px] text-slate-500 hidden sm:inline">
                 Drag over text to highlight
               </span>
               <div className="flex items-center gap-1">
                 {['#FACC15', '#4ADE80', '#38BDF8', '#F472B6', '#FB923C'].map((hc) => (
                   <div
                     key={hc}
-                    className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 shadow-2xs"
+                    className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs"
                     style={{ backgroundColor: hc }}
                     title="Highlight tint"
                   />
@@ -2014,14 +2014,14 @@ export default function PdfEditorModal({
 
           {/* --- CASE 6: ANY OTHER SELECTED ELEMENT (SIGNATURE / STAMP) --- */}
           {selectedElement && !['text', 'block', 'redact'].includes(selectedElement.type) && (
-            <div className="flex items-center gap-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-3 py-1 text-[11px] shrink-0 animate-fade-in">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+            <div className="flex items-center gap-2 bg-indigo-50/70 border border-indigo-200 rounded-xl px-3 py-1 text-[11px] shrink-0 animate-fade-in">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">
                 {selectedElement.type} Selected
               </span>
-              <div className="h-4 w-px bg-indigo-200 dark:bg-indigo-800 mx-0.5" />
+              <div className="h-4 w-px bg-indigo-200 mx-0.5" />
               <button
                 onClick={() => duplicateElement(selectedElement)}
-                className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer flex items-center gap-1 text-[10px]"
+                className="p-1 rounded hover:bg-slate-200 text-slate-600 cursor-pointer flex items-center gap-1 text-[10px]"
                 title="Duplicate (Ctrl+D)"
               >
                 <Copy className="w-3 h-3" />
@@ -2029,7 +2029,7 @@ export default function PdfEditorModal({
               </button>
               <button
                 onClick={() => deleteElement(selectedElement.id)}
-                className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer flex items-center gap-1 text-[10px]"
+                className="p-1 rounded hover:bg-rose-100 text-rose-500 cursor-pointer flex items-center gap-1 text-[10px]"
                 title="Delete (Del)"
               >
                 <Trash2 className="w-3 h-3" />
@@ -2040,7 +2040,7 @@ export default function PdfEditorModal({
 
           {/* --- CASE 7: DEFAULT IDLE HINT --- */}
           {activeTool === 'select' && !selectedElement && (
-            <div className="hidden md:flex items-center gap-2 text-slate-400 dark:text-slate-500 text-[11px]">
+            <div className="hidden md:flex items-center gap-2 text-slate-400 text-[11px]">
               <span>💡 Click any element to edit or move • Shortcuts: V (Select), T (Text), B (Block), R (Redact), P (Pen), Del (Delete)</span>
             </div>
           )}
@@ -2053,14 +2053,14 @@ export default function PdfEditorModal({
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Thumbnails Manager: Desktop Docked Sidebar */}
         {showThumbnails && (
-          <aside className="hidden lg:flex w-48 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-3 overflow-y-auto flex-col gap-3 shrink-0">
+          <aside className="hidden lg:flex w-48 border-r border-slate-200 bg-slate-50/50 p-3 overflow-y-auto flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Pages ({numPages})
               </span>
               <button
                 onClick={() => setShowThumbnails(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer"
                 title="Hide Pages"
               >
                 <X className="w-3.5 h-3.5" />
@@ -2078,14 +2078,14 @@ export default function PdfEditorModal({
                     isDeleted
                       ? 'opacity-30 line-through border-rose-500'
                       : isCurrent
-                      ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20'
-                      : 'border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-850'
+                      ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20'
+                      : 'border-slate-200 hover:bg-white'
                   }`}
                 >
-                  <div className="w-full h-24 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 mb-1 flex items-center justify-center text-xs font-mono text-slate-400 shadow-xs">
+                  <div className="w-full h-24 bg-white rounded-md border border-slate-200 mb-1 flex items-center justify-center text-xs font-mono text-slate-400 shadow-xs">
                     {p}
                   </div>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="text-xs font-semibold text-slate-700">
                     Page {p}
                   </span>
                 </div>
@@ -2103,17 +2103,17 @@ export default function PdfEditorModal({
               onClick={() => setShowThumbnails(false)}
             />
             {/* Slide-out Drawer */}
-            <aside className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-4 overflow-y-auto flex flex-col gap-3 z-10 shadow-2xl animate-fade-in">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+            <aside className="relative w-64 max-w-[80vw] h-full bg-white border-r border-slate-200 p-4 overflow-y-auto flex flex-col gap-3 z-10 shadow-2xl animate-fade-in">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     Pages ({numPages})
                   </span>
                 </div>
                 <button
                   onClick={() => setShowThumbnails(false)}
-                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2137,11 +2137,11 @@ export default function PdfEditorModal({
                         isDeleted
                           ? 'opacity-30 line-through border-rose-500'
                           : isCurrent
-                          ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20 font-bold text-indigo-600 dark:text-indigo-400'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20 font-bold text-indigo-600'
+                          : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                       }`}
                     >
-                      <div className="w-12 h-16 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-mono font-bold shrink-0">
+                      <div className="w-12 h-16 bg-slate-100 rounded border border-slate-200 flex items-center justify-center text-xs font-mono font-bold shrink-0">
                         {p}
                       </div>
                       <div className="flex flex-col text-left">
@@ -2161,7 +2161,7 @@ export default function PdfEditorModal({
         {/* Central PDF Canvas Workspace (Smooth Centering & Non-clipping Scroll) */}
         <main
           ref={containerRef}
-          className="flex-1 overflow-auto bg-slate-200/50 dark:bg-[#060911] relative"
+          className="flex-1 overflow-auto bg-slate-200/50 relative"
         >
           {loading ? (
             <div className="min-w-full min-h-full flex items-center justify-center p-8">
@@ -2599,20 +2599,20 @@ export default function PdfEditorModal({
           )}
 
           {/* Floating Mobile / Tablet Zoom Pill at Bottom-Right */}
-          <div className="md:hidden absolute bottom-4 right-4 z-40 flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-lg border border-slate-200/80 dark:border-slate-700/80 p-1 text-xs">
+          <div className="md:hidden absolute bottom-4 right-4 z-40 flex items-center bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-slate-200/80 p-1 text-xs">
             <button
               onClick={() => {
                 const nextRatio = Math.max(0.3, (scale / (baseFitScale || 1)) - 0.15);
                 setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
               }}
-              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-700 cursor-pointer"
               title="Zoom out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => calculateFitScale('page')}
-              className="px-2 font-mono font-semibold text-slate-700 dark:text-slate-300 text-[11px] cursor-pointer hover:text-indigo-600 transition"
+              className="px-2 font-mono font-semibold text-slate-700 text-[11px] cursor-pointer hover:text-indigo-600 transition"
               title="Fit to page (100%)"
             >
               {Math.round((scale / (baseFitScale || 1)) * 100)}%
@@ -2622,7 +2622,7 @@ export default function PdfEditorModal({
                 const nextRatio = Math.min(3.0, (scale / (baseFitScale || 1)) + 0.15);
                 setScale(Number(((baseFitScale || 1) * nextRatio).toFixed(2)));
               }}
-              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-700 cursor-pointer"
               title="Zoom in"
             >
               <ZoomIn className="w-3.5 h-3.5" />

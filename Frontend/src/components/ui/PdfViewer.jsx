@@ -260,9 +260,9 @@ export default function PdfViewer({
 
   if (loading) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0F172A] p-8 gap-3">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 p-8 gap-3">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">Rendering PDF document...</p>
+        <p className="text-xs font-semibold text-gray-600">Rendering PDF document...</p>
         <span className="text-[11px] text-gray-400">High-resolution mobile canvas engine</span>
       </div>
     );
@@ -270,11 +270,11 @@ export default function PdfViewer({
 
   if (error) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0F172A] p-6 text-center">
-        <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl max-w-md">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl max-w-md">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Preview Note</h4>
-          <p className="text-xs text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+          <h4 className="text-sm font-bold text-gray-900 mb-1">Preview Note</h4>
+          <p className="text-xs text-gray-600 mb-4">{error}</p>
           <div className="flex flex-wrap items-center justify-center gap-2">
             {url && (
               <a
@@ -289,7 +289,7 @@ export default function PdfViewer({
             )}
             <button
               onClick={onDownload}
-              className="px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               Download PDF
@@ -301,26 +301,26 @@ export default function PdfViewer({
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-100 dark:bg-[#0F172A] select-none" ref={containerRef}>
+    <div className="w-full h-full flex flex-col bg-gray-100 select-none" ref={containerRef}>
       {/* Top Toolbar */}
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-3 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs shadow-xs z-10">
+      <div className="bg-white border-b border-gray-200 px-3 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs shadow-xs z-10">
         {/* Pagination */}
-        <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-0.5">
           <button
             onClick={handlePrevPage}
             disabled={pageNum <= 1}
-            className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 rounded text-gray-700 dark:text-gray-200 transition"
+            className="p-1 hover:bg-gray-200 disabled:opacity-30 rounded text-gray-700 transition"
             title="Previous Page"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="px-2 font-mono text-[11px] text-gray-800 dark:text-gray-200 min-w-[4rem] text-center font-semibold">
+          <span className="px-2 font-mono text-[11px] text-gray-800 min-w-[4rem] text-center font-semibold">
             {pageNum} / {numPages}
           </span>
           <button
             onClick={handleNextPage}
             disabled={pageNum >= numPages}
-            className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 rounded text-gray-700 dark:text-gray-200 transition"
+            className="p-1 hover:bg-gray-200 disabled:opacity-30 rounded text-gray-700 transition"
             title="Next Page"
           >
             <ChevronRight className="w-4 h-4" />
@@ -329,20 +329,20 @@ export default function PdfViewer({
 
         {/* Zoom & View Controls */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-0.5">
+          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-0.5">
             <button
               onClick={handleZoomOut}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition cursor-pointer"
+              className="p-1 hover:bg-gray-200 rounded text-gray-700 transition cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="px-1.5 font-mono text-[10px] sm:text-[11px] text-gray-700 dark:text-gray-300 min-w-[2.8rem] text-center font-bold">
+            <span className="px-1.5 font-mono text-[10px] sm:text-[11px] text-gray-700 min-w-[2.8rem] text-center font-bold">
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={handleZoomIn}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded text-gray-700 dark:text-gray-200 transition cursor-pointer"
+              className="p-1 hover:bg-gray-200 rounded text-gray-700 transition cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -353,8 +353,8 @@ export default function PdfViewer({
             onClick={handleFitPage}
             className={`p-1.5 rounded-lg border transition flex items-center gap-1 text-[11px] cursor-pointer ${
               Math.abs(zoomLevel - 1.0) < 0.01
-                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-semibold'
-                : 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300'
+                ? 'bg-blue-50 border-blue-300 text-blue-600 font-semibold'
+                : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700'
             }`}
             title="Fit to Page (100%)"
           >
@@ -364,7 +364,7 @@ export default function PdfViewer({
 
           <button
             onClick={handleRotate}
-            className="p-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 transition flex items-center gap-1 text-[11px] cursor-pointer"
+            className="p-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-gray-700 transition flex items-center gap-1 text-[11px] cursor-pointer"
             title="Rotate 90°"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -386,9 +386,9 @@ export default function PdfViewer({
       </div>
 
       {/* PDF Canvas Viewport Area */}
-      <div className="flex-1 overflow-auto bg-gray-100 dark:bg-[#0F172A] relative touch-pan-x touch-pan-y">
+      <div className="flex-1 overflow-auto bg-gray-100 relative touch-pan-x touch-pan-y">
         <div className="min-w-full min-h-full p-2 sm:p-4 md:p-6 flex items-start justify-center">
-          <div className="relative shadow-2xl rounded-lg bg-white overflow-hidden border border-gray-300 dark:border-slate-700 my-auto mx-auto shrink-0 transition-all duration-150">
+          <div className="relative shadow-2xl rounded-lg bg-white overflow-hidden border border-gray-300 my-auto mx-auto shrink-0 transition-all duration-150">
             <canvas ref={canvasRef} className="block max-w-none" />
 
             {/* Annotation Overlay Canvas */}

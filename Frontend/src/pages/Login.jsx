@@ -147,7 +147,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0F172A] font-['Inter'] transition-colors duration-200">
+    <div className="min-h-screen bg-white font-['Inter'] transition-colors duration-200">
       <SeoHead
         title={getPageSeo("login").title}
         description={getPageSeo("login").description}
@@ -156,18 +156,18 @@ const LoginPage = () => {
         jsonLd={jsonLdForPublicRoute("login")}
       />
       {/* Simple Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-50 border-b border-gray-100 dark:border-[#334155]" aria-label="Primary">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100" aria-label="Primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2 group">
               <img src="/datastock-logo.svg" alt="DataStock" width={32} height={32} className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200" />
-              <span className="font-bold text-xl text-black dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
+              <span className="font-bold text-xl text-black">Data<span className="text-[#3B82F6]">Stock</span></span>
             </Link>
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Link
                 to="/signup"
-                className="text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC] transition flex items-center space-x-1 text-sm"
+                className="text-gray-600 hover:text-black transition flex items-center space-x-1 text-sm"
               >
                 <span className="hidden sm:inline">Need an account?</span>
                 <ArrowRight className="w-4 h-4" />
@@ -181,31 +181,31 @@ const LoginPage = () => {
         <div className="max-w-md mx-auto w-full">
           {/* Success State */}
           {step === 'success' ? (
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-200 dark:border-[#334155] p-8 shadow-xl text-center">
-              <div className="w-20 h-20 bg-blue-100 dark:bg-[#3B82F6]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-xl text-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-10 h-10 text-[#3B82F6]" />
               </div>
-              <h2 className="text-2xl font-bold text-black dark:text-[#F8FAFC] mb-2">Login Successful!</h2>
-              <p className="text-gray-600 dark:text-[#94A3B8] mb-6">Redirecting you to your dashboard...</p>
-              <div className="w-full bg-gray-200 dark:bg-[#334155] h-2 rounded-full overflow-hidden">
+              <h2 className="text-2xl font-bold text-black mb-2">Login Successful!</h2>
+              <p className="text-gray-600 mb-6">Redirecting you to your dashboard...</p>
+              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#3B82F6] rounded-full animate-pulse" style={{ width: '100%' }}></div>
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-200 dark:border-[#334155] p-6 sm:p-8 shadow-xl">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xl">
               {/* Header */}
               <div className="text-center mb-8">
                 {step === 'otp-verification' && (
                   <button
                     onClick={() => setStep('login')}
-                    className="absolute top-6 left-6 text-gray-400 hover:text-black dark:hover:text-[#F8FAFC] transition"
+                    className="absolute top-6 left-6 text-gray-400 hover:text-black transition"
                   >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                 )}
-                <div className="inline-flex items-center bg-blue-50 dark:bg-[#3B82F6]/10 px-4 py-2 rounded-full mb-4">
+                <div className="inline-flex items-center bg-blue-50 px-4 py-2 rounded-full mb-4">
                   <Shield className="w-4 h-4 text-[#3B82F6] mr-2" />
-                  <span className="text-sm font-medium text-[#3B82F6] dark:text-[#3B82F6]">Secure Login</span>
+                  <span className="text-sm font-medium text-[#3B82F6]">Secure Login</span>
                 </div>
                 {/* <h2 className="text-2xl font-bold text-black  mb-2">
                   {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
@@ -215,11 +215,11 @@ const LoginPage = () => {
                     ? `We've sent a 6-digit code to ${email}`
                     : 'Choose your preferred login method'}
                 </p> */}
-                <h1 className="text-2xl font-bold text-black dark:text-[#F8FAFC] mb-2">
+                <h1 className="text-2xl font-bold text-black mb-2">
                   {step === 'otp-verification' ? 'Enter Verification Code' : 'Welcome Back'}
                 </h1>
 
-                <p className="text-gray-600 dark:text-[#94A3B8]">
+                <p className="text-gray-600">
                   {step === 'otp-verification'
                     ? `We've sent a 6-digit code to ${email}`
                     : 'Choose your preferred login method'}
@@ -231,7 +231,7 @@ const LoginPage = () => {
                 <form onSubmit={handleOtpVerification} className="space-y-6">
                   {/* OTP Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-3 text-center">
+                    <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
                       Enter 6-digit OTP
                     </label>
                     <div className="flex justify-center space-x-2">
@@ -245,7 +245,7 @@ const LoginPage = () => {
                           value={digit}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-[#334155] rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition"
+                          className="w-12 h-12 text-center text-xl font-bold border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition"
                         />
                       ))}
                     </div>
@@ -256,7 +256,7 @@ const LoginPage = () => {
 
                   {/* Resend OTP */}
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
+                    <p className="text-sm text-gray-600">
                       Didn't receive code?{' '}
                       <button
                         type="button"
@@ -272,7 +272,7 @@ const LoginPage = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-black dark:bg-[#3B82F6] text-white py-3 rounded-xl hover:bg-[#2563EB] dark:hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-black text-white py-3 rounded-xl hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>
@@ -291,7 +291,7 @@ const LoginPage = () => {
                 /* Login Step */
                 <>
                   {errors.general && (
-                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+                    <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                       <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                       <span>{errors.general}</span>
                     </div>
@@ -299,7 +299,7 @@ const LoginPage = () => {
 
                   <button
                     onClick={handleGoogleLogin}
-                    className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-[#334155] rounded-xl py-3 px-4 mb-6 text-gray-900 dark:text-[#F8FAFC] hover:border-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] transition font-medium"
+                    className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-xl py-3 px-4 mb-6 text-gray-900 hover:border-[#3B82F6] hover:text-[#3B82F6] transition font-medium"
                   >
                     {/* Google Icon */}
                     <svg width="18" height="18" viewBox="0 0 48 48">
@@ -313,12 +313,12 @@ const LoginPage = () => {
                   </button>
 
                   {/* Login Method Toggle */}
-                  <div className="flex bg-gray-100 dark:bg-[#334155] p-1 rounded-xl mb-6">
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
                     <button
                       onClick={() => setLoginMethod('password')}
                       className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${loginMethod === 'password'
-                        ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow'
-                        : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
+                        ? 'bg-white text-black shadow'
+                        : 'text-gray-600 hover:text-black'
                         }`}
                     >
                       <Key className="w-4 h-4" />
@@ -327,8 +327,8 @@ const LoginPage = () => {
                     <button
                       onClick={() => setLoginMethod('otp')}
                       className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition flex items-center justify-center space-x-2 ${loginMethod === 'otp'
-                        ? 'bg-white dark:bg-[#1E293B] text-black dark:text-[#F8FAFC] shadow'
-                        : 'text-gray-600 dark:text-[#94A3B8] hover:text-black dark:hover:text-[#F8FAFC]'
+                        ? 'bg-white text-black shadow'
+                        : 'text-gray-600 hover:text-black'
                         }`}
                     >
                       <Smartphone className="w-4 h-4" />
@@ -340,7 +340,7 @@ const LoginPage = () => {
                   <form onSubmit={loginMethod === 'password' ? handlePasswordLogin : handleOtpRequest} className="space-y-5">
                     {/* Email Field (Common for both methods) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Email Address
                       </label>
                       <div className="relative">
@@ -349,7 +349,7 @@ const LoginPage = () => {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300 dark:border-[#334155]'} rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
+                          className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-xl bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
                           placeholder="you@example.com"
                         />
                       </div>
@@ -361,7 +361,7 @@ const LoginPage = () => {
                     {/* Password Field (Only for password method) */}
                     {loginMethod === 'password' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-[#94A3B8] mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Password
                         </label>
                         <div className="relative">
@@ -370,7 +370,7 @@ const LoginPage = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className={`w-full pl-10 pr-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300 dark:border-[#334155]'} rounded-xl bg-white dark:bg-[#0F172A] text-gray-900 dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-[#94A3B8] focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
+                            className={`w-full pl-10 pr-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-xl bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition`}
                             placeholder="••••••••"
                           />
                         </div>
@@ -390,7 +390,7 @@ const LoginPage = () => {
                             onChange={(e) => setRememberMe(e.target.checked)}
                             className="w-4 h-4 text-[#3B82F6] border-gray-300 rounded focus:ring-[#3B82F6]"
                           />
-                          <span className="ml-2 text-sm text-gray-600 dark:text-[#94A3B8]">Remember me</span>
+                          <span className="ml-2 text-sm text-gray-600">Remember me</span>
                         </label>
                         <button
                           type="button"
@@ -409,7 +409,7 @@ const LoginPage = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full bg-black dark:bg-[#3B82F6] text-white py-3 rounded-xl hover:bg-[#2563EB] dark:hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-black text-white py-3 rounded-xl hover:bg-[#2563EB] transition flex items-center justify-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
                         <>
@@ -432,15 +432,15 @@ const LoginPage = () => {
                   </form>
 
                   {/* Security Note */}
-                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/50 flex items-start space-x-3">
+                  <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start space-x-3">
                     <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                    <p className="text-sm text-blue-800">
                       Your security is our priority. All logins are protected with enterprise-grade encryption.
                     </p>
                   </div>
 
                   {/* Signup Link for Mobile */}
-                  <p className="mt-6 text-center text-sm text-gray-600 dark:text-[#94A3B8]">
+                  <p className="mt-6 text-center text-sm text-gray-600">
                     Don't have an account?{' '}
                     <Link to="/signup" className="text-[#3B82F6] font-medium hover:underline">
                       Sign up free
@@ -460,10 +460,10 @@ const LoginPage = () => {
                 { icon: Key, text: 'Encrypted' }
               ].map((item, index) => (
                 <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-[#334155] rounded-full mb-2">
-                    <item.icon className="w-5 h-5 text-gray-600 dark:text-[#94A3B8]" />
+                  <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full mb-2">
+                    <item.icon className="w-5 h-5 text-gray-600" />
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-[#94A3B8]">{item.text}</p>
+                  <p className="text-xs text-gray-600">{item.text}</p>
                 </div>
               ))}
             </div>

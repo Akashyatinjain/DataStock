@@ -175,7 +175,7 @@ export default function PaymentSuccess() {
   const paySeo = getPageSeo("payment-success");
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative transition-colors duration-200">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4 font-['Inter'] overflow-hidden relative transition-colors duration-200">
       <SeoHead
         title={paySeo?.title || "Payment Confirmation | DataStock"}
         description={paySeo?.description || "Subscription confirmation."}
@@ -231,29 +231,29 @@ export default function PaymentSuccess() {
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F8FAFC] mb-3 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
             Payment Successful!
           </h1>
-          <p className="text-gray-600 dark:text-[#94A3B8] text-lg">
+          <p className="text-gray-600 text-lg">
             Welcome to DataStock{" "}
-            <span className="text-slate-900 dark:text-[#F8FAFC] font-semibold">{plan.name}</span>
+            <span className="text-slate-900 font-semibold">{plan.name}</span>
           </p>
         </div>
 
         <div
-          className={`bg-white/90 dark:bg-[#334155]/80 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-[#334155]/50 p-8 shadow-2xl transition-all duration-700 delay-200 ${
+          className={`bg-white/90 backdrop-blur-xl rounded-3xl border border-gray-200 p-8 shadow-2xl transition-all duration-700 delay-200 ${
             showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-[#334155]/50">
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
             <div
               className={`w-14 h-14 rounded-2xl bg-linear-to-br ${plan.color} flex items-center justify-center shadow-lg`}
             >
               <PlanIcon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-[#F8FAFC]">{plan.name} Plan</h2>
-              <p className="text-[#3B82F6] dark:text-[#3B82F6] font-semibold">
+              <h2 className="text-xl font-bold text-slate-900">{plan.name} Plan</h2>
+              <p className="text-[#3B82F6] font-semibold">
                 {plan.storage} of secure storage
               </p>
             </div>
@@ -271,7 +271,7 @@ export default function PaymentSuccess() {
                 <div className="w-6 h-6 rounded-full bg-[#3B82F6]/20 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-[#3B82F6]" />
                 </div>
-                <span className="text-gray-700 dark:text-[#94A3B8] font-medium">{feature}</span>
+                <span className="text-gray-700 font-medium">{feature}</span>
               </div>
             ))}
           </div>
@@ -279,10 +279,10 @@ export default function PaymentSuccess() {
           <div
             className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
               activationState === "active"
-                ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6] dark:text-green-200"
+                ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]"
                 : activationState === "pending"
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-100"
-                  : "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-100"
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                  : "border-sky-500/30 bg-sky-500/10 text-sky-700"
             }`}
           >
             <div className="flex items-start gap-3">
@@ -313,7 +313,7 @@ export default function PaymentSuccess() {
             </button>
             <button
               onClick={() => navigate("/pricing")}
-              className="w-full py-3 bg-gray-100 dark:bg-[#334155]/50 text-gray-700 dark:text-[#94A3B8] rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-[#334155] transition-all duration-200 border border-gray-200 dark:border-gray-600/50"
+              className="w-full py-3 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-200 border border-gray-200"
             >
               View Pricing
             </button>
@@ -321,7 +321,7 @@ export default function PaymentSuccess() {
         </div>
 
         <p
-          className={`text-center text-sm text-gray-500 dark:text-[#94A3B8] mt-6 transition-all duration-700 delay-500 ${
+          className={`text-center text-sm text-gray-500 mt-6 transition-all duration-700 delay-500 ${
             showContent ? "opacity-100" : "opacity-0"
           }`}
         >

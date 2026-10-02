@@ -73,8 +73,9 @@ export const PRIVATE_NOINDEX_ROUTES = [
   {
     id: "dashboard",
     path: "/dashboard",
-    title: "My Drive | DataStock",
-    description: "Your private DataStock drive. This page is not listed in search engines.",
+    title: "My Drive — Cloud Storage | DataStock",
+    description: "Manage, upload, organize, and share your files with 10 GB free encrypted cloud storage on DataStock.",
+    keywords: "DataStock my drive, cloud file manager, encrypted files",
   },
   {
     id: "profile",

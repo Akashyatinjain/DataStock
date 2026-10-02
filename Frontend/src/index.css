@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "./styles/scrollbar.css";
 
-@variant dark (&:where(.dark, .dark *));
-
 @theme {
   --color-ds-brand: var(--ds-brand);
   --color-ds-brand-hover: var(--ds-brand-hover);
@@ -42,48 +40,8 @@
   --color-ds-badge-financial: var(--ds-badge-financial);
 }
 
-/* DataStock Design Tokens — Light Mode (default) */
+/* DataStock Design Tokens — Light Mode Only */
 :root {
-  --ds-brand: #2563EB;
-  --ds-brand-hover: #1D4ED8;
-  --ds-brand-light: #3B82F6;
-  --ds-accent: #2563EB;
-  --ds-accent-hover: #1D4ED8;
-  --ds-accent-light: #60A5FA;
-  --ds-bg: #F8FAFC;
-  --ds-bg-secondary: #F1F5F9;
-  --ds-card: #FFFFFF;
-  --ds-border: #E2E8F0;
-  --ds-text-primary: #0F172A;
-  --ds-text-secondary: #475569;
-  --ds-text-muted: #94A3B8;
-  --ds-success: #10B981;
-  --ds-warning: #F59E0B;
-  --ds-error: #EF4444;
-  --ds-file-document: #475569;
-  --ds-file-document-bg: #F1F5F9;
-  --ds-file-spreadsheet: #475569;
-  --ds-file-spreadsheet-bg: #F1F5F9;
-  --ds-file-presentation: #475569;
-  --ds-file-presentation-bg: #F1F5F9;
-  --ds-file-media: #475569;
-  --ds-file-media-bg: #F1F5F9;
-  --ds-file-archive: #475569;
-  --ds-file-archive-bg: #F1F5F9;
-  --ds-file-audio: #475569;
-  --ds-file-audio-bg: #F1F5F9;
-  --ds-folder-1: #2563EB;
-  --ds-folder-2: #2563EB;
-  --ds-folder-3: #2563EB;
-  --ds-folder-4: #2563EB;
-  --ds-badge-positive: #10B981;
-  --ds-badge-negative: #EF4444;
-  --ds-badge-info: #2563EB;
-  --ds-badge-financial: #F59E0B;
-}
-
-/* DataStock Design Tokens — Locked to Light Mode */
-.dark {
   --ds-brand: #2563EB;
   --ds-brand-hover: #1D4ED8;
   --ds-brand-light: #3B82F6;
@@ -155,7 +113,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  @apply bg-[#f7f8fa] text-gray-900 transition-colors duration-200;
+  @apply bg-[#f7f8fa] text-gray-900;
 }
 
 img, video, iframe {
@@ -169,7 +127,7 @@ img:not([class*="rounded-full"]) {
 }
 
 /* ═══════════════════════════════════════════════
-   Keyframe Animations (Consolidated)
+   Keyframe Animations (Consolidated — no duplicates)
    ═══════════════════════════════════════════════ */
 
 @keyframes slideIn {
@@ -279,10 +237,6 @@ img:not([class*="rounded-full"]) {
   background-image: radial-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px);
   background-size: 20px 20px;
 }
-.dark .bg-dot-grid {
-  background-image: radial-gradient(rgba(248, 250, 252, 0.015) 1.2px, transparent 1.2px);
-  background-size: 20px 20px;
-}
 
 /* ═══════════════════════════════════════════════
    Accessibility: Reduced Motion
@@ -309,9 +263,6 @@ img:not([class*="rounded-full"]) {
 
 /* ═══════════════════════════════════════════════
    DOCX Paper Viewer — Scoped Light Mode Styles
-   Forces all mammoth-generated HTML to render
-   with readable dark-on-white styling, even when
-   the app is in dark mode.
    ═══════════════════════════════════════════════ */
 .docx-paper,
 .docx-paper * {

@@ -70,7 +70,7 @@ export default function ActivityLogView() {
   };
 
   return (
-    <div className="bg-white dark:bg-ds-card border border-ds-border rounded-xl p-5 shadow-xs max-w-4xl mx-auto animate-fade-up">
+    <div className="bg-white border border-ds-border rounded-xl p-5 shadow-xs max-w-4xl mx-auto animate-fade-up">
       <div className="flex items-center justify-between pb-3.5 border-b border-ds-border mb-5">
         <h2 className="text-base font-bold text-ds-text-primary flex items-center gap-2.5">
           <Activity className="w-4.5 h-4.5 text-ds-brand" />
@@ -124,13 +124,13 @@ export default function ActivityLogView() {
             return (
               <div key={act.id} className="relative group transition-all duration-200">
                 {/* Dot decoration on timeline */}
-                <div className="absolute -left-[27px] top-3 bg-white dark:bg-ds-card border-2 border-ds-border group-hover:border-ds-brand w-3 h-3 rounded-full flex items-center justify-center transition-colors">
+                <div className="absolute -left-[27px] top-3 bg-white border-2 border-ds-border group-hover:border-ds-brand w-3 h-3 rounded-full flex items-center justify-center transition-colors">
                   <span className="w-1 h-1 bg-ds-text-muted group-hover:bg-ds-brand rounded-full transition-colors" />
                 </div>
 
-                <div className="flex items-start justify-between gap-4 p-3 rounded-lg border border-ds-border bg-ds-bg-secondary/50 dark:bg-ds-bg-secondary/30 hover:bg-white dark:hover:bg-ds-bg-secondary hover:shadow-xs transition duration-150">
+                <div className="flex items-start justify-between gap-4 p-3 rounded-lg border border-ds-border bg-ds-bg-secondary/50 hover:bg-white hover:shadow-xs transition duration-150">
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-ds-card border border-ds-border flex items-center justify-center shrink-0 shadow-3xs">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-ds-border flex items-center justify-center shrink-0 shadow-3xs">
                       {getActivityIcon(act.message)}
                     </div>
                     <div className="min-w-0">
@@ -153,7 +153,7 @@ export default function ActivityLogView() {
                         {act.folderName && (
                           <>
                             <span>•</span>
-                            <span className="text-[#2563EB] dark:text-blue-400 font-medium">Folder: {act.folderName}</span>
+                            <span className="text-[#2563EB] font-medium">Folder: {act.folderName}</span>
                           </>
                         )}
                       </div>

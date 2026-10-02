@@ -29,9 +29,9 @@ const SystemStatusModal = ({
 
       <div className="bg-white border border-gray-200 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col h-[500px]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#334155]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
-            <h3 className="text-base font-extrabold text-gray-900 dark:text-[#F8FAFC]">
+            <h3 className="text-base font-extrabold text-gray-900">
               System Service Verifier
             </h3>
             <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -40,22 +40,22 @@ const SystemStatusModal = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-full transition text-gray-400 hover:text-gray-600"
+            className="p-2 hover:bg-gray-100 rounded-full transition text-gray-400 hover:text-gray-600"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selector bar */}
-        <div className="flex border-b border-gray-50 dark:border-[#334155] bg-gray-50/50 dark:bg-slate-800/20 px-4 py-1.5 overflow-x-auto gap-1">
+        <div className="flex border-b border-gray-50 bg-gray-50/50 px-4 py-1.5 overflow-x-auto gap-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setSelectedTab(tab.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-white dark:bg-[#334155] text-[#3B82F6] dark:text-white shadow-xs border border-gray-100 dark:border-slate-700'
-                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                  ? 'bg-white text-[#3B82F6] shadow-xs border border-gray-100'
+                  : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {tab.label}
@@ -64,11 +64,11 @@ const SystemStatusModal = ({
         </div>
 
         {/* Tab content panel */}
-        <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-[#1E293B]">
+        <div className="flex-1 overflow-y-auto p-6 bg-white">
           {activeTab === 'vault' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-[#F8FAFC]">
+                <h4 className="text-sm font-bold text-gray-800">
                   Zero-Knowledge Cryptography Vault
                 </h4>
                 <p className="text-xs text-gray-400 font-semibold mt-1">
@@ -77,7 +77,7 @@ const SystemStatusModal = ({
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
+              <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Vault Configuration:</span>
                   <span
@@ -120,35 +120,35 @@ const SystemStatusModal = ({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-[#334155] text-left">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-left">
                     <p className="text-gray-400 font-bold mb-1">
                       Local Sandbox Encryption
                     </p>
-                    <p className="font-extrabold text-gray-900 dark:text-[#F8FAFC]">
+                    <p className="font-extrabold text-gray-900">
                       Active & Verified
                     </p>
                   </div>
-                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-[#334155] text-left">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-left">
                     <p className="text-gray-400 font-bold mb-1">
                       Key Exchange Pipeline
                     </p>
-                    <p className="font-extrabold text-gray-900 dark:text-[#F8FAFC]">
+                    <p className="font-extrabold text-gray-900">
                       Secure (RSA-OAEP)
                     </p>
                   </div>
-                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-[#334155] text-left">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-left">
                     <p className="text-gray-400 font-bold mb-1">
                       Database Visibility
                     </p>
-                    <p className="font-extrabold text-gray-900 dark:text-[#F8FAFC]">
+                    <p className="font-extrabold text-gray-900">
                       Zero (Encrypted Payload)
                     </p>
                   </div>
-                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-gray-100 dark:border-[#334155] text-left">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-left">
                     <p className="text-gray-400 font-bold mb-1">
                       Passphrase Entropy
                     </p>
-                    <p className="font-extrabold text-gray-900 dark:text-[#F8FAFC]">
+                    <p className="font-extrabold text-gray-900">
                       Client-side Only
                     </p>
                   </div>
@@ -160,7 +160,7 @@ const SystemStatusModal = ({
           {activeTab === 'ocr' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-[#F8FAFC]">
+                <h4 className="text-sm font-bold text-gray-800">
                   OCR Parsing Engine
                 </h4>
                 <p className="text-xs text-gray-400 font-semibold mt-1">
@@ -170,7 +170,7 @@ const SystemStatusModal = ({
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
+              <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-400">OCR Parser Status:</span>
                   <span className="text-emerald-500">Enabled</span>
@@ -196,20 +196,20 @@ const SystemStatusModal = ({
                     Image Text Extraction Logs
                   </span>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-150 dark:border-[#334155] space-y-3 text-xs text-left">
-                  <div className="flex justify-between border-b border-gray-100 dark:border-[#334155]/60 pb-2">
+                <div className="bg-white p-4 rounded-xl border border-gray-150 space-y-3 text-xs text-left">
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500 font-semibold">
                       Active Workers
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       4 instances
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-[#334155]/60 pb-2">
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500 font-semibold">
                       OCR Processing Latency
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       120 ms / page
                     </span>
                   </div>
@@ -217,7 +217,7 @@ const SystemStatusModal = ({
                     <span className="text-gray-500 font-semibold">
                       Supported formats
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       PNG, JPG, TIFF, PDF
                     </span>
                   </div>
@@ -229,7 +229,7 @@ const SystemStatusModal = ({
           {activeTab === 'versioning' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-[#F8FAFC]">
+                <h4 className="text-sm font-bold text-gray-800">
                   Smart Versioning Engine
                 </h4>
                 <p className="text-xs text-gray-400 font-semibold mt-1">
@@ -239,7 +239,7 @@ const SystemStatusModal = ({
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
+              <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Versioning Status:</span>
                   <span className="text-emerald-500">Active</span>
@@ -268,19 +268,19 @@ const SystemStatusModal = ({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs text-left">
-                  <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-100 dark:border-[#334155]/80">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100">
                     <span className="text-gray-400 font-bold block mb-1">
                       Versioning Retention
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       5 previous versions
                     </span>
                   </div>
-                  <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-100 dark:border-[#334155]/80">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100">
                     <span className="text-gray-400 font-bold block mb-1">
                       File Deduplication
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       Block SHA-256 Hashing
                     </span>
                   </div>
@@ -292,7 +292,7 @@ const SystemStatusModal = ({
           {activeTab === 'indexing' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-[#F8FAFC]">
+                <h4 className="text-sm font-bold text-gray-800">
                   Full-Text Search Indexing
                 </h4>
                 <p className="text-xs text-gray-400 font-semibold mt-1">
@@ -302,7 +302,7 @@ const SystemStatusModal = ({
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
+              <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Search Index Status:</span>
                   <span className="text-[#3B82F6]">Optimized</span>
@@ -328,20 +328,20 @@ const SystemStatusModal = ({
                     Indexing Parameters
                   </span>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-150 dark:border-[#334155] space-y-3 text-xs text-left">
-                  <div className="flex justify-between border-b border-gray-100 dark:border-[#334155]/60 pb-2">
+                <div className="bg-white p-4 rounded-xl border border-gray-150 space-y-3 text-xs text-left">
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500 font-semibold">
                       Parser Algorithm
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       Lowercase Tokenizer
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-gray-100 dark:border-[#334155]/60 pb-2">
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500 font-semibold">
                       Search Coverage
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       Metadata + OCR Contents
                     </span>
                   </div>
@@ -349,7 +349,7 @@ const SystemStatusModal = ({
                     <span className="text-gray-500 font-semibold">
                       Query Resolution Mode
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       Client-side Substring Matcher
                     </span>
                   </div>
@@ -361,7 +361,7 @@ const SystemStatusModal = ({
           {activeTab === 'collab' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-[#F8FAFC]">
+                <h4 className="text-sm font-bold text-gray-800">
                   Live Collaboration Sync
                 </h4>
                 <p className="text-xs text-gray-400 font-semibold mt-1">
@@ -370,7 +370,7 @@ const SystemStatusModal = ({
                 </p>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-gray-100 dark:border-[#334155]/60 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
+              <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 space-y-2.5 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-400">WebSocket Tunnel:</span>
                   <span className="text-emerald-500 font-mono text-[10px]">
@@ -397,19 +397,19 @@ const SystemStatusModal = ({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs text-left">
-                  <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-100 dark:border-[#334155]/80">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100">
                     <span className="text-gray-400 font-bold block mb-1">
                       Tunnel Latency
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       24 ms (active)
                     </span>
                   </div>
-                  <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-100 dark:border-[#334155]/80">
+                  <div className="bg-white p-3.5 rounded-xl border border-gray-100">
                     <span className="text-gray-400 font-bold block mb-1">
                       Realtime Pipeline
                     </span>
-                    <span className="font-extrabold text-gray-900 dark:text-white">
+                    <span className="font-extrabold text-gray-900">
                       JSON Sync Frames
                     </span>
                   </div>

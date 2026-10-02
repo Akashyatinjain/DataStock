@@ -44,9 +44,9 @@ const CommandPaletteModal = ({
             placeholder="Search files or type a command... (Esc to exit)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent border-0 text-sm text-gray-800 dark:text-[#F8FAFC] placeholder-gray-400 focus:ring-0 focus:outline-none"
+            className="w-full bg-transparent border-0 text-sm text-gray-800 placeholder-gray-400 focus:ring-0 focus:outline-none"
           />
-          <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[10px] font-bold shadow-xs">
+          <kbd className="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-[10px] font-bold shadow-xs">
             ESC
           </kbd>
         </div>
@@ -55,7 +55,7 @@ const CommandPaletteModal = ({
         <div className="max-h-72 overflow-y-auto p-2">
           {filtered.length > 0 && (
             <div className="mb-3.5">
-              <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-2">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">
                 Files
               </p>
               <div className="space-y-1">
@@ -66,7 +66,7 @@ const CommandPaletteModal = ({
                       onPreview(file);
                       onClose();
                     }}
-                    className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                    className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-blue-50 rounded-xl transition flex items-center justify-between"
                   >
                     <span className="truncate">📄 {file.originalName}</span>
                     <span className="text-[10px] text-gray-400 shrink-0">
@@ -80,7 +80,7 @@ const CommandPaletteModal = ({
 
           {/* Quick Actions */}
           <div>
-            <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-2">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">
               Quick Actions & Commands
             </p>
             <div className="space-y-1">
@@ -89,10 +89,10 @@ const CommandPaletteModal = ({
                   onTabChange('my-drive');
                   onClose();
                 }}
-                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-blue-50 rounded-xl transition flex items-center justify-between"
               >
                 <span>📁 Go to My Drive</span>
-                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">
+                <kbd className="px-1.5 py-0.5 bg-gray-50 text-gray-400 rounded text-[9px] font-extrabold shadow-3xs">
                   G D
                 </kbd>
               </button>
@@ -101,10 +101,10 @@ const CommandPaletteModal = ({
                   onTabChange('starred');
                   onClose();
                 }}
-                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-blue-50 rounded-xl transition flex items-center justify-between"
               >
                 <span>⭐ Go to Starred Items</span>
-                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">
+                <kbd className="px-1.5 py-0.5 bg-gray-50 text-gray-400 rounded text-[9px] font-extrabold shadow-3xs">
                   G S
                 </kbd>
               </button>
@@ -115,12 +115,12 @@ const CommandPaletteModal = ({
                     else onUnlock();
                     onClose();
                   }}
-                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                  className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-blue-50 rounded-xl transition flex items-center justify-between"
                 >
                   <span>
                     🔒 {isUnlocked ? 'Lock E2EE Vault' : 'Unlock E2EE Vault'}
                   </span>
-                  <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">
+                  <kbd className="px-1.5 py-0.5 bg-gray-50 text-gray-400 rounded text-[9px] font-extrabold shadow-3xs">
                     L V
                   </kbd>
                 </button>
@@ -130,10 +130,10 @@ const CommandPaletteModal = ({
                   onTabChange('trash');
                   onClose();
                 }}
-                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-[#D1D5DB] hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition flex items-center justify-between"
+                className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-blue-50 rounded-xl transition flex items-center justify-between"
               >
                 <span>🗑️ Go to Trash</span>
-                <kbd className="px-1.5 py-0.5 bg-gray-50 dark:bg-slate-700 text-gray-400 dark:text-[#94A3B8] rounded text-[9px] font-extrabold shadow-3xs">
+                <kbd className="px-1.5 py-0.5 bg-gray-50 text-gray-400 rounded text-[9px] font-extrabold shadow-3xs">
                   G T
                 </kbd>
               </button>

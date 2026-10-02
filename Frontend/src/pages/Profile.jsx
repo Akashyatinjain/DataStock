@@ -308,7 +308,7 @@ export default function ProfilePage() {
   const profileSeo = getPageSeo("profile");
 
   return (
-    <div className="h-full overflow-y-auto bg-linear-to-br from-gray-50 to-green-50 dark:from-slate-950 dark:to-slate-900 transition-colors duration-200">
+    <div className="h-full overflow-y-auto bg-linear-to-br from-gray-50 to-green-50 transition-colors duration-200">
       <SeoHead
         title={profileSeo?.title || "Account Settings | DataStock"}
         description={profileSeo?.description || "Manage your DataStock profile and settings."}
@@ -341,13 +341,13 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0">
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-2 text-gray-600 dark:text-[#94A3B8] hover:text-[#3B82F6] transition-colors mb-4 group"
+              className="flex items-center gap-2 text-gray-600 hover:text-[#3B82F6] transition-colors mb-4 group"
             >
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back to Dashboard</span>
             </button>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-[#F8FAFC]">My Profile</h1>
-            <p className="text-gray-500 dark:text-[#94A3B8] mt-1">Manage your account settings and preferences</p>
+            <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
+            <p className="text-gray-500 mt-1">Manage your account settings and preferences</p>
           </div>
           <div className="self-end sm:self-start shrink-0">
             <ThemeToggle />
@@ -355,14 +355,14 @@ export default function ProfilePage() {
         </div>
 
         {/*  MAIN PROFILE CARD  */}
-        <div className="bg-white/90 dark:bg-[#1E293B]/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-5 sm:p-8 transition-colors duration-200">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-5 sm:p-8 transition-colors duration-200">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-center lg:items-start">
             {/* ---------- Avatar Section ---------- */}
             <div className="flex flex-col items-center shrink-0">
               <div className="relative group/avatar">
                 {/* Avatar Outer Ring & Frame */}
                 <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 shadow-xl">
-                  <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-[#1E293B] bg-slate-100 dark:bg-slate-800 relative">
+                  <div className="w-full h-full rounded-full overflow-hidden border-4 border-white bg-slate-100 relative">
                     {user?.imageUrl ? (
                       <img
                         src={user.imageUrl}
@@ -394,7 +394,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 z-10 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-[#1E293B] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 z-10 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center shadow-lg ring-4 ring-white transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Upload new photo"
                 >
                   {uploading ? (
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={handleDeleteImage}
                     disabled={deletingImage}
-                    className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md ring-3 ring-white dark:ring-[#1E293B] transition-all duration-200 cursor-pointer disabled:opacity-50"
+                    className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md ring-3 ring-white transition-all duration-200 cursor-pointer disabled:opacity-50"
                     title="Remove picture"
                   >
                     {deletingImage ? (
@@ -432,7 +432,7 @@ export default function ProfilePage() {
 
               {/* Helper text & Remove link */}
               <div className="mt-3 text-center">
-                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                <p className="text-[11px] font-medium text-slate-400">
                   JPG, PNG or WEBP (Max 5MB)
                 </p>
                 {user?.imageUrl && (
@@ -440,7 +440,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={handleDeleteImage}
                     disabled={deletingImage}
-                    className="mt-1 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 dark:text-rose-400 font-medium hover:underline cursor-pointer"
+                    className="mt-1 inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 font-medium hover:underline cursor-pointer"
                   >
                     <Trash2 size={12} />
                     <span>Remove avatar</span>
@@ -452,16 +452,16 @@ export default function ProfilePage() {
             {/* ---------- Profile Info ---------- */}
             <div className="flex-1 w-full">
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC]">Profile Information</h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 shadow-xs">
+                <h2 className="text-2xl font-bold text-gray-800">Profile Information</h2>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   Active
                 </span>
                 {user?.subscriptionPlan && user.subscriptionPlan !== 'BASIC' && (
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-xs ${
                     user.subscriptionPlan === 'PRO'
-                      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
-                      : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-purple-50 text-purple-700 border-purple-200'
                   }`}>
                     <Star size={12} className="fill-current" />
                     {user.subscriptionPlan} Plan
@@ -471,7 +471,7 @@ export default function ProfilePage() {
 
               {/* Username edit row */}
               <div className="mb-6">
-                <label className="text-sm text-gray-500 dark:text-[#94A3B8] font-medium block mb-2">
+                <label className="text-sm text-gray-500 font-medium block mb-2">
                   Username
                 </label>
                 <div className="flex gap-3">
@@ -484,7 +484,7 @@ export default function ProfilePage() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full h-12 rounded-xl border border-gray-200 dark:border-[#334155] pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-[#334155] dark:text-[#F8FAFC]"
+                      className="w-full h-12 rounded-xl border border-gray-200 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
                       placeholder="Enter username"
                     />
                   </div>
@@ -508,47 +508,47 @@ export default function ProfilePage() {
               {/* Info cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Email */}
-                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition relative group/card">
+                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition relative group/card">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-blue-100 dark:bg-blue-950/30 p-2 rounded-lg shrink-0">
-                      <Mail className="text-blue-600 dark:text-blue-400" size={16} />
+                    <div className="bg-blue-100 p-2 rounded-lg shrink-0">
+                      <Mail className="text-blue-600" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Email</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm break-all">
+                  <p className="font-semibold text-gray-800 text-sm break-all">
                     {user?.email}
                   </p>
                   <button
                     onClick={copyEmail}
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white dark:bg-[#334155] shadow opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition duration-200"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white shadow opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition duration-200"
                     title="Copy email"
                   >
-                    <Copy size={14} className="text-gray-500 dark:text-[#94A3B8]" />
+                    <Copy size={14} className="text-gray-500" />
                   </button>
                 </div>
 
                 {/* Storage */}
-                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-blue-100 dark:bg-[#3B82F6]/10 p-2 rounded-lg shrink-0">
-                      <HardDrive className="text-[#3B82F6] dark:text-[#3B82F6]" size={16} />
+                    <div className="bg-blue-100 p-2 rounded-lg shrink-0">
+                      <HardDrive className="text-[#3B82F6]" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Storage Used</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm">
+                  <p className="font-semibold text-gray-800 text-sm">
                     {formatStorage(user?.storageUsed)}
                   </p>
                 </div>
 
                 {/* Member Since */}
-                <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 hover:shadow-md transition">
+                <div className="bg-gray-50 rounded-xl p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-purple-100 dark:bg-purple-950/30 p-2 rounded-lg shrink-0">
-                      <Calendar className="text-purple-600 dark:text-purple-400" size={16} />
+                    <div className="bg-purple-100 p-2 rounded-lg shrink-0">
+                      <Calendar className="text-purple-600" size={16} />
                     </div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
                   </div>
-                  <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] text-sm">
+                  <p className="font-semibold text-gray-800 text-sm">
                     {user?.createdAt
                       ? new Date(user.createdAt).toLocaleDateString("en-US", {
                           month: "long",
@@ -565,18 +565,18 @@ export default function ProfilePage() {
         {/*  STORAGE & STATS SECTION  */}
         <div className="mt-6 grid md:grid-cols-2 gap-6">
           {/* Storage Overview */}
-          <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 transition-colors duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <BarChart3 size={20} className="text-[#3B82F6]" />
                 Storage Overview
               </h3>
-              <span className="text-xs text-[#3B82F6] dark:text-[#3B82F6] font-semibold bg-blue-50 dark:bg-[#3B82F6]/10 px-3 py-1 rounded-full">
+              <span className="text-xs text-[#3B82F6] font-semibold bg-blue-50 px-3 py-1 rounded-full">
                 Mini Drive
               </span>
             </div>
 
-            <div className="w-full h-4 bg-gray-100 dark:bg-[#334155] rounded-full overflow-hidden shadow-inner">
+            <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner">
               <div
                 className="h-full bg-linear-to-r from-green-400 to-green-600 rounded-full transition-all duration-700 ease-out"
                 style={{
@@ -589,10 +589,10 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex justify-between mt-3 text-sm">
-              <span className="text-gray-600 dark:text-[#94A3B8] font-medium">
+              <span className="text-gray-600 font-medium">
                 {formatStorage(user?.storageUsed)} used
               </span>
-              <span className="text-gray-400 dark:text-[#94A3B8]">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
+              <span className="text-gray-400">{formatStorage(Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)} Total</span>
             </div>
 
             {((user?.storageUsed || 0) / (Number(user?.storageLimit) || 10 * 1024 * 1024 * 1024)) * 100 > 85 && (
@@ -606,60 +606,60 @@ export default function ProfilePage() {
           </div>
 
           {/* Quick Stats (requires optional backend route) */}
-          <div className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC] flex items-center gap-2 mb-4">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 transition-colors duration-200">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
               <Folder size={20} className="text-[#3B82F6]" />
               Quick Stats
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 text-center">
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
                 <FileText size={24} className="mx-auto text-blue-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.files}</p>
-                <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Files</p>
+                <p className="text-2xl font-bold text-gray-800">{stats.files}</p>
+                <p className="text-xs text-gray-500">Files</p>
               </div>
-              <div className="bg-gray-50 dark:bg-[#334155] rounded-xl p-4 text-center">
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
                 <Folder size={24} className="mx-auto text-yellow-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-800 dark:text-[#F8FAFC] dark:text-[#F8FAFC]">{stats.folders}</p>
-                <p className="text-xs text-gray-500 dark:text-[#94A3B8]">Folders</p>
+                <p className="text-2xl font-bold text-gray-800">{stats.folders}</p>
+                <p className="text-xs text-gray-500">Folders</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* E2EE SECURITY CENTER CARD */}
-        <div className="mt-6 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-[#334155] p-6 transition-colors duration-200">
+        <div className="mt-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 transition-colors duration-200">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`p-3 rounded-xl shrink-0 ${isE2eeSetup ? (isE2eeUnlocked ? 'bg-green-100 dark:bg-green-950/30' : 'bg-amber-100 dark:bg-amber-950/30') : 'bg-gray-100 dark:bg-gray-800'}`}>
+            <div className={`p-3 rounded-xl shrink-0 ${isE2eeSetup ? (isE2eeUnlocked ? 'bg-green-100' : 'bg-amber-100') : 'bg-gray-100'}`}>
               {isE2eeSetup ? (
                 isE2eeUnlocked ? (
-                  <ShieldCheck className="text-green-600 dark:text-green-400" size={24} />
+                  <ShieldCheck className="text-green-600" size={24} />
                 ) : (
-                  <Lock className="text-amber-600 dark:text-amber-400" size={24} />
+                  <Lock className="text-amber-600" size={24} />
                 )
               ) : (
-                <ShieldAlert className="text-gray-500 dark:text-[#94A3B8]" size={24} />
+                <ShieldAlert className="text-gray-500" size={24} />
               )}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-800 dark:text-[#F8FAFC]">
+              <h3 className="text-lg font-bold text-gray-800">
                 End-to-End Encryption Security Center
               </h3>
-              <p className="text-xs text-gray-500 dark:text-[#94A3B8]">
+              <p className="text-xs text-gray-500">
                 Keep your private files safe with client-side zero-knowledge encryption.
               </p>
             </div>
           </div>
 
           {cryptoSuccess && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-400 text-sm animate-slide-down">
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm animate-slide-down">
               <CheckCircle size={16} />
               <span>{cryptoSuccess}</span>
             </div>
           )}
 
           {cryptoErr && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-400 text-sm animate-slide-down">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-slide-down">
               <AlertCircle size={16} />
               <span>{cryptoErr}</span>
             </div>
@@ -668,7 +668,7 @@ export default function ProfilePage() {
           {/* Setup, Lock, or Unlock UI */}
           {!isE2eeSetup ? (
             <form onSubmit={handleSetupE2ee} className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
+              <p className="text-sm text-gray-600">
                 Set up a secure E2EE passphrase. Your files will be encrypted in your browser using AES-256 before upload. 
                 <strong> Warning:</strong> We do not store your passphrase on the server. If lost, your encrypted files cannot be recovered.
               </p>
@@ -680,12 +680,12 @@ export default function ProfilePage() {
                     placeholder="Enter Passphrase"
                     value={passphrase}
                     onChange={(e) => setPassphrase(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-2.5 text-gray-400 dark:text-[#94A3B8] hover:text-gray-600"
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -696,7 +696,7 @@ export default function ProfilePage() {
                   placeholder="Confirm Passphrase"
                   value={confirmPassphrase}
                   onChange={(e) => setConfirmPassphrase(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
                 />
               </div>
 
@@ -718,13 +718,13 @@ export default function ProfilePage() {
             </form>
           ) : isE2eeUnlocked ? (
             <div className="space-y-4">
-              <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl flex items-center gap-3">
-                <ShieldCheck className="text-green-600 dark:text-green-400 shrink-0" size={20} />
+              <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
+                <ShieldCheck className="text-green-600 shrink-0" size={20} />
                 <div className="text-sm">
-                  <p className="font-semibold text-green-800 dark:text-green-400">
+                  <p className="font-semibold text-green-800">
                     E2EE Safe Storage is Unlocked
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-500">
+                  <p className="text-xs text-green-700">
                     Your master key is in-memory. You can upload and decrypt your secure files.
                   </p>
                 </div>
@@ -740,7 +740,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <form onSubmit={handleUnlockE2ee} className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-[#94A3B8]">
+              <p className="text-sm text-gray-600">
                 End-to-End Encryption is active, but your secure vault is currently locked. Enter your passphrase to decrypt your files and upload new ones.
               </p>
               
@@ -751,12 +751,12 @@ export default function ProfilePage() {
                     placeholder="Enter Passphrase"
                     value={passphrase}
                     onChange={(e) => setPassphrase(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-[#F8FAFC] rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2 text-sm focus:outline-[#3B82F6] transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-2.5 text-gray-400 dark:text-[#94A3B8] hover:text-gray-600"
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -783,43 +783,43 @@ export default function ProfilePage() {
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           <button 
             onClick={() => navigate('/pricing')}
-            className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
-            <div className="p-2 bg-purple-100 dark:bg-purple-950/30 rounded-xl shrink-0">
-              <Star size={20} className="text-purple-600 dark:text-purple-400" />
+            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+            <div className="p-2 bg-purple-100 rounded-xl shrink-0">
+              <Star size={20} className="text-purple-600" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">
+              <p className="font-semibold text-gray-800 group-hover:text-[#3B82F6] transition truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Upgrade to Pro' : 'Manage Plan'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">
+              <p className="text-xs text-gray-500 truncate">
                 {user?.subscriptionPlan === 'BASIC' ? 'Get 2TB & premium support' : `Current: ${user?.subscriptionPlan || 'BASIC'} plan`}
               </p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <button className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
-            <div className="p-2 bg-pink-100 dark:bg-pink-950/30 rounded-xl shrink-0">
-              <Gift size={20} className="text-pink-600 dark:text-pink-400" />
+          <button className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left">
+            <div className="p-2 bg-pink-100 rounded-xl shrink-0">
+              <Gift size={20} className="text-pink-600" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">Refer a Friend</p>
-              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">Earn extra storage</p>
+              <p className="font-semibold text-gray-800 group-hover:text-[#3B82F6] transition truncate">Refer a Friend</p>
+              <p className="text-xs text-gray-500 truncate">Earn extra storage</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <button
-            className="bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 dark:border-[#334155] shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left"
+            className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-100 shadow-xl hover:shadow-2xl transition flex items-center gap-3 group w-full text-left"
           >
-            <div className="p-2 bg-gray-200 dark:bg-[#334155] rounded-xl shrink-0">
-              <Settings size={20} className="text-gray-700 dark:text-[#94A3B8]" />
+            <div className="p-2 bg-gray-200 rounded-xl shrink-0">
+              <Settings size={20} className="text-gray-700" />
             </div>
             <div className="text-left flex-1 min-w-0">
-              <p className="font-semibold text-gray-800 dark:text-[#F8FAFC] group-hover:text-[#3B82F6] dark:group-hover:text-[#3B82F6] transition truncate">Account Settings</p>
-              <p className="text-xs text-gray-500 dark:text-[#94A3B8] truncate">Privacy, security & more</p>
+              <p className="font-semibold text-gray-800 group-hover:text-[#3B82F6] transition truncate">Account Settings</p>
+              <p className="text-xs text-gray-500 truncate">Privacy, security & more</p>
             </div>
-            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 dark:text-[#94A3B8] shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="ml-auto rotate-180 text-gray-400 shrink-0 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>

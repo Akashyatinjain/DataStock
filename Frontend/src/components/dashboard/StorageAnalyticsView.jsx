@@ -279,7 +279,7 @@ const StorageAnalyticsView = ({
   if (analyticsLoading || activityLoading) {
     return (
       <div className="space-y-6 animate-fade-up max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white dark:bg-ds-card border border-ds-border rounded-xl shadow-xs">
+        <div className="flex flex-col items-center justify-center py-28 gap-4 bg-white border border-ds-border rounded-xl shadow-xs">
           <Loader2 className="w-10 h-10 animate-spin text-ds-brand" strokeWidth={1.75} />
           <p className="text-sm text-ds-text-muted font-medium">Loading storage analytics...</p>
         </div>
@@ -300,21 +300,21 @@ const StorageAnalyticsView = ({
       <section className="grid grid-cols-1 xl:grid-cols-[1.35fr_0.65fr] gap-6 items-stretch">
         
         {/* Large Hero Card */}
-        <div className="relative overflow-hidden bg-white dark:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] rounded-xl p-6 md:p-8 shadow-xs border border-[#E2E8F0] dark:border-slate-800 flex flex-col justify-between group">
+        <div className="relative overflow-hidden bg-white text-[#0F172A] rounded-xl p-6 md:p-8 shadow-xs border border-[#E2E8F0] flex flex-col justify-between group">
           
           <div className="flex flex-col sm:flex-row items-center justify-between gap-8 relative z-10">
             <div className="text-center sm:text-left space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-[#2563EB] dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-[#2563EB] border border-blue-100">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
                 Active Storage Index
               </span>
-              <p className="text-xs font-medium text-[#64748B] dark:text-slate-400 tracking-wide uppercase">Available Storage</p>
+              <p className="text-xs font-medium text-[#64748B] tracking-wide uppercase">Available Storage</p>
               
               {/* Massive Hero Stat */}
-              <h1 className="text-4xl sm:text-5xl font-bold text-[#0F172A] dark:text-white tracking-tight leading-none pt-1 tabular-nums">
+              <h1 className="text-4xl sm:text-5xl font-bold text-[#0F172A] tracking-tight leading-none pt-1 tabular-nums">
                 {formatFileSize(analyticsRemaining)}
               </h1>
-              <p className="text-xs text-[#64748B] dark:text-slate-400 font-normal">
+              <p className="text-xs text-[#64748B] font-normal">
                 Available for secure file uploads and sync
               </p>
             </div>
@@ -328,7 +328,7 @@ const StorageAnalyticsView = ({
                   cy="80"
                   r={r}
                   fill="transparent"
-                  className="stroke-slate-100 dark:stroke-slate-800"
+                  className="stroke-slate-100"
                   strokeWidth="8"
                 />
                 {/* Outlined indicator circle */}
@@ -346,25 +346,25 @@ const StorageAnalyticsView = ({
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-[#0F172A] dark:text-white leading-none tracking-tight">
+                <span className="text-2xl font-bold text-[#0F172A] leading-none tracking-tight">
                   {animatedPercent.toFixed(0)}%
                 </span>
-                <span className="text-[10px] font-medium text-[#64748B] dark:text-slate-400 uppercase tracking-wider mt-1">Used Space</span>
+                <span className="text-[10px] font-medium text-[#64748B] uppercase tracking-wider mt-1">Used Space</span>
               </div>
             </div>
           </div>
 
           {/* Breakdown progress bar */}
-          <div className="mt-6 pt-5 border-t border-[#E2E8F0] dark:border-slate-800 relative z-10">
-            <div className="flex justify-between items-center mb-2 text-xs font-medium text-[#64748B] dark:text-slate-400">
+          <div className="mt-6 pt-5 border-t border-[#E2E8F0] relative z-10">
+            <div className="flex justify-between items-center mb-2 text-xs font-medium text-[#64748B]">
               <span>Drive Allocation</span>
-              <span className="font-mono text-[#0F172A] dark:text-slate-200">
+              <span className="font-mono text-[#0F172A]">
                 {formatFileSize(analyticsUsed)} / {formatFileSize(analyticsLimit)} Total
               </span>
             </div>
             
             {/* Smooth Fill Progress bar */}
-            <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
               {analyticsCategories.map((category) => {
                 const width = getPercent(category.size, analyticsActiveSize || 1);
                 return (
@@ -382,7 +382,7 @@ const StorageAnalyticsView = ({
               {analyticsCategories.map((category) => {
                 const width = getPercent(category.size, analyticsActiveSize || 1);
                 return (
-                  <span key={category.key} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#64748B] dark:text-slate-400">
+                  <span key={category.key} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#64748B]">
                     <span className={`w-2 h-2 rounded-full ${category.bar}`} />
                     {category.label} ({width.toFixed(0)}%)
                   </span>
@@ -393,12 +393,12 @@ const StorageAnalyticsView = ({
         </div>
 
         {/* Dynamic SVG Donut Chart */}
-        <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
           
           {isVaultLocked && (
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center border border-white/20 dark:border-slate-800">
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center border border-white/20">
               <VaultDial />
-              <h4 className="text-xs font-black text-gray-800 dark:text-white uppercase tracking-wider">Distribution Locked</h4>
+              <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Distribution Locked</h4>
               <p className="text-[10px] text-gray-400 max-w-xs mt-1 font-semibold leading-relaxed">
                 Unlock vault to decrypt format metrics.
               </p>
@@ -406,7 +406,7 @@ const StorageAnalyticsView = ({
           )}
 
           <div>
-            <h3 className="font-extrabold text-xs text-gray-400 dark:text-slate-500 tracking-wider uppercase flex items-center gap-2">
+            <h3 className="font-extrabold text-xs text-gray-400 tracking-wider uppercase flex items-center gap-2">
               <PieChart className="w-4 h-4 text-[#3B82F6] stroke-[1.75]" />
               Format Distribution
             </h3>
@@ -414,7 +414,7 @@ const StorageAnalyticsView = ({
             {/* Interactive SVG Donut Grid */}
             <div className="flex items-center justify-center py-4 relative">
               <svg className="w-36 h-36" viewBox="0 0 160 160">
-                <circle cx="80" cy="80" r="50" fill="transparent" stroke="currentColor" className="text-gray-50 dark:text-slate-800" strokeWidth="6" />
+                <circle cx="80" cy="80" r="50" fill="transparent" stroke="currentColor" className="text-gray-50" strokeWidth="6" />
                 {donutData.map((cat, idx) => (
                   <circle
                     key={cat.key}
@@ -441,7 +441,7 @@ const StorageAnalyticsView = ({
                     <span className="text-[9px] font-black uppercase text-gray-400">
                       {donutData[activeCategoryIndex].label}
                     </span>
-                    <span className="text-sm font-black text-gray-900 dark:text-white">
+                    <span className="text-sm font-black text-gray-900">
                       {donutData[activeCategoryIndex].percent.toFixed(0)}%
                     </span>
                   </>
@@ -450,7 +450,7 @@ const StorageAnalyticsView = ({
                     <span className="text-[9px] font-black uppercase text-gray-400">
                       Total files
                     </span>
-                    <span className="text-base font-black text-gray-900 dark:text-white">
+                    <span className="text-base font-black text-gray-900">
                       {analyticsFileCount}
                     </span>
                   </>
@@ -459,10 +459,10 @@ const StorageAnalyticsView = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center text-[10px] border-t border-gray-50 dark:border-slate-800/80 pt-3">
+          <div className="grid grid-cols-3 gap-2 text-center text-[10px] border-t border-gray-50 pt-3">
             <div>
               <span className="text-gray-400 block font-semibold">Active Size</span>
-              <span className="font-extrabold text-gray-800 dark:text-slate-200">{formatFileSize(analyticsActiveSize)}</span>
+              <span className="font-extrabold text-gray-800">{formatFileSize(analyticsActiveSize)}</span>
             </div>
             <div>
               <span className="text-gray-400 block font-semibold">Trash Vault</span>
@@ -481,27 +481,27 @@ const StorageAnalyticsView = ({
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Storage Tier */}
-        <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
-          <div className="flex items-center justify-between text-[#64748B] dark:text-slate-400">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
+          <div className="flex items-center justify-between text-[#64748B]">
             <span className="text-[10px] font-semibold uppercase tracking-wider">Storage Plan</span>
             <HardDrive className="w-4 h-4 text-[#64748B]" />
           </div>
           <div>
-            <p className="text-sm font-bold text-[#0F172A] dark:text-white uppercase leading-none">{analytics?.subscriptionPlan || 'FREE'}</p>
-            <span className="text-[10px] text-[#64748B] dark:text-slate-400 mt-1 block">Tier allocation</span>
+            <p className="text-sm font-bold text-[#0F172A] uppercase leading-none">{analytics?.subscriptionPlan || 'FREE'}</p>
+            <span className="text-[10px] text-[#64748B] mt-1 block">Tier allocation</span>
           </div>
         </div>
 
         {/* Card 2: Trash space */}
-        <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
-          <div className="flex items-center justify-between text-[#64748B] dark:text-slate-400">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
+          <div className="flex items-center justify-between text-[#64748B]">
             <span className="text-[10px] font-semibold uppercase tracking-wider">Trash Storage</span>
             <Trash2 className="w-4 h-4 text-[#64748B]" />
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm font-bold text-[#0F172A] dark:text-white leading-none">{formatFileSize(analyticsTrash.size)}</p>
-              <span className="text-[10px] text-[#64748B] dark:text-slate-400 mt-1 block">{analyticsTrash.count} items in trash</span>
+              <p className="text-sm font-bold text-[#0F172A] leading-none">{formatFileSize(analyticsTrash.size)}</p>
+              <span className="text-[10px] text-[#64748B] mt-1 block">{analyticsTrash.count} items in trash</span>
             </div>
             {analyticsTrash.count > 0 && (
               <button onClick={onEmptyTrash} className="text-[10px] font-medium text-red-600 hover:underline cursor-pointer">
@@ -512,38 +512,38 @@ const StorageAnalyticsView = ({
         </div>
 
         {/* Card 3: Largest category size */}
-        <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
-          <div className="flex items-center justify-between text-[#64748B] dark:text-slate-400">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
+          <div className="flex items-center justify-between text-[#64748B]">
             <span className="text-[10px] font-semibold uppercase tracking-wider">Top Format</span>
             <PieChart className="w-4 h-4 text-[#64748B]" />
           </div>
           <div>
-            <p className="text-sm font-bold text-[#0F172A] dark:text-white uppercase leading-none">{largestCategory?.label || 'Files'}</p>
-            <span className="text-[10px] text-[#64748B] dark:text-slate-400 mt-1 block">{formatFileSize(largestCategory?.size)}</span>
+            <p className="text-sm font-bold text-[#0F172A] uppercase leading-none">{largestCategory?.label || 'Files'}</p>
+            <span className="text-[10px] text-[#64748B] mt-1 block">{formatFileSize(largestCategory?.size)}</span>
           </div>
         </div>
 
         {/* Card 4: Status Indicator */}
-        <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
-          <div className="flex items-center justify-between text-[#64748B] dark:text-slate-400">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-3xs flex flex-col justify-between h-24">
+          <div className="flex items-center justify-between text-[#64748B]">
             <span className="text-[10px] font-semibold uppercase tracking-wider">Security State</span>
             <Activity className="w-4 h-4 text-[#64748B]" />
           </div>
           <div>
-            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase leading-none">Healthy</p>
-            <span className="text-[10px] text-[#64748B] dark:text-slate-400 mt-1 block">All systems operational</span>
+            <p className="text-sm font-bold text-emerald-600 uppercase leading-none">Healthy</p>
+            <span className="text-[10px] text-[#64748B] mt-1 block">All systems operational</span>
           </div>
         </div>
 
       </section>
 
       {/* ── 3. DETAILED ACTIONS SECTION: TOP 10 LARGEST FILES ── */}
-      <section className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-slate-800 rounded-xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
+      <section className="bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
         
         {isVaultLocked && (
-          <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center border border-white/20 dark:border-slate-800">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center border border-white/20">
             <VaultDial />
-            <h4 className="text-sm font-bold text-[#0F172A] dark:text-white uppercase tracking-wider">File Database Masked</h4>
+            <h4 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider">File Database Masked</h4>
             <p className="text-[11px] text-[#64748B] max-w-xs mt-1 font-normal leading-relaxed">
               Unlock E2EE secure vault to decrypt and audit file indexes.
             </p>
@@ -552,11 +552,11 @@ const StorageAnalyticsView = ({
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <div>
-            <h3 className="font-bold text-sm text-[#0F172A] dark:text-[#F8FAFC] tracking-tight flex items-center gap-2">
+            <h3 className="font-bold text-sm text-[#0F172A] tracking-tight flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-[#2563EB]" />
               Heavy Objects Audit (Top 10 Largest Items)
             </h3>
-            <p className="text-xs text-[#64748B] dark:text-slate-400 font-normal mt-0.5">
+            <p className="text-xs text-[#64748B] font-normal mt-0.5">
               Identify and manage large files in your workspace to optimize storage usage.
             </p>
           </div>
@@ -564,7 +564,7 @@ const StorageAnalyticsView = ({
           {analyticsTrash.count > 0 && (
             <button
               onClick={onEmptyTrash}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30 rounded-lg transition border border-red-200/50 dark:border-red-900/30 active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition border border-red-200/50 active:scale-95 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Empty Trash ({formatFileSize(analyticsTrash.size)})
@@ -575,7 +575,7 @@ const StorageAnalyticsView = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#E2E8F0] dark:border-slate-800 text-[10px] font-semibold text-[#64748B] dark:text-slate-400 uppercase tracking-wider">
+              <tr className="border-b border-[#E2E8F0] text-[10px] font-semibold text-[#64748B] uppercase tracking-wider">
                 <th className="py-2.5 px-3">Filename</th>
                 <th className="py-2.5 px-3">Type</th>
                 <th className="py-2.5 px-3">Size</th>
@@ -597,19 +597,19 @@ const StorageAnalyticsView = ({
                   return (
                     <tr 
                       key={file.id} 
-                      className="border-b border-[#E2E8F0] dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition text-xs font-normal text-[#0F172A] dark:text-slate-300"
+                      className="border-b border-[#E2E8F0] hover:bg-slate-50/50 transition text-xs font-normal text-[#0F172A]"
                     >
                       <td className="py-3 px-3 truncate max-w-xs flex items-center gap-2.5">
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${type.bg}`}>
                           <Icon className={`w-3.5 h-3.5 ${type.color}`} />
                         </div>
-                        <span className="font-medium truncate text-[#0F172A] dark:text-[#F8FAFC]" title={file.originalName}>
+                        <span className="font-medium truncate text-[#0F172A]" title={file.originalName}>
                           {file.originalName}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-[#64748B] dark:text-slate-400">{type.label}</td>
-                      <td className="py-3 px-3 font-mono text-[11px] font-semibold text-[#0F172A] dark:text-slate-200">{formatFileSize(file.size)}</td>
-                      <td className="py-3 px-3 text-[#64748B] dark:text-slate-400">
+                      <td className="py-3 px-3 text-[#64748B]">{type.label}</td>
+                      <td className="py-3 px-3 font-mono text-[11px] font-semibold text-[#0F172A]">{formatFileSize(file.size)}</td>
+                      <td className="py-3 px-3 text-[#64748B]">
                         {new Date(file.createdAt).toLocaleDateString('en-IN', {
                           day: '2-digit',
                           month: 'short',
@@ -620,7 +620,7 @@ const StorageAnalyticsView = ({
                         <div className="flex gap-1.5 justify-end">
                           <button
                             onClick={() => onPreview(file)}
-                            className="p-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-[#64748B] hover:text-[#2563EB] rounded-lg transition cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-blue-50 text-[#64748B] hover:text-[#2563EB] rounded-lg transition cursor-pointer"
                             title="Preview File"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -636,14 +636,14 @@ const StorageAnalyticsView = ({
                               mimeType: file.mimeType,
                               cryptoContext: { isE2eeUnlocked, privateKey },
                             })}
-                            className="p-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-[#64748B] hover:text-emerald-600 rounded-lg transition cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-emerald-50 text-[#64748B] hover:text-emerald-600 rounded-lg transition cursor-pointer"
                             title="Download File"
                           >
                             <Download className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => onDelete(file.id)}
-                            className="p-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/20 text-[#64748B] hover:text-red-600 rounded-lg transition cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-red-50 text-[#64748B] hover:text-red-600 rounded-lg transition cursor-pointer"
                             title="Delete File"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

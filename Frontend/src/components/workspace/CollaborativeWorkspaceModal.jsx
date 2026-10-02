@@ -537,66 +537,66 @@ export default function CollaborativeWorkspaceModal({
       if (escaped.trim().startsWith('- [ ]')) {
         const text = escaped.replace(/^\s*-\s*\[\s*\]\s*/, '');
         return `<div class="flex items-center gap-2.5 my-1.5 group cursor-pointer" data-task-line="${idx}">
-          <input type="checkbox" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer pointer-events-auto" data-line-index="${idx}" />
-          <span class="text-slate-700 dark:text-slate-300 text-sm">${text}</span>
+          <input type="checkbox" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer pointer-events-auto" data-line-index="${idx}" />
+          <span class="text-slate-700 text-sm">${text}</span>
         </div>`;
       }
       if (escaped.trim().startsWith('- [x]')) {
         const text = escaped.replace(/^\s*-\s*\[x\]\s*/, '');
         return `<div class="flex items-center gap-2.5 my-1.5 group cursor-pointer" data-task-line="${idx}">
-          <input type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 cursor-pointer pointer-events-auto" data-line-index="${idx}" />
-          <span class="text-slate-400 dark:text-slate-500 line-through text-sm">${text}</span>
+          <input type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer pointer-events-auto" data-line-index="${idx}" />
+          <span class="text-slate-400 line-through text-sm">${text}</span>
         </div>`;
       }
 
       // Headers
       if (escaped.startsWith('### ')) {
-        return `<h3 class="text-lg font-bold text-slate-900 dark:text-white mt-5 mb-2">${escaped.slice(4)}</h3>`;
+        return `<h3 class="text-lg font-bold text-slate-900 mt-5 mb-2">${escaped.slice(4)}</h3>`;
       }
       if (escaped.startsWith('## ')) {
-        return `<h2 class="text-xl font-bold text-slate-900 dark:text-white mt-6 mb-2.5 pb-1 border-b border-slate-100 dark:border-slate-800">${escaped.slice(3)}</h2>`;
+        return `<h2 class="text-xl font-bold text-slate-900 mt-6 mb-2.5 pb-1 border-b border-slate-100">${escaped.slice(3)}</h2>`;
       }
       if (escaped.startsWith('# ')) {
-        return `<h1 class="text-2xl font-black text-slate-900 dark:text-white mt-8 mb-3 pb-2 border-b border-slate-200 dark:border-slate-700">${escaped.slice(2)}</h1>`;
+        return `<h1 class="text-2xl font-black text-slate-900 mt-8 mb-3 pb-2 border-b border-slate-200">${escaped.slice(2)}</h1>`;
       }
 
       // Blockquotes / Callouts
       if (escaped.startsWith('> [!NOTE]')) {
-        return `<div class="p-3 my-3 bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 text-blue-900 dark:text-blue-300 rounded-r-xl text-xs sm:text-sm font-medium">💡 <strong>Note:</strong> ${escaped.slice(9)}</div>`;
+        return `<div class="p-3 my-3 bg-blue-50 border-l-4 border-blue-500 text-blue-900 rounded-r-xl text-xs sm:text-sm font-medium">💡 <strong>Note:</strong> ${escaped.slice(9)}</div>`;
       }
       if (escaped.startsWith('> [!TIP]')) {
-        return `<div class="p-3 my-3 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 text-emerald-900 dark:text-emerald-300 rounded-r-xl text-xs sm:text-sm font-medium">✨ <strong>Tip:</strong> ${escaped.slice(8)}</div>`;
+        return `<div class="p-3 my-3 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900 rounded-r-xl text-xs sm:text-sm font-medium">✨ <strong>Tip:</strong> ${escaped.slice(8)}</div>`;
       }
       if (escaped.startsWith('> [!WARNING]')) {
-        return `<div class="p-3 my-3 bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 text-amber-900 dark:text-amber-300 rounded-r-xl text-xs sm:text-sm font-medium">⚠️ <strong>Warning:</strong> ${escaped.slice(12)}</div>`;
+        return `<div class="p-3 my-3 bg-amber-50 border-l-4 border-amber-500 text-amber-900 rounded-r-xl text-xs sm:text-sm font-medium">⚠️ <strong>Warning:</strong> ${escaped.slice(12)}</div>`;
       }
       if (escaped.startsWith('> ')) {
-        return `<blockquote class="border-l-4 border-indigo-500 pl-4 py-1 my-2 text-slate-600 dark:text-slate-400 italic text-sm">${escaped.slice(2)}</blockquote>`;
+        return `<blockquote class="border-l-4 border-indigo-500 pl-4 py-1 my-2 text-slate-600 italic text-sm">${escaped.slice(2)}</blockquote>`;
       }
 
       // Horizontal Divider
       if (escaped.trim() === '---') {
-        return `<hr class="my-6 border-slate-200 dark:border-slate-800" />`;
+        return `<hr class="my-6 border-slate-200" />`;
       }
 
       // Bullet lists
       if (escaped.trim().startsWith('- ')) {
-        return `<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 text-sm my-1">${escaped.trim().slice(2)}</li>`;
+        return `<li class="ml-5 list-disc text-slate-700 text-sm my-1">${escaped.trim().slice(2)}</li>`;
       }
 
       // Inline styles: Bold, Italic, Inline Code
       let inline = escaped
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
         .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
         .replace(/~~(.*?)~~/g, '<span class="line-through text-slate-400">$1</span>')
-        .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-rose-500 dark:text-rose-400">$1</code>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noreferrer" class="text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 font-medium">$1</a>');
+        .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-xs text-rose-500">$1</code>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noreferrer" class="text-indigo-600 hover:underline inline-flex items-center gap-1 font-medium">$1</a>');
 
       if (inline.trim() === '') {
         return '<div class="h-2"></div>';
       }
 
-      return `<p class="my-1 text-slate-700 dark:text-slate-300 text-sm leading-relaxed">${inline}</p>`;
+      return `<p class="my-1 text-slate-700 text-sm leading-relaxed">${inline}</p>`;
     });
 
     return processedLines.join('');
@@ -612,11 +612,11 @@ export default function CollaborativeWorkspaceModal({
         isFullscreen ? 'p-0' : 'p-2 sm:p-4 md:p-6'
       }`}
     >
-      <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-800 w-full h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-900 dark:text-slate-100">
+      <div className="bg-white border border-slate-200 w-full h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-900">
         {/* ========================================================= */}
         {/* TOP NAVIGATION BAR (Linear / Google Docs Tier)             */}
         {/* ========================================================= */}
-        <header className="h-14 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-3 bg-white/80 dark:bg-[#0F172A]/90 backdrop-blur shrink-0">
+        <header className="h-14 border-b border-slate-200 px-4 flex items-center justify-between gap-3 bg-white/80 backdrop-blur shrink-0">
           {/* Left: File Title & Icon */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 shrink-0">
@@ -634,19 +634,19 @@ export default function CollaborativeWorkspaceModal({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') setIsRenaming(false);
                   }}
-                  className="px-2 py-0.5 text-sm font-bold bg-slate-100 dark:bg-slate-800 border border-indigo-500 rounded-md focus:outline-none"
+                  className="px-2 py-0.5 text-sm font-bold bg-slate-100 border border-indigo-500 rounded-md focus:outline-none"
                 />
               ) : (
                 <button
                   onClick={() => permission === 'EDIT' && setIsRenaming(true)}
-                  className="text-sm font-bold text-slate-900 dark:text-white truncate hover:bg-slate-100 dark:hover:bg-slate-800 px-2 py-1 rounded-md transition text-left cursor-pointer"
+                  className="text-sm font-bold text-slate-900 truncate hover:bg-slate-100 px-2 py-1 rounded-md transition text-left cursor-pointer"
                   title="Click to rename"
                 >
                   {docTitle}
                 </button>
               )}
 
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] shrink-0">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-mono text-[11px] shrink-0">
                 v{docVersion}
               </span>
 
@@ -664,12 +664,12 @@ export default function CollaborativeWorkspaceModal({
             <div
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition ${
                 syncStatus === 'SAVED'
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                   : syncStatus === 'SAVING'
-                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                  ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                   : syncStatus === 'DIRTY'
-                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                  ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                  : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
               }`}
             >
               {syncStatus === 'SAVED' && (
@@ -717,7 +717,7 @@ export default function CollaborativeWorkspaceModal({
                 title={`${currentUser?.username || 'You'} (You)`}
               >
                 {currentUser?.username?.[0]?.toUpperCase() || 'Y'}
-                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900" />
+                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white" />
               </div>
 
               {/* Remote Active Peers */}
@@ -732,7 +732,7 @@ export default function CollaborativeWorkspaceModal({
                   title={`${peer.username} (${peer.email || 'Collaborating'})`}
                 >
                   {peer.username?.[0]?.toUpperCase() || 'U'}
-                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900" />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white" />
                 </div>
               ))}
 
@@ -751,8 +751,8 @@ export default function CollaborativeWorkspaceModal({
               }}
               className={`p-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                 showVersions
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
               title="Revision History & Time Machine"
             >
@@ -768,8 +768,8 @@ export default function CollaborativeWorkspaceModal({
               }}
               className={`p-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                 showComments
-                  ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-slate-600 hover:bg-slate-100'
               }`}
               title="Threaded Document Comments"
             >
@@ -786,39 +786,39 @@ export default function CollaborativeWorkspaceModal({
             <div className="relative">
               <button
                 onClick={() => setShowExport(!showExport)}
-                className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                 title="Export Document"
               >
                 <Download className="w-4 h-4" />
               </button>
 
               {showExport && (
-                <div className="absolute right-0 top-11 z-[140] w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 animate-fade-in text-xs">
+                <div className="absolute right-0 top-11 z-[140] w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 animate-fade-in text-xs">
                   <button
                     onClick={() => exportAsFile('md')}
-                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                   >
                     <FileDown className="w-3.5 h-3.5 text-indigo-500" />
                     Download Markdown (.md)
                   </button>
                   <button
                     onClick={() => exportAsFile('txt')}
-                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5 text-blue-500" />
                     Download Plain Text (.txt)
                   </button>
                   <button
                     onClick={() => exportAsFile('html')}
-                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                   >
                     <Code className="w-3.5 h-3.5 text-emerald-500" />
                     Export Formatted HTML (.html)
                   </button>
-                  <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                  <div className="border-t border-slate-100 my-1" />
                   <button
                     onClick={handlePrint}
-                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5 text-purple-500" />
                     Print / Save as PDF
@@ -830,7 +830,7 @@ export default function CollaborativeWorkspaceModal({
             {/* Fullscreen Toggle */}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -839,7 +839,7 @@ export default function CollaborativeWorkspaceModal({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               title="Close Workspace"
             >
               <X className="w-5 h-5" />
@@ -850,14 +850,14 @@ export default function CollaborativeWorkspaceModal({
         {/* ========================================================= */}
         {/* FORMATTING & PRODUCTIVITY TOOLBAR                         */}
         {/* ========================================================= */}
-        <div className="h-11 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between gap-2 bg-slate-50/70 dark:bg-[#0B1120] text-slate-600 dark:text-slate-300 text-xs shrink-0 overflow-x-auto">
+        <div className="h-11 border-b border-slate-200 px-4 flex items-center justify-between gap-2 bg-slate-50/70 text-slate-600 text-xs shrink-0 overflow-x-auto">
           {/* Left: Typography & Formatting Tools */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('# ')}
-              className="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 font-bold transition cursor-pointer disabled:opacity-30"
+              className="px-2 py-1 rounded hover:bg-slate-200 font-bold transition cursor-pointer disabled:opacity-30"
               title="Heading 1"
             >
               H1
@@ -866,7 +866,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('## ')}
-              className="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 font-bold transition cursor-pointer disabled:opacity-30"
+              className="px-2 py-1 rounded hover:bg-slate-200 font-bold transition cursor-pointer disabled:opacity-30"
               title="Heading 2"
             >
               H2
@@ -875,19 +875,19 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('### ')}
-              className="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 font-bold transition cursor-pointer disabled:opacity-30"
+              className="px-2 py-1 rounded hover:bg-slate-200 font-bold transition cursor-pointer disabled:opacity-30"
               title="Heading 3"
             >
               H3
             </button>
 
-            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <div className="w-px h-4 bg-slate-200 mx-1" />
 
             <button
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertFormatting('**', '**', 'bold')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Bold (Ctrl+B)"
             >
               <Bold className="w-3.5 h-3.5" />
@@ -896,7 +896,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertFormatting('*', '*', 'italic')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Italic (Ctrl+I)"
             >
               <Italic className="w-3.5 h-3.5" />
@@ -905,7 +905,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertFormatting('~~', '~~', 'strikethrough')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Strikethrough"
             >
               <Strikethrough className="w-3.5 h-3.5" />
@@ -914,20 +914,20 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertFormatting('`', '`', 'code')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Inline Code"
             >
               <Code className="w-3.5 h-3.5" />
             </button>
 
-            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <div className="w-px h-4 bg-slate-200 mx-1" />
 
             {/* Interactive Task Checklist (Linear Style) */}
             <button
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('- [ ] ')}
-              className="flex items-center gap-1 px-2 py-1 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition font-medium cursor-pointer disabled:opacity-30"
+              className="flex items-center gap-1 px-2 py-1 rounded bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition font-medium cursor-pointer disabled:opacity-30"
               title="Insert Interactive Checklist"
             >
               <CheckSquare className="w-3.5 h-3.5" />
@@ -938,7 +938,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('- ')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Bullet List"
             >
               <List className="w-3.5 h-3.5" />
@@ -948,7 +948,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('> ')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Blockquote"
             >
               <Quote className="w-3.5 h-3.5" />
@@ -958,7 +958,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={() => insertLinePrefix('---\n')}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Divider"
             >
               <Minus className="w-3.5 h-3.5" />
@@ -971,7 +971,7 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={handleUndo}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Undo (Ctrl+Z)"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -980,23 +980,23 @@ export default function CollaborativeWorkspaceModal({
               type="button"
               disabled={permission !== 'EDIT'}
               onClick={handleRedo}
-              className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-30"
+              className="p-1.5 rounded hover:bg-slate-200 transition cursor-pointer disabled:opacity-30"
               title="Redo (Ctrl+Y)"
             >
               <RotateCw className="w-3.5 h-3.5" />
             </button>
 
-            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <div className="w-px h-4 bg-slate-200 mx-1" />
 
             {/* View Mode Buttons */}
-            <div className="flex items-center bg-slate-200/70 dark:bg-slate-800 p-0.5 rounded-lg">
+            <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg">
               <button
                 type="button"
                 onClick={() => setViewMode('editor')}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
                   viewMode === 'editor'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <Edit3 className="w-3 h-3" />
@@ -1007,8 +1007,8 @@ export default function CollaborativeWorkspaceModal({
                 onClick={() => setViewMode('split')}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
                   viewMode === 'split'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <Columns className="w-3 h-3" />
@@ -1019,8 +1019,8 @@ export default function CollaborativeWorkspaceModal({
                 onClick={() => setViewMode('preview')}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
                   viewMode === 'preview'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <Eye className="w-3 h-3" />
@@ -1047,7 +1047,7 @@ export default function CollaborativeWorkspaceModal({
                 {(viewMode === 'editor' || viewMode === 'split') && (
                   <div
                     className={`h-full flex flex-col relative ${
-                      viewMode === 'split' ? 'w-1/2 border-r border-slate-200 dark:border-slate-800' : 'w-full'
+                      viewMode === 'split' ? 'w-1/2 border-r border-slate-200' : 'w-full'
                     }`}
                   >
                     <textarea
@@ -1059,7 +1059,7 @@ export default function CollaborativeWorkspaceModal({
                       onClick={handleCursorMove}
                       onKeyUp={handleCursorMove}
                       placeholder="Start typing markdown, code, or documentation..."
-                      className="w-full h-full p-6 bg-transparent text-slate-900 dark:text-slate-100 font-mono text-xs sm:text-sm leading-relaxed resize-none focus:outline-none select-text"
+                      className="w-full h-full p-6 bg-transparent text-slate-900 font-mono text-xs sm:text-sm leading-relaxed resize-none focus:outline-none select-text"
                       spellCheck="false"
                     />
 
@@ -1091,7 +1091,7 @@ export default function CollaborativeWorkspaceModal({
                 {/* 2. Live Formatted Preview (with interactive task toggles) */}
                 {(viewMode === 'preview' || viewMode === 'split') && (
                   <div
-                    className={`h-full overflow-y-auto p-8 bg-slate-50/40 dark:bg-slate-900/30 ${
+                    className={`h-full overflow-y-auto p-8 bg-slate-50/40 ${
                       viewMode === 'split' ? 'w-1/2' : 'w-full max-w-4xl mx-auto'
                     }`}
                     onClick={(e) => {
@@ -1105,7 +1105,7 @@ export default function CollaborativeWorkspaceModal({
                     }}
                   >
                     <div
-                      className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200"
+                      className="prose max-w-none text-slate-800"
                       dangerouslySetInnerHTML={{
                         __html: renderMarkdownToHtml(content),
                       }}
@@ -1120,15 +1120,15 @@ export default function CollaborativeWorkspaceModal({
           {/* VERSION TIME MACHINE DRAWER (Linear / Figma Style)         */}
           {/* ========================================================= */}
           {showVersions && (
-            <aside className="w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shadow-xl z-20 animate-slide-in-right">
-              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <aside className="w-80 border-l border-slate-200 bg-white flex flex-col shadow-xl z-20 animate-slide-in-right">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-indigo-500" />
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Revision Time Machine</h4>
+                  <h4 className="text-sm font-bold text-slate-900">Revision Time Machine</h4>
                 </div>
                 <button
                   onClick={() => setShowVersions(false)}
-                  className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="p-1 rounded-md text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1136,14 +1136,14 @@ export default function CollaborativeWorkspaceModal({
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {/* Current Active Version Card */}
-                <div className="p-3 rounded-xl border-2 border-indigo-500/50 bg-indigo-50/40 dark:bg-indigo-950/20">
+                <div className="p-3 rounded-xl border-2 border-indigo-500/50 bg-indigo-50/40">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Current (v{docVersion})</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-semibold">
+                    <span className="text-xs font-bold text-indigo-600">Current (v{docVersion})</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">
                       Live
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  <p className="text-[11px] text-slate-500">
                     {lastSavedTime ? `Saved ${lastSavedTime.toLocaleTimeString()}` : 'Actively editing'}
                   </p>
                 </div>
@@ -1163,24 +1163,24 @@ export default function CollaborativeWorkspaceModal({
                         onClick={() => setSelectedVersion(isSelected ? null : v)}
                         className={`p-3 rounded-xl border text-left transition cursor-pointer ${
                           isSelected
-                            ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 shadow-xs'
-                            : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                            ? 'border-indigo-500 bg-indigo-50/50 shadow-xs'
+                            : 'border-slate-200 hover:bg-slate-50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          <span className="text-xs font-bold text-slate-800">
                             Version {v.versionNumber}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono">
                             {(v.size / 1024).toFixed(1)} KB
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+                        <p className="text-[11px] text-slate-500 mb-2">
                           {new Date(v.createdAt).toLocaleString()}
                         </p>
 
                         {isSelected && (
-                          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-2">
+                          <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
                             <button
                               type="button"
                               disabled={isRestoring}
@@ -1207,15 +1207,15 @@ export default function CollaborativeWorkspaceModal({
           {/* THREADED COMMENTS DRAWER (Google Docs / Linear Style)      */}
           {/* ========================================================= */}
           {showComments && (
-            <aside className="w-80 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shadow-xl z-20 animate-slide-in-right">
-              <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <aside className="w-80 border-l border-slate-200 bg-white flex flex-col shadow-xl z-20 animate-slide-in-right">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-indigo-500" />
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Document Comments</h4>
+                  <h4 className="text-sm font-bold text-slate-900">Document Comments</h4>
                 </div>
                 <button
                   onClick={() => setShowComments(false)}
-                  className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  className="p-1 rounded-md text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1233,31 +1233,31 @@ export default function CollaborativeWorkspaceModal({
                   comments.map((c) => (
                     <div
                       key={c.id}
-                      className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850"
+                      className="p-3 rounded-xl border border-slate-200 bg-slate-50/50"
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        <span className="text-xs font-bold text-slate-900">
                           {c.user?.username || 'User'}
                         </span>
                         <span className="text-[10px] text-slate-400">
                           {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{c.content}</p>
+                      <p className="text-xs text-slate-700 leading-relaxed">{c.content}</p>
                     </div>
                   ))
                 )}
               </div>
 
               {/* New Comment Input */}
-              <form onSubmit={handleAddComment} className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <form onSubmit={handleAddComment} className="p-3 border-t border-slate-200 bg-white">
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write a comment..."
-                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
                   <button
                     type="submit"

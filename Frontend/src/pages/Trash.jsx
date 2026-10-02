@@ -138,7 +138,7 @@ export default function TrashPage() {
   const trashSeo = getPageSeo("trash");
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-[#F8FAFC] transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200">
       <SeoHead
         title={trashSeo?.title || "Trash | DataStock"}
         description={trashSeo?.description || "Restore or permanently delete files."}
@@ -146,15 +146,15 @@ export default function TrashPage() {
         noindex
       />
       {/* Top Header */}
-      <header className="sticky top-0 bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-md z-40 border-b border-slate-200 dark:border-[#334155]">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-40 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-[#334155] rounded-xl transition duration-150 cursor-pointer"
+              className="p-2 hover:bg-slate-100 rounded-xl transition duration-150 cursor-pointer"
               title="Back to Dashboard"
             >
-              <ArrowLeft className="w-5 h-5 text-slate-500 dark:text-[#94A3B8]" />
+              <ArrowLeft className="w-5 h-5 text-slate-500" />
             </button>
             <div className="flex items-center gap-2">
               <div className="p-2 bg-red-500/10 text-red-500 rounded-xl">
@@ -172,7 +172,7 @@ export default function TrashPage() {
               placeholder="Search deleted files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-[#334155] rounded-xl bg-slate-50 dark:bg-[#0F172A] focus:outline-none focus:border-red-500 dark:focus:border-red-500 text-sm transition"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-red-500 text-sm transition"
             />
           </div>
 
@@ -187,7 +187,7 @@ export default function TrashPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold">Trash Files</h2>
-            <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
+            <p className="text-xs text-slate-500">
               {filteredFiles.length} file{filteredFiles.length === 1 ? '' : 's'} in your trash. Permanent deletion will free up storage space.
             </p>
           </div>
@@ -209,8 +209,8 @@ export default function TrashPage() {
             <span className="text-sm text-slate-400 font-medium">Loading trash...</span>
           </div>
         ) : filteredFiles.length === 0 ? (
-          <div className="bg-white dark:bg-[#1E293B] border border-dashed border-slate-200 dark:border-[#334155] rounded-3xl p-16 text-center max-w-md mx-auto mt-12">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/40 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+          <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-16 text-center max-w-md mx-auto mt-12">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
               <Trash2 className="w-8 h-8 text-slate-300" />
             </div>
             <h3 className="font-bold text-lg mb-1">Your trash is empty</h3>
@@ -219,22 +219,22 @@ export default function TrashPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-[#334155] rounded-2xl overflow-hidden shadow-xs">
-            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-slate-100 dark:border-[#334155] bg-slate-50/50 dark:bg-[#334155]/20 text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-slate-100 bg-slate-50/50 text-xs font-extrabold text-slate-400 uppercase tracking-wider">
               <div className="col-span-6">File Name</div>
               <div className="col-span-2">Size</div>
               <div className="col-span-2">Deleted Date</div>
               <div className="col-span-2 text-right">Actions</div>
             </div>
 
-            <div className="divide-y divide-slate-150 dark:divide-[#334155]">
+            <div className="divide-y divide-slate-150">
               {filteredFiles.map((file) => {
                 const fileType = getFileType(file.mimeType);
                 const Icon = fileType.icon;
                 return (
                   <div
                     key={file.id}
-                    className="grid grid-cols-[1fr_auto] md:grid-cols-12 gap-3 md:gap-4 px-6 py-4 items-center hover:bg-slate-50/80 dark:hover:bg-[#334155]/30 transition"
+                    className="grid grid-cols-[1fr_auto] md:grid-cols-12 gap-3 md:gap-4 px-6 py-4 items-center hover:bg-slate-50/80 transition"
                   >
                     {/* Name column */}
                     <div className="col-span-1 md:col-span-6 flex items-center gap-3 min-w-0">
@@ -242,7 +242,7 @@ export default function TrashPage() {
                         <Icon className={`w-4.5 h-4.5 ${fileType.color || 'text-slate-500'}`} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate text-slate-800 dark:text-[#F8FAFC]" title={file.originalName}>
+                        <p className="text-sm font-semibold truncate text-slate-800" title={file.originalName}>
                           {file.originalName}
                         </p>
                         <p className="md:hidden text-[10px] text-slate-400 mt-0.5">
@@ -252,7 +252,7 @@ export default function TrashPage() {
                     </div>
 
                     {/* Size column */}
-                    <div className="hidden md:block col-span-2 text-sm text-slate-500 dark:text-[#94A3B8]">
+                    <div className="hidden md:block col-span-2 text-sm text-slate-500">
                       {formatFileSize(file.size)}
                     </div>
 
@@ -269,14 +269,14 @@ export default function TrashPage() {
                     <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleRestore(file.id, file.originalName)}
-                        className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 rounded-lg transition cursor-pointer"
+                        className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition cursor-pointer"
                         title="Restore File"
                       >
                         <RotateCcw className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteForever(file.id, file.originalName)}
-                        className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500 rounded-lg transition cursor-pointer"
+                        className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition cursor-pointer"
                         title="Delete Forever"
                       >
                         <Trash2 className="w-4 h-4" />

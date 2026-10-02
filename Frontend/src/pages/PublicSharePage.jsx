@@ -106,11 +106,11 @@ const getFileIcon = (mime, fileName = '') => {
   if (isVid) return <FileVideo className="w-16 h-16 text-violet-500" />;
   if (isAud) return <FileAudio className="w-16 h-16 text-pink-500" />;
   if (isPdf) return <FileText className="w-16 h-16 text-rose-500" />;
-  if (isWord) return <FileText className="w-16 h-16 text-blue-500 dark:text-blue-400" />;
+  if (isWord) return <FileText className="w-16 h-16 text-blue-500" />;
   if (isExcel) return <FileSpreadsheet className="w-16 h-16 text-emerald-500" />;
   if (isZip) return <FileArchive className="w-16 h-16 text-amber-500" />;
   if (isTxt) return <FileCode className="w-16 h-16 text-orange-500" />;
-  return <FileText className="w-16 h-16 text-slate-400 dark:text-[#94A3B8]" />;
+  return <FileText className="w-16 h-16 text-slate-400" />;
 };
 
 const getSmallFileIcon = (mime, fileName = '') => {
@@ -128,7 +128,7 @@ const getSmallFileIcon = (mime, fileName = '') => {
   if (isVid) return <FileVideo className="w-5 h-5 text-violet-500" />;
   if (isAud) return <FileAudio className="w-5 h-5 text-pink-500" />;
   if (isPdf) return <FileText className="w-5 h-5 text-rose-500" />;
-  if (isWord) return <FileText className="w-5 h-5 text-blue-500 dark:text-blue-400" />;
+  if (isWord) return <FileText className="w-5 h-5 text-blue-500" />;
   if (isExcel) return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
   if (isZip) return <FileArchive className="w-5 h-5 text-amber-500" />;
   if (isTxt) return <FileCode className="w-5 h-5 text-orange-500" />;
@@ -277,9 +277,9 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
   }
   if (isAudio) {
     return (
-      <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100 dark:border-[#334155]">
+      <div className="bg-white rounded-2xl p-8 shadow-lg text-center w-full max-w-md border border-gray-100">
         <FileAudio className="w-20 h-20 mx-auto text-pink-500 mb-4" />
-        <p className="font-semibold text-gray-700 dark:text-[#94A3B8] mb-4">{file.originalName}</p>
+        <p className="font-semibold text-gray-700 mb-4">{file.originalName}</p>
         <audio controls className="w-full">
           <source src={url} type={mime} />
         </audio>
@@ -289,7 +289,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
   if (isDocx) {
     return (
       <div
-        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-[#1E293B] overflow-auto p-6 sm:p-8 text-left text-slate-900 dark:text-slate-100`}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200'} bg-white overflow-auto p-6 sm:p-8 text-left text-slate-900`}
         style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
         {docxLoading ? (
@@ -298,7 +298,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
             <span>Loading Word document...</span>
           </div>
         ) : (
-          <div dangerouslySetInnerHTML={{ __html: docxHtml }} className="prose dark:prose-invert max-w-none leading-relaxed" />
+          <div dangerouslySetInnerHTML={{ __html: docxHtml }} className="prose max-w-none leading-relaxed" />
         )}
       </div>
     );
@@ -346,13 +346,13 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
   if (isArchive) {
     return (
       <div
-        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-[#1E293B] flex flex-col overflow-hidden text-left`}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[700px] min-h-[600px] rounded-2xl shadow-xl border border-gray-200'} bg-white flex flex-col overflow-hidden text-left`}
         style={isModal ? { width: '100%', height: '100%' } : { width: '100%', height: '700px', minHeight: '600px' }}
       >
-        <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] px-5 py-3 flex items-center justify-between">
+        <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">ZIP Archive</span>
-            <span className="text-xs text-gray-500 dark:text-[#94A3B8]">{zipEntries.length} items inside</span>
+            <span className="bg-amber-500/10 text-amber-600 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">ZIP Archive</span>
+            <span className="text-xs text-gray-500">{zipEntries.length} items inside</span>
           </div>
         </div>
         <div className="flex-1 overflow-auto p-4 space-y-2">
@@ -363,12 +363,12 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
             </div>
           ) : (
             zipEntries.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#334155]/40 border border-gray-100 dark:border-[#334155] text-xs">
-                <div className="flex items-center gap-2.5 truncate font-mono text-gray-800 dark:text-gray-200">
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 text-xs">
+                <div className="flex items-center gap-2.5 truncate font-mono text-gray-800">
                   {item.isDir ? <FileArchive className="w-4 h-4 text-amber-500 shrink-0" /> : <FileText className="w-4 h-4 text-gray-400 shrink-0" />}
                   <span className="truncate">{item.name}</span>
                 </div>
-                <span className="text-gray-400 dark:text-[#94A3B8] font-mono shrink-0 ml-4">{item.isDir ? 'Folder' : formatSize(item.size)}</span>
+                <span className="text-gray-400 font-mono shrink-0 ml-4">{item.isDir ? 'Folder' : formatSize(item.size)}</span>
               </div>
             ))
           )}
@@ -383,17 +383,17 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
 
     return (
       <div
-        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[520px] sm:h-[700px] min-h-[480px] sm:min-h-[600px] rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-[#334155]'} bg-white dark:bg-slate-900 flex flex-col overflow-hidden text-left`}
+        className={`w-full ${isModal ? 'h-full flex-1' : 'h-[520px] sm:h-[700px] min-h-[480px] sm:min-h-[600px] rounded-xl sm:rounded-2xl shadow-xl border border-gray-200'} bg-white flex flex-col overflow-hidden text-left`}
         style={isModal ? { width: '100%', height: '100%' } : { width: '100%', minHeight: '480px' }}
       >
         {/* Responsive Control Toolbar */}
-        <div className="bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-[#334155] p-2.5 sm:px-4 sm:py-2 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
+        <div className="bg-gray-100 border-b border-gray-200 p-2.5 sm:px-4 sm:py-2 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
           <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
+            <span className="bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
               PDF
             </span>
             {!isModal && (
-              <span className="font-medium text-gray-700 dark:text-slate-300 truncate text-xs sm:text-sm">
+              <span className="font-medium text-gray-700 truncate text-xs sm:text-sm">
                 {file.originalName}
               </span>
             )}
@@ -403,7 +403,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
             <button
               type="button"
               onClick={() => setPdfViewMode(pdfViewMode === 'gview' ? 'direct' : 'gview')}
-              className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg font-semibold text-gray-700 dark:text-slate-200 transition text-[11px] sm:text-xs text-center cursor-pointer"
+              className="px-2.5 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg font-semibold text-gray-700 transition text-[11px] sm:text-xs text-center cursor-pointer"
               title="Toggle Viewer Engine"
             >
               {pdfViewMode === 'gview' ? '🌐 Google Viewer' : '📄 Direct PDF'}
@@ -413,7 +413,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg font-semibold transition text-[11px] sm:text-xs text-center whitespace-nowrap"
+              className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded-lg font-semibold transition text-[11px] sm:text-xs text-center whitespace-nowrap"
             >
               Open ↗
             </a>
@@ -444,10 +444,10 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
 
   // Fallback
   return (
-    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-gray-100 dark:border-[#334155] text-center max-w-md">
+    <div className="bg-white rounded-2xl p-10 shadow-lg border border-gray-100 text-center max-w-md">
       {getFileIcon(mime)}
-      <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mt-4">{file.originalName}</h3>
-      <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1 font-mono">{mime || 'Binary file'}</p>
+      <h3 className="text-base font-bold text-gray-800 mt-4">{file.originalName}</h3>
+      <p className="text-xs text-gray-400 mt-1 font-mono">{mime || 'Binary file'}</p>
       {allowDownload ? (
         <button
           onClick={() => handleDownloadSingleFile(url, file?.originalName)}
@@ -457,7 +457,7 @@ const FilePreview = ({ file, allowDownload, isModal = false }) => {
           Download File
         </button>
       ) : (
-        <p className="text-red-500 dark:text-red-400 mt-4 text-xs font-medium">Downloads restricted for this link.</p>
+        <p className="text-red-500 mt-4 text-xs font-medium">Downloads restricted for this link.</p>
       )}
     </div>
   );
@@ -532,18 +532,18 @@ const PublicSharePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#eff6ff] via-white to-[#f0f9ff] dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 flex flex-col transition-colors duration-200">
+    <div className="min-h-screen bg-linear-to-br from-[#eff6ff] via-white to-[#f0f9ff] flex flex-col transition-colors duration-200">
       {/* ── Nav bar ── */}
-      <nav className="bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-sm border-b border-gray-200 dark:border-[#334155] px-6 py-4 flex items-center justify-between">
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <img src="/datastock-logo.svg" alt="DataStock Logo" className="w-8 h-8 rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-200" />
-          <span className="font-bold text-xl text-gray-900 dark:text-[#F8FAFC]">Data<span className="text-[#3B82F6]">Stock</span></span>
+          <span className="font-bold text-xl text-gray-900">Data<span className="text-[#3B82F6]">Stock</span></span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link
             to="/login"
-            className="text-sm font-semibold text-[#3B82F6] dark:text-[#3B82F6] hover:text-[#3B82F6] dark:hover:text-[#3B82F6] bg-blue-50 dark:bg-[#3B82F6]/10 hover:bg-blue-100 dark:hover:bg-[#3B82F6]/20 px-4 py-2 rounded-xl transition"
+            className="text-sm font-semibold text-[#3B82F6] hover:text-[#3B82F6] bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition"
           >
             Sign In
           </Link>
@@ -556,21 +556,21 @@ const PublicSharePage = () => {
         {/* ── Loading ── */}
         {loading && (
           <div className="flex flex-col items-center justify-center my-auto gap-4 py-20">
-            <div className="w-16 h-16 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-emerald-500/20">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
               <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
             </div>
-            <p className="text-gray-400 dark:text-[#94A3B8] font-medium">Loading shared content…</p>
+            <p className="text-gray-400 font-medium">Loading shared content…</p>
           </div>
         )}
 
         {/* ── Error ── */}
         {!loading && error && (
-          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-10 shadow-lg border border-red-100 dark:border-[#334155] text-center max-w-md w-full my-auto">
-            <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-500/20">
+          <div className="bg-white rounded-2xl p-10 shadow-lg border border-red-100 text-center max-w-md w-full my-auto">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">Link Unavailable</h1>
-            <p className="text-gray-400 dark:text-[#94A3B8] text-sm mb-6">{error}</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Link Unavailable</h1>
+            <p className="text-gray-400 text-sm mb-6">{error}</p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl font-semibold text-sm transition"
@@ -582,26 +582,26 @@ const PublicSharePage = () => {
 
         {/* ── Password Protection ── */}
         {!loading && isPasswordProtected && (
-          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-xl border border-gray-150 dark:border-[#334155] text-center max-w-md w-full animate-fade-in my-auto">
-            <div className="w-14 h-14 bg-blue-50 dark:bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-emerald-500/20">
-              <Lock className="w-7 h-7 text-[#3B82F6] dark:text-[#3B82F6]" />
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-150 text-center max-w-md w-full animate-fade-in my-auto">
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100">
+              <Lock className="w-7 h-7 text-[#3B82F6]" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-[#F8FAFC] mb-2">Password Protected</h1>
-            <p className="text-gray-400 dark:text-[#94A3B8] text-sm mb-5">
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Password Protected</h1>
+            <p className="text-gray-400 text-sm mb-5">
               Enter the password to access this shared {isFolderType ? 'folder' : 'file'}.
             </p>
 
             {publicFileData && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#334155]/40 rounded-xl border border-gray-100 dark:border-[#334155]/50 text-left mb-6">
-                <div className="w-10 h-10 bg-white dark:bg-[#334155] rounded-lg flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 text-left mb-6">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shrink-0 border border-gray-200">
                   {isFolderType ? <Folder className="w-6 h-6 text-cyan-500" /> : getFileIcon(publicFileData.mimeType, publicFileData.fileName)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-[#F8FAFC] truncate">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
                     {isFolderType ? publicFileData.folderName : publicFileData.fileName}
                   </p>
                   {!isFolderType && (
-                    <p className="text-xs text-gray-400 dark:text-[#94A3B8]">{formatSize(publicFileData.size)}</p>
+                    <p className="text-xs text-gray-400">{formatSize(publicFileData.size)}</p>
                   )}
                 </div>
               </div>
@@ -613,11 +613,11 @@ const PublicSharePage = () => {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#334155] border border-gray-200 dark:border-[#334155] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white text-gray-700 dark:text-[#94A3B8] transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:bg-white text-gray-700 transition"
                 disabled={verifying}
               />
               {passwordError && (
-                <p className="text-red-500 dark:text-red-400 text-xs text-left font-semibold">{passwordError}</p>
+                <p className="text-red-500 text-xs text-left font-semibold">{passwordError}</p>
               )}
               <button
                 type="submit"
@@ -638,14 +638,14 @@ const PublicSharePage = () => {
         {!loading && !isPasswordProtected && isFolderType && (
           <div className="w-full max-w-5xl animate-fade-in space-y-5">
             {/* Folder Header Card */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0 flex-1">
-                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 dark:from-cyan-400/20 dark:to-blue-400/20 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/20">
-                  <Folder className="w-8 h-8 text-cyan-600 dark:text-cyan-400 stroke-[2.2]" />
+                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/20">
+                  <Folder className="w-8 h-8 text-cyan-600 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   {/* Breadcrumbs */}
-                  <div className="flex items-center gap-1 overflow-x-auto text-xs text-gray-400 dark:text-[#94A3B8] mb-1 font-medium select-none">
+                  <div className="flex items-center gap-1 overflow-x-auto text-xs text-gray-400 mb-1 font-medium select-none">
                     {breadcrumbs.map((crumb, idx) => (
                       <React.Fragment key={crumb.id}>
                         {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
@@ -658,8 +658,8 @@ const PublicSharePage = () => {
                       </React.Fragment>
                     ))}
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate">{currentFolder?.name}</h1>
-                  <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1 font-medium">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{currentFolder?.name}</h1>
+                  <p className="text-xs text-gray-400 mt-1 font-medium">
                     {folderSubfolders.length} {folderSubfolders.length === 1 ? 'folder' : 'folders'}, {folderFiles.length} {folderFiles.length === 1 ? 'file' : 'files'}
                   </p>
                 </div>
@@ -678,35 +678,35 @@ const PublicSharePage = () => {
             </div>
 
             {/* Folder Contents */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm p-5 sm:p-6 space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 space-y-6">
 
               {/* Empty Folder Check */}
               {folderSubfolders.length === 0 && folderFiles.length === 0 && (
                 <div className="text-center py-16">
-                  <div className="w-16 h-16 bg-gray-50 dark:bg-[#334155]/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-[#334155]">
-                    <FolderOpen className="w-8 h-8 text-gray-300 dark:text-[#94A3B8]" />
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                    <FolderOpen className="w-8 h-8 text-gray-300" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-200">This folder is empty</h3>
-                  <p className="text-xs text-gray-400 dark:text-[#94A3B8] mt-1">There are no files or subfolders inside this directory.</p>
+                  <h3 className="text-base font-bold text-gray-800">This folder is empty</h3>
+                  <p className="text-xs text-gray-400 mt-1">There are no files or subfolders inside this directory.</p>
                 </div>
               )}
 
               {/* Subfolders Grid */}
               {folderSubfolders.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider mb-3">Folders</h3>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Folders</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {folderSubfolders.map((sf) => (
                       <div
                         key={sf.id}
                         onClick={() => handleNavigateSubfolder(sf.id)}
-                        className="group flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-[#334155]/40 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20 border border-gray-100 dark:border-[#334155] hover:border-cyan-500/30 rounded-xl cursor-pointer transition select-none"
+                        className="group flex items-center gap-3 p-3.5 bg-gray-50 hover:bg-cyan-50/50 border border-gray-100 hover:border-cyan-500/30 rounded-xl cursor-pointer transition select-none"
                       >
-                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/20 flex items-center justify-center shrink-0">
-                          <Folder className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+                          <Folder className="w-5 h-5 text-cyan-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 truncate">{sf.name}</h4>
+                          <h4 className="text-sm font-bold text-gray-800 group-hover:text-cyan-600 truncate">{sf.name}</h4>
                           <p className="text-[11px] text-gray-400">Subfolder</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-cyan-500 transition" />
@@ -719,29 +719,29 @@ const PublicSharePage = () => {
               {/* Files Grid */}
               {folderFiles.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 dark:text-[#94A3B8] uppercase tracking-wider mb-3">Files</h3>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Files</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {folderFiles.map((f) => (
                       <div
                         key={f.id}
-                        className="group flex items-center justify-between p-3.5 bg-gray-50 dark:bg-[#334155]/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 border border-gray-100 dark:border-[#334155] hover:border-blue-500/30 rounded-xl transition"
+                        className="group flex items-center justify-between p-3.5 bg-gray-50 hover:bg-blue-50/50 border border-gray-100 hover:border-blue-500/30 rounded-xl transition"
                       >
                         <div
                           onClick={() => setPreviewFile(f)}
                           className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer pr-2"
                         >
-                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-[#334155] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shrink-0">
                             {getSmallFileIcon(f.mimeType, f.originalName)}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#3B82F6] truncate">{f.originalName}</h4>
+                            <h4 className="text-sm font-bold text-gray-800 group-hover:text-[#3B82F6] truncate">{f.originalName}</h4>
                             <p className="text-[11px] text-gray-400">{formatSize(f.size)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => setPreviewFile(f)}
-                            className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-[#3B82F6] transition"
+                            className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-[#3B82F6] transition"
                             title="Preview file"
                           >
                             <Eye className="w-4 h-4" />
@@ -749,7 +749,7 @@ const PublicSharePage = () => {
                           {allowDownload && (
                             <button
                               onClick={() => handleDownloadSingleFile(f.url, f.originalName)}
-                              className="p-2 hover:bg-white dark:hover:bg-[#1E293B] rounded-lg text-gray-400 hover:text-emerald-500 transition cursor-pointer"
+                              className="p-2 hover:bg-white rounded-lg text-gray-400 hover:text-emerald-500 transition cursor-pointer"
                               title="Download file"
                             >
                               <Download className="w-4 h-4" />
@@ -764,7 +764,7 @@ const PublicSharePage = () => {
             </div>
 
             {/* Footer note */}
-            <p className="text-center text-xs text-gray-400 dark:text-[#94A3B8] mt-6">
+            <p className="text-center text-xs text-gray-400 mt-6">
               This folder was shared via{' '}
               <Link to="/" className="text-[#3B82F6] font-semibold hover:underline">
                 DataStock
@@ -778,19 +778,19 @@ const PublicSharePage = () => {
         {!loading && !isPasswordProtected && !isFolderType && file && (
           <div className="w-full max-w-5xl animate-fade-in">
             {/* File header card */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-[#334155] mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#334155]">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-gray-200">
                   {getFileIcon(file.mimeType, file.originalName)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-[#F8FAFC] truncate leading-snug">{file.originalName}</h1>
+                  <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate leading-snug">{file.originalName}</h1>
                   <div className="flex items-center gap-3 sm:gap-4 mt-1 flex-wrap">
-                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400 dark:text-[#94A3B8]">
+                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400">
                       <HardDrive className="w-3.5 h-3.5" />
                       {formatSize(file.size)}
                     </span>
-                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400 dark:text-[#94A3B8]">
+                    <span className="flex items-center gap-1 text-xs sm:text-sm text-gray-400">
                       <Clock className="w-3.5 h-3.5" />
                       {new Date(file.createdAt).toLocaleDateString('en-IN', {
                         day: '2-digit',
@@ -814,14 +814,14 @@ const PublicSharePage = () => {
 
             {/* Preview area */}
             <div
-              className="w-full bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-[#334155] shadow-sm overflow-hidden p-1.5 sm:p-6 flex flex-col items-center justify-center"
+              className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-1.5 sm:p-6 flex flex-col items-center justify-center"
               style={{ width: '100%', minHeight: '500px' }}
             >
               <FilePreview file={file} allowDownload={allowDownload} />
             </div>
 
             {/* Footer note */}
-            <p className="text-center text-xs text-gray-400 dark:text-[#94A3B8] mt-6">
+            <p className="text-center text-xs text-gray-400 mt-6">
               This file was shared via{' '}
               <Link to="/" className="text-[#3B82F6] font-semibold hover:underline">
                 DataStock
@@ -837,13 +837,13 @@ const PublicSharePage = () => {
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in"
             onClick={(e) => e.target === e.currentTarget && setPreviewFile(null)}
           >
-            <div className="bg-white dark:bg-[#1E293B] rounded-2xl w-full max-w-4xl h-[85vh] max-h-[85vh] shadow-2xl border border-gray-100 dark:border-[#334155] flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-[#334155] shrink-0">
+            <div className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] max-h-[85vh] shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                     {getSmallFileIcon(previewFile.mimeType, previewFile.originalName)}
                   </div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-[#F8FAFC] truncate">{previewFile.originalName}</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 truncate">{previewFile.originalName}</h3>
                 </div>
                 <div className="flex items-center gap-2">
                   {allowDownload && (
@@ -857,7 +857,7 @@ const PublicSharePage = () => {
                   )}
                   <button
                     onClick={() => setPreviewFile(null)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#334155] rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-[#F8FAFC] transition cursor-pointer"
+                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>

@@ -2,16 +2,17 @@
 
   <img src="Frontend/public/datastock-logo.svg" alt="DataStock Logo" width="80" height="80" />
 
-  # ☁️ DataStock
-  ### Next-Generation Zero-Knowledge Cloud Storage & Collaboration Platform
+# ☁️ DataStock
 
-  [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-  [![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-  [![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-  [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+### Next-Generation Zero-Knowledge Cloud Storage & Collaboration Platform
+
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
   <p align="center">
     <b>Store files securely • E2EE Zero-Knowledge Privacy • Real-Time Collaboration • Modern Mobile UX</b>
@@ -37,17 +38,20 @@
 ## 🔥 Key Features
 
 ### 🛡️ Security & Zero-Knowledge Encryption (E2EE)
+
 - **Client-Side Encryption**: Web Crypto API (RSA + AES-GCM 256-bit encryption).
 - **Passphrase Vault**: Single-click vault lock/unlock with encrypted passphrase storage.
 - **Zero-Knowledge Architecture**: Encryption and decryption happen entirely within your local browser context.
 
 ### 📁 Cloud Storage & Directory Management
+
 - **Instant Drag-and-Drop**: Multi-file drag-and-drop overlay zone.
 - **Folder Vaults & Nested Paths**: Subfolder navigation, breadcrumbs, and folder ZIP downloads.
 - **Rich File Previews**: Native modal preview for Images, Videos, PDFs, Text documents, and Audio files.
 - **Smart Extension Badges**: Automatic recognition of `DOCX`, `XLSX`, `PPTX`, `PNG`, `JPG`, `ZIP`, `PDF`, `MP4`, `MP3`, and more.
 
 ### 📱 Native Mobile Experience
+
 - **Bottom Navigation Bar**: Mobile quick bar with 🏠 Drive, 🔍 Search, ➕ Upload FAB, 🔔 Alerts, and 👤 Profile tabs.
 - **Floating Action Button (FAB)**: One-tap bottom-right mobile upload button.
 - **Touch Swipe Gestures**:
@@ -56,11 +60,13 @@
 - **Compact Card Scaling**: Optimized 15–20% shorter file cards for high-density mobile viewports.
 
 ### 🤝 Real-Time Collaboration & Telemetry
+
 - **Socket.io Live Sync**: Real-time notifications and live active collaborator avatars.
 - **Secure Link Sharing**: Share files and folders with password protection and expiration limits.
 - **Audit Log Telemetry**: System activity stream tracking uploads, deletions, shares, and logins.
 
 ### 📊 Storage Analytics & Stripe Subscriptions
+
 - **Category Usage Breakdowns**: Visual breakdown of storage consumed by Images, Videos, Documents, and Archives.
 - **Modern Pricing Matrix**: Basic (₹0), Pro (₹149/mo), and Family (₹299/mo) plans.
 - **Billing Toggle**: Monthly / Yearly toggle with instant 20% discount calculation.
@@ -69,14 +75,14 @@
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies Used |
-| :--- | :--- |
-| **Frontend** | React 19, Vite, Tailwind CSS v4, Redux Toolkit, Lucide Icons, Socket.io Client, JSZip |
-| **Security & Crypto** | Web Crypto API (SubtleCrypto: RSA-OAEP 2048, AES-GCM 256) |
-| **Backend API** | Node.js, Express.js, Prisma ORM, PostgreSQL |
-| **Real-Time & Sync** | Socket.IO WebSockets |
-| **Storage & Services** | Cloudinary API, Google OAuth 2.0, Dodo Payments / Stripe |
-| **Deployment** | Vercel (Frontend), Render (Backend API) |
+| Layer                  | Technologies Used                                                                     |
+| :--------------------- | :------------------------------------------------------------------------------------ |
+| **Frontend**           | React 19, Vite, Tailwind CSS v4, Redux Toolkit, Lucide Icons, Socket.io Client, JSZip |
+| **Security & Crypto**  | Web Crypto API (SubtleCrypto: RSA-OAEP 2048, AES-GCM 256)                             |
+| **Backend API**        | Node.js, Express.js, Prisma ORM, PostgreSQL                                           |
+| **Real-Time & Sync**   | Socket.IO WebSockets                                                                  |
+| **Storage & Services** | Cloudinary API, Google OAuth 2.0, Dodo Payments / Stripe                              |
+| **Deployment**         | Vercel (Frontend), Render (Backend API)                                               |
 
 ---
 
@@ -111,6 +117,7 @@ DataStock/
 ## ⚡ Quick Start & Local Setup
 
 ### 1. Prerequisites
+
 - Node.js `v18.x` or `v20.x`
 - PostgreSQL Database
 - Cloudinary & Google OAuth credentials (optional for full features)
@@ -118,12 +125,14 @@ DataStock/
 ### 2. Installation
 
 Clone the repository:
+
 ```bash
 git clone https://github.com/Akashyatinjain/DataStock.git
 cd DataStock
 ```
 
 Install dependencies for both projects:
+
 ```bash
 # Backend dependencies
 cd Backend
@@ -137,6 +146,7 @@ npm install
 ### 3. Environment Variables
 
 Create `Backend/.env`:
+
 ```env
 PORT=5000
 DATABASE_URL="postgresql://user:password@localhost:5432/datastock?schema=public"
@@ -153,11 +163,13 @@ CLOUDINARY_API_SECRET=""
 ```
 
 Create `Frontend/.env`:
+
 ```env
 VITE_API_URL="http://localhost:5000/api"
 ```
 
 ### 4. Database Setup & Migration
+
 ```bash
 cd Backend
 npx prisma generate
@@ -165,6 +177,7 @@ npx prisma migrate dev
 ```
 
 ### 5. Running Locally
+
 ```bash
 # Start Backend API (Terminal 1)
 cd Backend
@@ -188,6 +201,10 @@ DataStock implements a custom modern dark-mode aesthetic with glassmorphism over
 - **Vault State**: Amber security badge & instant unlock drawer
 
 ---
+
+## Latest Update
+
+Improved project documentation.
 
 ## 📜 License
 
